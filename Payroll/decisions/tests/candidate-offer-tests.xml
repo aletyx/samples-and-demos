@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Test cases for the candidate offer decision model.
+
+  Every case names the specification section it comes from. Cases A to G are
+  the worked examples in Payroll/spec/candidate_offer.md section 15, so the
+  model and the document cannot drift apart without a test failing. Cases H
+  to K cover paths the document does not work through.
+
+  Run them with:  jbang tests/RunTests.java
+-->
+<testCases xmlns="http://www.omg.org/spec/DMN/20160719/testcase"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <modelName>candidate-offer.dmn</modelName>
+
+  <testCase id="A" name="Senior Software Engineer, strong panel, Austin" type="decision">
+    <description>Specification section 15.1. Nothing but the band placement and a market index of 1.00, so the offer is the rounded base salary.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-AUS</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">ENG-SWE-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">6</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">80</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">9</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">185500</value></component>
+        <component name="status"><value xsi:type="xsd:string">READY_TO_SEND</value></component>
+        <component name="flags">
+          <list/>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="B" name="Security Engineer relocating internationally to San Francisco" type="decision">
+    <description>Specification section 15.2. Exercises two certifications under the cap, an international move, onsite in a Tier 1 market, and a hard-to-fill requisition.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list>
+          <value xsi:type="xsd:string">SEC-CISSP</value>
+          <value xsi:type="xsd:string">CLOUD-ASSOC</value>
+        </list>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-SF</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">international</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">hard_to_fill</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">ENG-SEC-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">6</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">72</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">onsite</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">8</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">233500</value></component>
+        <component name="status"><value xsi:type="xsd:string">PENDING_REVIEW</value></component>
+        <component name="flags">
+          <list>
+            <value xsi:type="xsd:string">VISA_REVIEW</value>
+            <value xsi:type="xsd:string">VP_APPROVAL_REQUIRED</value>
+          </list>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="C" name="Data Analyst, developing band, remote from Madrid" type="decision">
+    <description>Specification section 15.3. A market index below 1.00 and the statutory benefit deduction, with the result still above the market-adjusted floor.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">ES-MAD</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">DAT-ANL-1</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">48</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">remote</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">2</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">59000</value></component>
+        <component name="status"><value xsi:type="xsd:string">READY_TO_SEND</value></component>
+        <component name="flags">
+          <list/>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="D" name="Exceptional candidate who should probably be levelled up" type="decision">
+    <description>Specification section 15.4. The interesting output is the flag, not the number: a score of 94 against Software Engineer II raises LEVEL_UP_REVIEW.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list>
+          <value xsi:type="xsd:string">MS-FIELD</value>
+        </list>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-NYC</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">critical</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">ENG-SWE-2</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">3</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">94</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">7</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">189000</value></component>
+        <component name="status"><value xsi:type="xsd:string">PENDING_REVIEW</value></component>
+        <component name="flags">
+          <list>
+            <value xsi:type="xsd:string">LEVEL_UP_REVIEW</value>
+            <value xsi:type="xsd:string">VP_APPROVAL_REQUIRED</value>
+          </list>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="E" name="Enterprise Account Executive in Berlin, commission role" type="decision">
+    <description>Specification section 15.5. MOD-CMP-07 must stop a base-to-OTE comparison, so the offer is unchanged and the case is flagged instead.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list>
+          <value xsi:type="xsd:string">SAL-CRM</value>
+        </list>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">DE-BER</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">hard_to_fill</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">GTM-AE-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">6</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">78</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">remote</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">9</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">134000</value></component>
+        <component name="status"><value xsi:type="xsd:string">PENDING_REVIEW</value></component>
+        <component name="flags">
+          <list>
+            <value xsi:type="xsd:string">OTE_COMPARISON</value>
+          </list>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="F" name="Corporate Counsel relocating from New York to Dublin" type="decision">
+    <description>Specification section 15.6. MOD-LOC-03 offsets the drop from a 1.12 market to a 0.88 one, and MOD-CRT-94 records the bar admission without paying for it.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list>
+          <value xsi:type="xsd:string">LEG-BAR</value>
+          <value xsi:type="xsd:string">PRV-CIPP</value>
+        </list>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="currentMarketCode"><value xsi:type="xsd:string">US-NYC</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">IE-DUB</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">international</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">COR-LEG-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">5</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">68</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">onsite</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">7</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">187500</value></component>
+        <component name="status"><value xsi:type="xsd:string">PENDING_REVIEW</value></component>
+        <component name="flags">
+          <list>
+            <value xsi:type="xsd:string">VISA_REVIEW</value>
+          </list>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="G" name="Below the hiring bar" type="decision">
+    <description>Specification section 15.7. BASE-01 stops the calculation and no salary is produced.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-SEA</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">PRD-PM-2</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">4</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">34</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">4</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:nil="true"/></component>
+        <component name="status"><value xsi:type="xsd:string">NO_OFFER</value></component>
+        <component name="flags">
+          <list/>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="H" name="Counsel role without bar admission is rejected in validation" type="decision">
+    <description>MOD-CRT-94 is a prerequisite, so the record never reaches the policy logic. Shows validation being separate from the legal definition.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-NYC</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">COR-LEG-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">5</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">70</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">8</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:nil="true"/></component>
+        <component name="status"><value xsi:type="xsd:string">NO_OFFER</value></component>
+        <component name="flags">
+          <list/>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="I" name="Verified competing offer within ten percent is matched" type="decision">
+    <description>MOD-CMP-01. The offer is raised to the competing figure because it sits inside the ten percent band and below the market-adjusted role maximum.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOffer"><value xsi:type="xsd:decimal">180000</value></component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="competingOfferVerified"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-AUS</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">ENG-SWE-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">6</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">60</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">8</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">180000</value></component>
+        <component name="status"><value xsi:type="xsd:string">READY_TO_SEND</value></component>
+        <component name="flags">
+          <list/>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="J" name="Reduced schedule pro-rates the offer into the floor" type="decision">
+    <description>MOD-DED-03 pro-rates to 80 percent, which drops the offer below the market-adjusted role minimum, so GRD-01 raises it back. The floor is not itself pro-rated: see the note in the README.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-AUS</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">0.8</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">DAT-ANL-2</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">4</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">65</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">5</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">110000</value></component>
+        <component name="status"><value xsi:type="xsd:string">READY_TO_SEND</value></component>
+        <component name="flags">
+          <list>
+            <value xsi:type="xsd:string">FLOOR_APPLIED</value>
+          </list>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+
+  <testCase id="K" name="Internal equity check holds an otherwise clean offer" type="decision">
+    <description>GRD-04. The same inputs as case A, but an existing peer in the role and market is paid materially less, so the offer is held for review.</description>
+    <inputNode name="Candidate">
+      <component name="boomerang"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="certifications">
+        <list/>
+      </component>
+      <component name="competingOfferIsOTE"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="contractToHire"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="coreDomainExperience"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="legalEntityExists"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="lowestPaidPeerSalary"><value xsi:type="xsd:decimal">160000</value></component>
+      <component name="marketCode"><value xsi:type="xsd:string">US-AUS</value></component>
+      <component name="missingHardRequirement"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="noticePeriodDays"><value xsi:type="xsd:decimal">30</value></component>
+      <component name="partTimeFraction"><value xsi:type="xsd:decimal">1</value></component>
+      <component name="rampUpPlanNeeded"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="referralSource"><value xsi:type="xsd:string">direct</value></component>
+      <component name="relocationRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="relocationScope"><value xsi:type="xsd:string">none</value></component>
+      <component name="remoteEligibleRole"><value xsi:type="xsd:boolean">true</value></component>
+      <component name="requisitionStatus"><value xsi:type="xsd:string">standard</value></component>
+      <component name="roleCode"><value xsi:type="xsd:string">ENG-SWE-3</value></component>
+      <component name="roleExpectedYears"><value xsi:type="xsd:decimal">6</value></component>
+      <component name="salaryHistoryBanned"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="seniorityScore"><value xsi:type="xsd:decimal">80</value></component>
+      <component name="visaSponsorshipRequired"><value xsi:type="xsd:boolean">false</value></component>
+      <component name="workMode"><value xsi:type="xsd:string">hybrid</value></component>
+      <component name="yearsExperience"><value xsi:type="xsd:decimal">9</value></component>
+    </inputNode>
+    <resultNode name="Candidate Offer" type="decision">
+      <expected>
+        <component name="offerAmount"><value xsi:type="xsd:decimal">185500</value></component>
+        <component name="status"><value xsi:type="xsd:string">PENDING_REVIEW</value></component>
+        <component name="flags">
+          <list>
+            <value xsi:type="xsd:string">INTERNAL_EQUITY_REVIEW</value>
+          </list>
+        </component>
+      </expected>
+    </resultNode>
+  </testCase>
+</testCases>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_cac7e3fe8941" name="Experience Adjustment" namespace="https://aletyx.ai/dmn/payroll/experience-adjustment"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 10, group 4. Experience and supply.</description>
+  <import id="_imp_1e902df379de" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_16b20c0660da" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <knowledgeSource id="_ks_840a0e754f81" name="Experience And Supply Policy" locationURI="../spec/candidate_offer.md#10-group-4--experience-and-supply">
+    <description>Section 10: experience against the role expectation, and how hard the requisition is to fill.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_3f0f1065fa57" name="Experience Rules">
+    <variable id="_var_359536c7acc6" name="Experience Rules" typeRef="types.tAppliedRuleList"/>
+    <encapsulatedLogic id="_fn_773d38562701" kind="FEEL" typeRef="types.tAppliedRuleList">
+      <formalParameter id="_fp_012072cfcf36" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_4dafe3f1e3b6" name="yearsExperience" typeRef="types.tYears"/>
+      <formalParameter id="_fp_1cfc9cf3e6d6" name="roleExpectedYears" typeRef="types.tYears"/>
+      <formalParameter id="_fp_85dad520c481" name="seniorityScore" typeRef="types.tSeniorityScore"/>
+      <formalParameter id="_fp_0a75f900664e" name="requisitionStatus" typeRef="types.tRequisitionStatus"/>
+      <formalParameter id="_fp_8d90023bca5f" name="coreDomainExperience" typeRef="boolean"/>
+      <formalParameter id="_fp_2e8aa9751afb" name="boomerang" typeRef="boolean"/>
+      <decisionTable id="_dt_fe6bf0621ed2" typeRef="types.tAppliedRuleList" hitPolicy="COLLECT" preferredOrientation="Rule-as-Row" outputLabel="Applied rule">
+        <input id="_in_0e00568e70b4" label="Years above the role expectation">
+          <inputExpression id="_ie_0a61a99778e3" typeRef="number">
+            <text>yearsExperience - roleExpectedYears</text>
+          </inputExpression>
+        </input>
+        <input id="_in_5b6a1b50ca64" label="Seniority score">
+          <inputExpression id="_ie_3566ba9994a3" typeRef="types.tSeniorityScore">
+            <text>seniorityScore</text>
+          </inputExpression>
+        </input>
+        <input id="_in_2fd1c475df45" label="Requisition status">
+          <inputExpression id="_ie_04d3927d7da5" typeRef="types.tRequisitionStatus">
+            <text>requisitionStatus</text>
+          </inputExpression>
+        </input>
+        <input id="_in_a254db19cbd3" label="Core domain experience">
+          <inputExpression id="_ie_c0c4e4fe8770" typeRef="boolean">
+            <text>coreDomainExperience</text>
+          </inputExpression>
+        </input>
+        <input id="_in_a03946521336" label="Former employee in good standing">
+          <inputExpression id="_ie_7bb3580c6693" typeRef="boolean">
+            <text>boomerang</text>
+          </inputExpression>
+        </input>
+        <output id="_out_dea04fd0d4b7" name="ruleId" typeRef="types.tRuleId"/>
+        <output id="_out_f473ed041171" name="description" typeRef="string"/>
+        <output id="_out_564cb8df169a" name="amount" typeRef="types.tAmount"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_161a429344a7">
+          <inputEntry id="_rule_161a429344a7_i0">
+            <text>&gt;= 5</text>
+          </inputEntry>
+          <inputEntry id="_rule_161a429344a7_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_161a429344a7_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_161a429344a7_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_161a429344a7_i4">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_161a429344a7_o0">
+            <text>"MOD-EXP-01"</text>
+          </outputEntry>
+          <outputEntry id="_rule_161a429344a7_o1">
+            <text>"At least five years above the expectation for the role, 3%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_161a429344a7_o2">
+            <text>baseSalary * 0.03</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-EXP-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_8f4306df5bca">
+          <description>Recorded so the rationale shows years were not held against them.</description>
+          <inputEntry id="_rule_8f4306df5bca_i0">
+            <text>&lt; -3</text>
+          </inputEntry>
+          <inputEntry id="_rule_8f4306df5bca_i1">
+            <text>&gt;= 75</text>
+          </inputEntry>
+          <inputEntry id="_rule_8f4306df5bca_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_8f4306df5bca_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_8f4306df5bca_i4">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_8f4306df5bca_o0">
+            <text>"MOD-EXP-02"</text>
+          </outputEntry>
+          <outputEntry id="_rule_8f4306df5bca_o1">
+            <text>"Fewer years than expected but a strong panel score, skills take priority"</text>
+          </outputEntry>
+          <outputEntry id="_rule_8f4306df5bca_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-EXP-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b70c956596b8">
+          <inputEntry id="_rule_b70c956596b8_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b70c956596b8_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b70c956596b8_i2">
+            <text>"hard_to_fill"</text>
+          </inputEntry>
+          <inputEntry id="_rule_b70c956596b8_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b70c956596b8_i4">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_b70c956596b8_o0">
+            <text>"MOD-EXP-03"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b70c956596b8_o1">
+            <text>"Hard to fill requisition, 5%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b70c956596b8_o2">
+            <text>baseSalary * 0.05</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-EXP-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7c3ac21069b6">
+          <description>MOD-EXP-90: mutually exclusive with MOD-EXP-03 because the requisition status is a single value.</description>
+          <inputEntry id="_rule_7c3ac21069b6_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_7c3ac21069b6_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_7c3ac21069b6_i2">
+            <text>"critical"</text>
+          </inputEntry>
+          <inputEntry id="_rule_7c3ac21069b6_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_7c3ac21069b6_i4">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_7c3ac21069b6_o0">
+            <text>"MOD-EXP-04"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7c3ac21069b6_o1">
+            <text>"Critical requisition, 8%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7c3ac21069b6_o2">
+            <text>baseSalary * 0.08</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-EXP-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_aefe397ab6eb">
+          <inputEntry id="_rule_aefe397ab6eb_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_aefe397ab6eb_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_aefe397ab6eb_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_aefe397ab6eb_i3">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_aefe397ab6eb_i4">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_aefe397ab6eb_o0">
+            <text>"MOD-EXP-05"</text>
+          </outputEntry>
+          <outputEntry id="_rule_aefe397ab6eb_o1">
+            <text>"Direct experience in the core domain, 2%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_aefe397ab6eb_o2">
+            <text>baseSalary * 0.02</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-EXP-05</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_04450f145d29">
+          <inputEntry id="_rule_04450f145d29_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_04450f145d29_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_04450f145d29_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_04450f145d29_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_04450f145d29_i4">
+            <text>true</text>
+          </inputEntry>
+          <outputEntry id="_rule_04450f145d29_o0">
+            <text>"MOD-EXP-06"</text>
+          </outputEntry>
+          <outputEntry id="_rule_04450f145d29_o1">
+            <text>"Former employee in good standing, 2%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_04450f145d29_o2">
+            <text>baseSalary * 0.02</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-EXP-06</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_0ed1981da5b1">
+      <requiredAuthority href="#_ks_840a0e754f81"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_67e8224daf31" name="Experience Adjustment">
+    <variable id="_var_249b116c9113" name="Experience Adjustment" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_1dc71b9fb3ab" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_81a9d6ac778a" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_3858324edf0d" name="yearsExperience" typeRef="types.tYears"/>
+      <formalParameter id="_fp_d2b8c7f5612a" name="roleExpectedYears" typeRef="types.tYears"/>
+      <formalParameter id="_fp_235511254f2c" name="seniorityScore" typeRef="types.tSeniorityScore"/>
+      <formalParameter id="_fp_7666861ac0c5" name="requisitionStatus" typeRef="types.tRequisitionStatus"/>
+      <formalParameter id="_fp_3b8a192fcb28" name="coreDomainExperience" typeRef="boolean"/>
+      <formalParameter id="_fp_3d607e0c3a9b" name="boomerang" typeRef="boolean"/>
+      <context id="_ctx_bf3027405adc" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_a09c958df7e3">
+          <variable id="_cev_5de3d6a43592" name="rules" typeRef="types.tAppliedRuleList"/>
+          <literalExpression id="_le_77ae13368652">
+            <text>Experience Rules(baseSalary, yearsExperience, roleExpectedYears,
+  seniorityScore, requisitionStatus, coreDomainExperience, boomerang)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_fedb146d54e3">
+          <variable id="_cev_647b56d1d114" name="raised" typeRef="types.tFlagList"/>
+          <literalExpression id="_le_7c50d26e245a">
+            <text>[]</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_f7b829dd2fee">
+          <literalExpression id="_le_52678678f831">
+            <text>{ amount: common.Sum Of Rules(rules),
+  appliedRules: if rules = null then [] else rules,
+  flags: if raised = null then [] else raised }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_501737c5fa57">
+      <requiredKnowledge href="#_bkm_3f0f1065fa57"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_cdb689fc3812">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_061a207248f5"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_955340c45fab">
+      <requiredAuthority href="#_ks_840a0e754f81"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_e4b7d6443025" name="DRD">
+      <dmndi:DMNShape id="_shape_3228a2fb0daf" dmnElementRef="_ks_840a0e754f81">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_7fb0f3e7f75e" dmnElementRef="_bkm_3f0f1065fa57">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_ebc63f5991f4" dmnElementRef="_bkm_67e8224daf31">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_0118943ba08c" dmnElementRef="_ar_0ed1981da5b1">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="370" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_94c04c121055" dmnElementRef="_kr_501737c5fa57">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_dd11dfadc611" dmnElementRef="_ar_955340c45fab">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

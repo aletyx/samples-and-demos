@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_f5d7ccf57a4a" name="Base Salary" namespace="https://aletyx.ai/dmn/payroll/base-salary"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 5. Places the interview score inside the role range.</description>
+  <import id="_imp_9d992fe30eaf" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_777ab0c32e82" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <import id="_imp_f89ee8c9aecd" name="ranges" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/salary-ranges" locationURI="salary-ranges.dmn"/>
+  <knowledgeSource id="_ks_d0cd02be4a3a" name="Seniority Evaluation Policy" locationURI="../spec/candidate_offer.md#5-seniority-evaluation">
+    <description>Section 5: how the interview panel score places a candidate inside the salary range of the role they applied for.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_1bbb420a3080" name="Seniority Band">
+    <description>BASE-01 to BASE-05. One job: turn the panel score into a band.</description>
+    <variable id="_var_1a2b2edc9888" name="Seniority Band" typeRef="types.tSeniorityBand"/>
+    <encapsulatedLogic id="_fn_1d5effdb5ecf" kind="FEEL" typeRef="types.tSeniorityBand">
+      <formalParameter id="_fp_9d49656d5eab" name="seniorityScore" typeRef="types.tSeniorityScore"/>
+      <decisionTable id="_dt_d8567d025cba" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Seniority band">
+        <input id="_in_8e2ca76bff98" label="Seniority score">
+          <inputExpression id="_ie_26d5a283f935" typeRef="types.tSeniorityScore">
+            <text>seniorityScore</text>
+          </inputExpression>
+        </input>
+        <output id="_out_798dbefed7d5" typeRef="types.tSeniorityBand"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_b39410d413cb">
+          <description>Below the hiring bar. No offer.</description>
+          <inputEntry id="_rule_b39410d413cb_i0">
+            <text>[1..39]</text>
+          </inputEntry>
+          <outputEntry id="_rule_b39410d413cb_o0">
+            <text>"BELOW_BAR"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_07e5f710b713">
+          <description>Meets the bar with gaps.</description>
+          <inputEntry id="_rule_07e5f710b713_i0">
+            <text>[40..54]</text>
+          </inputEntry>
+          <outputEntry id="_rule_07e5f710b713_o0">
+            <text>"DEVELOPING"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a9f079ceaebf">
+          <description>Meets the expectations of the role.</description>
+          <inputEntry id="_rule_a9f079ceaebf_i0">
+            <text>[55..74]</text>
+          </inputEntry>
+          <outputEntry id="_rule_a9f079ceaebf_o0">
+            <text>"SOLID"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_af05c7808a47">
+          <description>Exceeds expectations in several areas.</description>
+          <inputEntry id="_rule_af05c7808a47_i0">
+            <text>[75..89]</text>
+          </inputEntry>
+          <outputEntry id="_rule_af05c7808a47_o0">
+            <text>"STRONG"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_091367876310">
+          <description>Clearly above the role.</description>
+          <inputEntry id="_rule_091367876310_i0">
+            <text>[90..100]</text>
+          </inputEntry>
+          <outputEntry id="_rule_091367876310_o0">
+            <text>"EXCEPTIONAL"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-05</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_a5e7e23ebeaa">
+      <requiredAuthority href="#_ks_d0cd02be4a3a"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_fb132c79a6b5" name="Band Rule Id">
+    <description>The specification rule that placed the candidate in the band, so the band choice itself is traceable.</description>
+    <variable id="_var_9ff8a858e6e4" name="Band Rule Id" typeRef="types.tRuleId"/>
+    <encapsulatedLogic id="_fn_9bcb0f9ab563" kind="FEEL" typeRef="types.tRuleId">
+      <formalParameter id="_fp_3aea982cb8d4" name="band" typeRef="types.tSeniorityBand"/>
+      <decisionTable id="_dt_27b162c4d88c" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Rule identifier">
+        <input id="_in_2b12aa271c9c" label="Seniority band">
+          <inputExpression id="_ie_ec1d1ff2a324" typeRef="types.tSeniorityBand">
+            <text>band</text>
+          </inputExpression>
+        </input>
+        <output id="_out_144332bd5cc0" typeRef="types.tRuleId"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_1ca8ea536cb5">
+          <inputEntry id="_rule_1ca8ea536cb5_i0">
+            <text>"BELOW_BAR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1ca8ea536cb5_o0">
+            <text>"BASE-01"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_60c3671d7c2a">
+          <inputEntry id="_rule_60c3671d7c2a_i0">
+            <text>"DEVELOPING"</text>
+          </inputEntry>
+          <outputEntry id="_rule_60c3671d7c2a_o0">
+            <text>"BASE-02"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e72b9de62cbd">
+          <inputEntry id="_rule_e72b9de62cbd_i0">
+            <text>"SOLID"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e72b9de62cbd_o0">
+            <text>"BASE-03"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_870c1d5e399d">
+          <inputEntry id="_rule_870c1d5e399d_i0">
+            <text>"STRONG"</text>
+          </inputEntry>
+          <outputEntry id="_rule_870c1d5e399d_o0">
+            <text>"BASE-04"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4db4db9d396c">
+          <inputEntry id="_rule_4db4db9d396c_i0">
+            <text>"EXCEPTIONAL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4db4db9d396c_o0">
+            <text>"BASE-05"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-05</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_c0b257be7540" name="Band Anchors">
+    <description>The two salary points a band interpolates between. Kept separate from the arithmetic so the policy is readable.</description>
+    <variable id="_var_1545d4d78482" name="Band Anchors" typeRef="types.tBandAnchors"/>
+    <encapsulatedLogic id="_fn_fffb301a4506" kind="FEEL" typeRef="types.tBandAnchors">
+      <formalParameter id="_fp_b22faf8b8268" name="band" typeRef="types.tSeniorityBand"/>
+      <formalParameter id="_fp_a54658fbe827" name="range" typeRef="types.tSalaryRange"/>
+      <decisionTable id="_dt_8aee998870e7" typeRef="types.tBandAnchors" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Band anchors">
+        <input id="_in_83b1a6a1cb88" label="Seniority band">
+          <inputExpression id="_ie_ed26fc516297" typeRef="types.tSeniorityBand">
+            <text>band</text>
+          </inputExpression>
+        </input>
+        <output id="_out_ba4777160d06" name="bandLow" typeRef="number"/>
+        <output id="_out_d0b2924b3fbc" name="bandHigh" typeRef="number"/>
+        <output id="_out_5f7ab05194e4" name="lowAnchor" typeRef="number"/>
+        <output id="_out_ead43174ec25" name="highAnchor" typeRef="number"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_182adb5ce7df">
+          <description>No base salary is calculated.</description>
+          <inputEntry id="_rule_182adb5ce7df_i0">
+            <text>"BELOW_BAR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_182adb5ce7df_o0">
+            <text>null</text>
+          </outputEntry>
+          <outputEntry id="_rule_182adb5ce7df_o1">
+            <text>null</text>
+          </outputEntry>
+          <outputEntry id="_rule_182adb5ce7df_o2">
+            <text>null</text>
+          </outputEntry>
+          <outputEntry id="_rule_182adb5ce7df_o3">
+            <text>null</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7ab0ab45179d">
+          <description>Lower half of the gap between minimum and midpoint.</description>
+          <inputEntry id="_rule_7ab0ab45179d_i0">
+            <text>"DEVELOPING"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7ab0ab45179d_o0">
+            <text>40</text>
+          </outputEntry>
+          <outputEntry id="_rule_7ab0ab45179d_o1">
+            <text>54</text>
+          </outputEntry>
+          <outputEntry id="_rule_7ab0ab45179d_o2">
+            <text>range.minimum</text>
+          </outputEntry>
+          <outputEntry id="_rule_7ab0ab45179d_o3">
+            <text>range.minimum + 0.50 * (range.midpoint - range.minimum)</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c52f7bb31120">
+          <description>Up to the midpoint.</description>
+          <inputEntry id="_rule_c52f7bb31120_i0">
+            <text>"SOLID"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c52f7bb31120_o0">
+            <text>55</text>
+          </outputEntry>
+          <outputEntry id="_rule_c52f7bb31120_o1">
+            <text>74</text>
+          </outputEntry>
+          <outputEntry id="_rule_c52f7bb31120_o2">
+            <text>range.minimum + 0.50 * (range.midpoint - range.minimum)</text>
+          </outputEntry>
+          <outputEntry id="_rule_c52f7bb31120_o3">
+            <text>range.midpoint</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_54854f893453">
+          <description>Midpoint up into the top of the range.</description>
+          <inputEntry id="_rule_54854f893453_i0">
+            <text>"STRONG"</text>
+          </inputEntry>
+          <outputEntry id="_rule_54854f893453_o0">
+            <text>75</text>
+          </outputEntry>
+          <outputEntry id="_rule_54854f893453_o1">
+            <text>89</text>
+          </outputEntry>
+          <outputEntry id="_rule_54854f893453_o2">
+            <text>range.midpoint</text>
+          </outputEntry>
+          <outputEntry id="_rule_54854f893453_o3">
+            <text>range.midpoint + 0.60 * (range.maximum - range.midpoint)</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_129c47548203">
+          <description>Top quarter of the range.</description>
+          <inputEntry id="_rule_129c47548203_i0">
+            <text>"EXCEPTIONAL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_129c47548203_o0">
+            <text>90</text>
+          </outputEntry>
+          <outputEntry id="_rule_129c47548203_o1">
+            <text>100</text>
+          </outputEntry>
+          <outputEntry id="_rule_129c47548203_o2">
+            <text>range.midpoint + 0.60 * (range.maximum - range.midpoint)</text>
+          </outputEntry>
+          <outputEntry id="_rule_129c47548203_o3">
+            <text>range.maximum</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>BASE-05</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_c5d4bb620585">
+      <requiredAuthority href="#_ks_d0cd02be4a3a"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_8026810fc9e9" name="Base Salary">
+    <description>Interpolates the base salary between the band anchors and rounds it (BASE-07). Returns null for a below-bar candidate.</description>
+    <variable id="_var_02e05e214a6e" name="Base Salary" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_fd3e41c41753" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_16e650fcd62d" name="range" typeRef="types.tSalaryRange"/>
+      <formalParameter id="_fp_750e71d1a7f1" name="seniorityScore" typeRef="types.tSeniorityScore"/>
+      <context id="_ctx_9fb267cb0da0" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_1aa6fec96ef5">
+          <variable id="_cev_f39fb5b504ef" name="band" typeRef="types.tSeniorityBand"/>
+          <literalExpression id="_le_301adcd0ddf2">
+            <text>Seniority Band(seniorityScore)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_35da90ce89a1">
+          <variable id="_cev_119ccac79004" name="anchors" typeRef="types.tBandAnchors"/>
+          <literalExpression id="_le_26d476cb5f1a">
+            <text>Band Anchors(band, range)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_c326773184e8">
+          <variable id="_cev_8e560fe59fac" name="raw" typeRef="number"/>
+          <literalExpression id="_le_352f9a2e2b18">
+            <text>if band = "BELOW_BAR" then null
+else anchors.lowAnchor + (anchors.highAnchor - anchors.lowAnchor)
+     * (seniorityScore - anchors.bandLow) / (anchors.bandHigh - anchors.bandLow)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_276772fa4b11">
+          <variable id="_cev_6c2364128110" name="rounded" typeRef="number"/>
+          <literalExpression id="_le_a1514b27071a">
+            <text>common.Round To Nearest 500(raw)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_cfa1be6b0134">
+          <literalExpression id="_le_b1187db5cc70">
+            <text>{
+  amount: rounded,
+  appliedRules: if band = "BELOW_BAR" then [
+      { ruleId: "BASE-01", description:
+        "Panel score " + string(decimal(seniorityScore, 0)) + " is below the hiring bar of 40 for "
+        + range.roleName, amount: 0 } ]
+    else [
+      { ruleId: Band Rule Id(band), description:
+        "Panel score " + string(decimal(seniorityScore, 0)) + " places the candidate in the "
+        + band + " band of the " + range.roleName + " range "
+        + string(decimal(range.minimum, 0)) + " to " + string(decimal(range.maximum, 0)),
+        amount: raw },
+      { ruleId: "BASE-07", description: "Base salary rounded to the nearest 500",
+        amount: rounded - raw } ],
+  flags: if band = "EXCEPTIONAL" and ranges.Higher Level Exists(range.roleCode)
+    then ["LEVEL_UP_REVIEW"] else []
+}</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_78f51cede42a">
+      <requiredKnowledge href="#_bkm_1bbb420a3080"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_fbe817a5416e">
+      <requiredKnowledge href="#_bkm_c0b257be7540"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_f8c4033b1096">
+      <requiredKnowledge href="#_bkm_fb132c79a6b5"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_06e298246e14">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_4f35d46e4cb9"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_ccb252fc5c78">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/salary-ranges#_bkm_e9bdee4d6a78"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_8c2f16fd3607">
+      <requiredAuthority href="#_ks_d0cd02be4a3a"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_745799538e2f" name="DRD">
+      <dmndi:DMNShape id="_shape_a09e5c77675d" dmnElementRef="_ks_d0cd02be4a3a">
+        <dc:Bounds height="70" width="180" x="720" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_1451a2c276c0" dmnElementRef="_bkm_1bbb420a3080">
+        <dc:Bounds height="70" width="180" x="500" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_73b2d9c4beb5" dmnElementRef="_bkm_fb132c79a6b5">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_1108cb7916db" dmnElementRef="_bkm_c0b257be7540">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_d1da2975556e" dmnElementRef="_bkm_8026810fc9e9">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_f93564b59848" dmnElementRef="_ar_a5e7e23ebeaa">
+        <di:waypoint x="810" y="190"/>
+        <di:waypoint x="590" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_70c2a9b892e2" dmnElementRef="_ar_c5d4bb620585">
+        <di:waypoint x="810" y="190"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_a1dbfe284f83" dmnElementRef="_kr_78f51cede42a">
+        <di:waypoint x="590" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_be04e8acd61a" dmnElementRef="_kr_fbe817a5416e">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_256737c3b38e" dmnElementRef="_kr_f8c4033b1096">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_3f4cc991c5b9" dmnElementRef="_ar_8c2f16fd3607">
+        <di:waypoint x="810" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

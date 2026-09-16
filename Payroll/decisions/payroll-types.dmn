@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_af894f824ecf" name="Payroll Types" namespace="https://aletyx.ai/dmn/payroll/types"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Shared item definitions for the candidate offer decision model. Defined in their own model and included by every other file so types are declared once.</description>
+  <itemDefinition id="_item_7e4fb4bb4344" name="tRoleCode" isCollection="false">
+    <description>Role code from section 4. Constrained so an unknown role cannot reach the logic (practice 5).</description>
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_1060771bb83e">
+      <text>"ENG-SWE-1","ENG-SWE-2","ENG-SWE-3","ENG-SWE-4","ENG-SWE-5","ENG-FE-2","ENG-MOB-2","ENG-MOB-3","ENG-EMB-3","ENG-SRE-2","ENG-SRE-3","ENG-PLT-3","ENG-DAT-2","ENG-DAT-3","ENG-DBA-2","ENG-MLE-3","ENG-MLE-4","ENG-SEC-3","ENG-SEC-4","ENG-QAE-2","ENG-QAE-3","ENG-ARC-4","ENG-DOC-2","ENG-DOC-3","ENG-DEV-3","ENG-EM-1","ENG-EM-2","ENG-DIR","ENG-VP","ENG-CTO","PRD-PM-1","PRD-PM-2","PRD-PM-3","PRD-PM-4","PRD-TPM-2","PRD-TPM-3","PRD-OPS-2","PRD-DIR","PRD-VP","DES-PD-1","DES-PD-2","DES-PD-3","DES-BRD-2","DES-CW-2","DES-UXR-2","DES-UXR-3","DES-DIR","DAT-ANL-1","DAT-ANL-2","DAT-BI-2","DAT-AE-2","DAT-DS-2","DAT-DS-3","DAT-DS-4","DAT-ARC-4","DAT-DIR","GTM-SDR","GTM-BDR","GTM-SDR-M","GTM-AE-1","GTM-AE-2","GTM-AE-3","GTM-AE-4","GTM-SE","GTM-SE-3","GTM-SAM","GTM-PRT-2","GTM-PRT-3","GTM-SOP-2","GTM-ROP-3","GTM-SEN-3","GTM-DIR","GTM-VP","GTM-CRO","GTM-MKT-2","MKT-PMM-2","MKT-PMM-3","MKT-CNT-2","MKT-DMD-2","MKT-OPS-2","MKT-EVT-2","MKT-COM-3","MKT-DIR","MKT-CMO","GTM-SUP-1","CSX-SUP-2","CSX-SUP-M","GTM-CSM","CSX-CSM-3","CSX-TAM-3","CSX-IMP-2","CSX-PS-3","CSX-DIR","LEG-PAR-2","LEG-CON-2","LEG-OPS-2","COR-LEG-3","LEG-CNS-4","LEG-PRV-3","LEG-IPC-4","LEG-CMP-3","LEG-RSK-3","LEG-GC","FIN-ACC-2","FIN-ACC-3","COR-FIN-2","FIN-FPA-3","COR-FIN-3","FIN-PAY-2","FIN-PAY-3","FIN-PRC-2","FIN-TAX-3","FIN-CTL-4","FIN-DIR","FIN-CFO","PPL-SRC-2","COR-REC-2","PPL-REC-3","PPL-REC-M","COR-HR-2","PPL-HRB-3","PPL-CMP-3","PPL-LND-3","PPL-DEI-3","PPL-DIR","PPL-CPO","ITW-HLP-1","COR-ITS-2","ITW-ITS-3","ITW-ITM-3","ITW-OFF-1","ITW-FAC-2","OPS-EA-2","COR-OPS-2","OPS-PMO-3","OPS-STR-3","OPS-COS-4","EXE-COO"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_4a6ea0002abd" name="tMarketCode" isCollection="false">
+    <description>Market code from section 7.</description>
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_edcf9caf778b">
+      <text>"US-SF","US-NYC","US-SEA","US-BOS","US-AUS","US-CHI","US-DEN","US-OTH","CA-TOR","CA-OTH","UK-LON","UK-OTH","IE-DUB","IE-OTH","CH-ZRH","CH-OTH","DE-MUC","DE-BER","DE-OTH","NL-AMS","NL-OTH","FR-PAR","FR-OTH","BE-BRU","BE-OTH","LU-LUX","AT-VIE","AT-OTH","DK-CPH","SE-STO","SE-OTH","NO-OSL","FI-HEL","IS-REY","ES-MAD","ES-OTH","PT-LIS","PT-OTH","IT-MIL","IT-OTH","GR-ATH","CY-NIC","MT-MLA","PL-WAW","PL-OTH","CZ-PRG","CZ-OTH","SK-BTS","HU-BUD","RO-BUC","RO-OTH","BG-SOF","HR-ZAG","SI-LJU","RS-BEG","EE-TLL","LV-RIX","LT-VNO","UA-KYI","TR-IST","EU-OTH","IL-TLV","AE-DXB","APAC-T1","APAC-T2","LATAM-T1","LATAM-T2","ZA-JNB"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_03891bc50871" name="tCertificationCode" isCollection="false">
+    <description>Recognised certification from section 8.</description>
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_fe0d81acc7de">
+      <text>"CLOUD-PRO","CLOUD-ASSOC","K8S-CKA","SEC-CISSP","SEC-OSCP","PM-AGILE","DATA-PRO","PHD-FIELD","MS-FIELD","FIN-CPA","FIN-CFA","LEG-BAR","PRV-CIPP","HR-SHRM","PM-PMP","SAL-CRM","MKT-ANL"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_23f205059fc9" name="tCertificationList" isCollection="true">
+    <typeRef>tCertificationCode</typeRef>
+  </itemDefinition>
+  <itemDefinition id="_item_af8b61fdaa79" name="tWorkMode" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_3aaada338f7a">
+      <text>"onsite","hybrid","remote"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_21d78b2653bf" name="tRelocationScope" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_df5cfc09496c">
+      <text>"none","domestic","international"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_0b7e004a1fca" name="tReferralSource" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_ede14a83e0cb">
+      <text>"employee_referral","agency","direct","inbound"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_b8d60bb88c7e" name="tRequisitionStatus" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_6c27cb108c5b">
+      <text>"standard","hard_to_fill","critical"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_f53a50575dd0" name="tSeniorityScore" isCollection="false">
+    <description>Single score from the interview panel, section 5.</description>
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_8f69f69bc4cb">
+      <text>[1..100]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_74d46bf3d29e" name="tSeniorityBand" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_fd443fe08717">
+      <text>"BELOW_BAR","DEVELOPING","SOLID","STRONG","EXCEPTIONAL"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_e35ce24a72a9" name="tMoney" isCollection="false">
+    <description>Annual gross amount in USD.</description>
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_64ad62da2e75">
+      <text>[0..1000000]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_435056fe76f8" name="tAmount" isCollection="false">
+    <description>A modifier amount, which may be negative.</description>
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_85cbafb37d43">
+      <text>[-1000000..1000000]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_3bfe0c1bd904" name="tMarketIndexValue" isCollection="false">
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_26560f287ee4">
+      <text>[0.1..2]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_6e0432a27cbd" name="tYears" isCollection="false">
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_ede91e038f9e">
+      <text>[0..60]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_2217a71bfba4" name="tDays" isCollection="false">
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_92f30869d768">
+      <text>[0..730]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_02695a2bfd87" name="tFraction" isCollection="false">
+    <description>Fraction of full time, for MOD-DED-03.</description>
+    <typeRef>number</typeRef>
+    <allowedValues id="_av_af42a777ee11">
+      <text>[0.1..1]</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_74872f3a4be2" name="tRuleId" isCollection="false">
+    <description>Every rule identifier the specification defines. Enumerated rather than left as free text so an amount cannot be attributed to a rule that does not exist, and so tooling can check the model covers them (practice 1).</description>
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_5bc13b1921d2">
+      <text>"BASE-01","BASE-02","BASE-03","BASE-04","BASE-05","BASE-06","BASE-07","GOV-01","GOV-02","GOV-03","GOV-04","GOV-05","GOV-06","GRD-01","GRD-02","GRD-03","GRD-04","GRD-05","GRD-06","GRD-07","GRD-08","MOD-CMP-01","MOD-CMP-02","MOD-CMP-03","MOD-CMP-04","MOD-CMP-05","MOD-CMP-06","MOD-CMP-07","MOD-CMP-08","MOD-CRT-01","MOD-CRT-02","MOD-CRT-03","MOD-CRT-04","MOD-CRT-05","MOD-CRT-06","MOD-CRT-07","MOD-CRT-08","MOD-CRT-09","MOD-CRT-10","MOD-CRT-11","MOD-CRT-12","MOD-CRT-13","MOD-CRT-14","MOD-CRT-15","MOD-CRT-16","MOD-CRT-17","MOD-CRT-90","MOD-CRT-91","MOD-CRT-92","MOD-CRT-93","MOD-CRT-94","MOD-DED-01","MOD-DED-02","MOD-DED-03","MOD-DED-04","MOD-DED-05","MOD-EXP-01","MOD-EXP-02","MOD-EXP-03","MOD-EXP-04","MOD-EXP-05","MOD-EXP-06","MOD-EXP-90","MOD-LOC-01","MOD-LOC-02","MOD-LOC-03","MOD-LOC-04","MOD-LOC-05","MOD-LOC-06","MOD-LOC-07","MOD-MKT-01","MOD-MKT-02","MOD-MKT-03","MOD-MKT-04","MOD-MKT-05","MOD-MKT-06","MOD-MKT-07","MOD-MKT-08","MOD-MKT-09","MOD-MKT-10","MOD-MKT-11","MOD-MKT-12","MOD-MKT-13","MOD-MKT-14","MOD-MKT-20","MOD-MKT-21","MOD-MKT-22","MOD-MKT-23","MOD-MKT-24","MOD-MKT-25","MOD-MKT-26","MOD-MKT-27","MOD-MKT-28","MOD-MKT-29","MOD-MKT-30","MOD-MKT-31","MOD-MKT-32","MOD-MKT-33","MOD-MKT-34","MOD-MKT-35","MOD-MKT-36","MOD-MKT-37","MOD-MKT-38","MOD-MKT-39","MOD-MKT-40","MOD-MKT-41","MOD-MKT-42","MOD-MKT-43","MOD-MKT-44","MOD-MKT-45","MOD-MKT-46","MOD-MKT-47","MOD-MKT-48","MOD-MKT-50","MOD-MKT-51","MOD-MKT-52","MOD-MKT-53","MOD-MKT-54","MOD-MKT-55","MOD-MKT-56","MOD-MKT-57","MOD-MKT-58","MOD-MKT-59","MOD-MKT-60","MOD-MKT-61","MOD-MKT-62","MOD-MKT-63","MOD-MKT-64","MOD-MKT-65","MOD-MKT-66","MOD-MKT-67","MOD-MKT-70","MOD-MKT-71","MOD-MKT-72","MOD-MKT-73","MOD-MKT-74","MOD-MKT-75","MOD-MKT-76","MOD-MKT-90","MOD-MKT-91","MOD-MKT-92","MOD-MKT-93","MOD-MKT-94"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_6157dcd382d6" name="tFlag" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_24fe2128686b">
+      <text>"LEVEL_UP_REVIEW","VISA_REVIEW","EOR_REVIEW","COMP_ESCALATION","OTE_COMPARISON","START_DATE_REVIEW","EXEC_COMP_REVIEW","VP_APPROVAL_REQUIRED","INTERNAL_EQUITY_REVIEW","FLOOR_APPLIED","CAP_APPLIED","PUBLISHED_RANGE_REVIEW"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_0ab03f548df4" name="tFlagList" isCollection="true">
+    <typeRef>tFlag</typeRef>
+  </itemDefinition>
+  <itemDefinition id="_item_bba7f3ea7448" name="tStatus" isCollection="false">
+    <typeRef>string</typeRef>
+    <allowedValues id="_av_a9cfd215df31">
+      <text>"READY_TO_SEND","PENDING_REVIEW","NO_OFFER"</text>
+    </allowedValues>
+  </itemDefinition>
+  <itemDefinition id="_item_f3b999abc8d2" name="tAppliedRule" isCollection="false">
+    <description>One rule that fired, with what it contributed.</description>
+    <itemComponent id="_item_4a3fcd2a2395" name="ruleId" isCollection="false">
+      <typeRef>tRuleId</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_706cd79348eb" name="description" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_b78043470441" name="amount" isCollection="false">
+      <typeRef>tAmount</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_f0b31195b50d" name="tAppliedRuleList" isCollection="true">
+    <typeRef>tAppliedRule</typeRef>
+  </itemDefinition>
+  <itemDefinition id="_item_f9882ab9ca5b" name="tSalaryRange" isCollection="false">
+    <itemComponent id="_item_9bd658d6fe78" name="roleCode" isCollection="false">
+      <typeRef>tRoleCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_0dba907d5d74" name="roleName" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_86fee512ed30" name="family" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_a18ebc295f85" name="minimum" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_1c9d6a254908" name="midpoint" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_eda530068f4d" name="maximum" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_f926f2ed64dc" name="tMarketIndex" isCollection="false">
+    <itemComponent id="_item_6d5e4712a4e5" name="marketCode" isCollection="false">
+      <typeRef>tMarketCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_cef6f904c420" name="location" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_0f63f58ffb4d" name="index" isCollection="false">
+      <typeRef>tMarketIndexValue</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_a8e8f8911987" name="ruleId" isCollection="false">
+      <typeRef>tRuleId</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_6f68e6074183" name="tBandAnchors" isCollection="false">
+    <itemComponent id="_item_292db83022b3" name="bandLow" isCollection="false">
+      <typeRef>number</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_f004cf3ca78c" name="bandHigh" isCollection="false">
+      <typeRef>number</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_ebf36f6a176e" name="lowAnchor" isCollection="false">
+      <typeRef>number</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_f50a8b5e3356" name="highAnchor" isCollection="false">
+      <typeRef>number</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_5d09728c0fdb" name="tModifierResult" isCollection="false">
+    <description>Every rule module returns this shape: what it changed, why, and anything a human must review (practice 3).</description>
+    <itemComponent id="_item_3905f35436fa" name="amount" isCollection="false">
+      <typeRef>tAmount</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_8cb857ea5880" name="appliedRules" isCollection="true">
+      <typeRef>tAppliedRule</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_f15d22af8a41" name="flags" isCollection="true">
+      <typeRef>tFlag</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_a3dacf411c86" name="tValidation" isCollection="false">
+    <itemComponent id="_item_6cfc6349bb60" name="isValid" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_ba84f4740962" name="errors" isCollection="true">
+      <typeRef>string</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_e676bb10bd62" name="tCandidate" isCollection="false">
+    <description>Everything the calculation needs about one candidate for one role, bound into a single structure (practice 8).</description>
+    <itemComponent id="_item_a93a1cd5ccbe" name="roleCode" isCollection="false">
+      <typeRef>tRoleCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_c5ef15306500" name="seniorityScore" isCollection="false">
+      <typeRef>tSeniorityScore</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_c7d8b9990f82" name="marketCode" isCollection="false">
+      <typeRef>tMarketCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_ffbc6ef87861" name="currentMarketCode" isCollection="false">
+      <typeRef>tMarketCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_04ec35bb05a5" name="relocationRequired" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_05fe56f9c3cb" name="relocationScope" isCollection="false">
+      <typeRef>tRelocationScope</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_e7f930033384" name="workMode" isCollection="false">
+      <typeRef>tWorkMode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_c846938d86b5" name="remoteEligibleRole" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_845f90478692" name="certifications" isCollection="true">
+      <typeRef>tCertificationCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_1d474158486d" name="yearsExperience" isCollection="false">
+      <typeRef>tYears</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_22971b9a6a16" name="roleExpectedYears" isCollection="false">
+      <typeRef>tYears</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_6b3e53c46c22" name="requisitionStatus" isCollection="false">
+      <typeRef>tRequisitionStatus</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_36283bd3d367" name="coreDomainExperience" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_28cebd4758fe" name="boomerang" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_23e509719189" name="visaSponsorshipRequired" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_63e105129ac4" name="legalEntityExists" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_21261b68c497" name="competingOffer" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_d962091c6017" name="competingOfferVerified" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_f900e54d301c" name="competingOfferIsOTE" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_785e35d74d94" name="currentSalary" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_a1a6db0ac975" name="salaryHistoryBanned" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_91b0f16cf4e5" name="referralSource" isCollection="false">
+      <typeRef>tReferralSource</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_fd5dcedf2cef" name="noticePeriodDays" isCollection="false">
+      <typeRef>tDays</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_20245132dd21" name="rampUpPlanNeeded" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_ee7268840656" name="missingHardRequirement" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_97532db31876" name="partTimeFraction" isCollection="false">
+      <typeRef>tFraction</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_18e15edfb9bc" name="contractToHire" isCollection="false">
+      <typeRef>boolean</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_8073a8806173" name="lowestPaidPeerSalary" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_86d53f4d7c0d" name="publishedRangeMinimum" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_183fbfb61b78" name="legalMinimumSalary" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <itemDefinition id="_item_6fd7e08aa301" name="tOffer" isCollection="false">
+    <description>Section 14. Carries the rationale, not just the number.</description>
+    <itemComponent id="_item_ef38bea358d1" name="offerAmount" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_cc7fa339067c" name="currency" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_f652cfa389df" name="roleCode" isCollection="false">
+      <typeRef>tRoleCode</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_188505bad926" name="roleName" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_b2418defdc69" name="rangeMinimum" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_2a30016f49dc" name="rangeMidpoint" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_d8f05fe1bce3" name="rangeMaximum" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_cbfef5f953e9" name="compaRatio" isCollection="false">
+      <typeRef>number</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_40237cf4bbf3" name="baseBeforeModifiers" isCollection="false">
+      <typeRef>tMoney</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_dd206038b378" name="appliedRules" isCollection="true">
+      <typeRef>tAppliedRule</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_a96f4dd062e6" name="flags" isCollection="true">
+      <typeRef>tFlag</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_353b18bdf303" name="status" isCollection="false">
+      <typeRef>tStatus</typeRef>
+    </itemComponent>
+    <itemComponent id="_item_1cdf74a28a7f" name="rationale" isCollection="false">
+      <typeRef>string</typeRef>
+    </itemComponent>
+  </itemDefinition>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_82a88ad05c65" name="DRD">
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

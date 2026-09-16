@@ -1,0 +1,1978 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_678349753ee7" name="Deductions" namespace="https://aletyx.ai/dmn/payroll/deductions"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 12, group 6. Deductions.</description>
+  <import id="_imp_4299a8f7bfc3" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_0a3556773be0" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <knowledgeSource id="_ks_bef83d402603" name="Deduction Policy" locationURI="../spec/candidate_offer.md#12-group-6--deductions">
+    <description>Section 12: the deductions applied to an offer.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_6003150c2380" name="Role Level">
+    <description>Seniority level of a role, needed by MOD-DED-01. Derived from the role code suffix, with managers and above mapped upward.</description>
+    <variable id="_var_4d0b79608e97" name="Role Level" typeRef="number"/>
+    <encapsulatedLogic id="_fn_f2533a58e437" kind="FEEL" typeRef="number">
+      <formalParameter id="_fp_ee85f24b0f59" name="roleCode" typeRef="types.tRoleCode"/>
+      <decisionTable id="_dt_d7cac26e2897" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Role level">
+        <input id="_in_35de74ef1c2b" label="Role code">
+          <inputExpression id="_ie_b8f28ed501e0" typeRef="types.tRoleCode">
+            <text>roleCode</text>
+          </inputExpression>
+        </input>
+        <output id="_out_711d918d99e3" typeRef="number"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_83f419edde28">
+          <description>Software Engineer I</description>
+          <inputEntry id="_rule_83f419edde28_i0">
+            <text>"ENG-SWE-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_83f419edde28_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_621d59081ced">
+          <description>Software Engineer II</description>
+          <inputEntry id="_rule_621d59081ced_i0">
+            <text>"ENG-SWE-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_621d59081ced_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_15701217f4f4">
+          <description>Senior Software Engineer</description>
+          <inputEntry id="_rule_15701217f4f4_i0">
+            <text>"ENG-SWE-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_15701217f4f4_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4e57487bced4">
+          <description>Staff Software Engineer</description>
+          <inputEntry id="_rule_4e57487bced4_i0">
+            <text>"ENG-SWE-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4e57487bced4_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_93b41a242c08">
+          <description>Principal Software Engineer</description>
+          <inputEntry id="_rule_93b41a242c08_i0">
+            <text>"ENG-SWE-5"</text>
+          </inputEntry>
+          <outputEntry id="_rule_93b41a242c08_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3f7ac54a7820">
+          <description>Frontend Engineer</description>
+          <inputEntry id="_rule_3f7ac54a7820_i0">
+            <text>"ENG-FE-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3f7ac54a7820_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b29a8b3a3876">
+          <description>Mobile Engineer</description>
+          <inputEntry id="_rule_b29a8b3a3876_i0">
+            <text>"ENG-MOB-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b29a8b3a3876_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_9dd094c7614c">
+          <description>Senior Mobile Engineer</description>
+          <inputEntry id="_rule_9dd094c7614c_i0">
+            <text>"ENG-MOB-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_9dd094c7614c_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0e21f46b7941">
+          <description>Embedded Systems Engineer</description>
+          <inputEntry id="_rule_0e21f46b7941_i0">
+            <text>"ENG-EMB-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0e21f46b7941_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_234bdd103a14">
+          <description>Site Reliability Engineer</description>
+          <inputEntry id="_rule_234bdd103a14_i0">
+            <text>"ENG-SRE-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_234bdd103a14_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_62e1e2bae10d">
+          <description>Senior Site Reliability Engineer</description>
+          <inputEntry id="_rule_62e1e2bae10d_i0">
+            <text>"ENG-SRE-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_62e1e2bae10d_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_db9e69a61e10">
+          <description>Platform Engineer</description>
+          <inputEntry id="_rule_db9e69a61e10_i0">
+            <text>"ENG-PLT-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_db9e69a61e10_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ec4f581aa11b">
+          <description>Data Engineer</description>
+          <inputEntry id="_rule_ec4f581aa11b_i0">
+            <text>"ENG-DAT-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ec4f581aa11b_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_6080dbbadcb8">
+          <description>Senior Data Engineer</description>
+          <inputEntry id="_rule_6080dbbadcb8_i0">
+            <text>"ENG-DAT-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_6080dbbadcb8_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_bfc6061e59b1">
+          <description>Database Administrator</description>
+          <inputEntry id="_rule_bfc6061e59b1_i0">
+            <text>"ENG-DBA-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_bfc6061e59b1_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3abcd3e7197d">
+          <description>Machine Learning Engineer</description>
+          <inputEntry id="_rule_3abcd3e7197d_i0">
+            <text>"ENG-MLE-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3abcd3e7197d_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_49b9f2b3ceb9">
+          <description>Senior Machine Learning Engineer</description>
+          <inputEntry id="_rule_49b9f2b3ceb9_i0">
+            <text>"ENG-MLE-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_49b9f2b3ceb9_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_325e7c812913">
+          <description>Security Engineer</description>
+          <inputEntry id="_rule_325e7c812913_i0">
+            <text>"ENG-SEC-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_325e7c812913_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d9c9e143c1f2">
+          <description>Senior Security Engineer</description>
+          <inputEntry id="_rule_d9c9e143c1f2_i0">
+            <text>"ENG-SEC-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d9c9e143c1f2_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_236c50ac8103">
+          <description>QA Engineer</description>
+          <inputEntry id="_rule_236c50ac8103_i0">
+            <text>"ENG-QAE-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_236c50ac8103_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5b6250f83b7d">
+          <description>Senior QA Engineer / SDET</description>
+          <inputEntry id="_rule_5b6250f83b7d_i0">
+            <text>"ENG-QAE-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5b6250f83b7d_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_780838de2e46">
+          <description>Solutions Architect</description>
+          <inputEntry id="_rule_780838de2e46_i0">
+            <text>"ENG-ARC-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_780838de2e46_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_65532ec80328">
+          <description>Technical Writer</description>
+          <inputEntry id="_rule_65532ec80328_i0">
+            <text>"ENG-DOC-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_65532ec80328_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5bae369dc9a6">
+          <description>Senior Technical Writer</description>
+          <inputEntry id="_rule_5bae369dc9a6_i0">
+            <text>"ENG-DOC-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5bae369dc9a6_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_213acd257272">
+          <description>Developer Advocate</description>
+          <inputEntry id="_rule_213acd257272_i0">
+            <text>"ENG-DEV-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_213acd257272_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c7e81c26cd68">
+          <description>Engineering Manager</description>
+          <inputEntry id="_rule_c7e81c26cd68_i0">
+            <text>"ENG-EM-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c7e81c26cd68_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_398b6dae0373">
+          <description>Senior Engineering Manager</description>
+          <inputEntry id="_rule_398b6dae0373_i0">
+            <text>"ENG-EM-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_398b6dae0373_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5c43cf8c31e7">
+          <description>Director of Engineering</description>
+          <inputEntry id="_rule_5c43cf8c31e7_i0">
+            <text>"ENG-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5c43cf8c31e7_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0463b2e794f6">
+          <description>VP of Engineering</description>
+          <inputEntry id="_rule_0463b2e794f6_i0">
+            <text>"ENG-VP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0463b2e794f6_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_00ff23a8d8e8">
+          <description>Chief Technology Officer</description>
+          <inputEntry id="_rule_00ff23a8d8e8_i0">
+            <text>"ENG-CTO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_00ff23a8d8e8_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_27cb7c977dc3">
+          <description>Associate Product Manager</description>
+          <inputEntry id="_rule_27cb7c977dc3_i0">
+            <text>"PRD-PM-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_27cb7c977dc3_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e758d8d34c50">
+          <description>Product Manager</description>
+          <inputEntry id="_rule_e758d8d34c50_i0">
+            <text>"PRD-PM-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e758d8d34c50_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_bb7422b73682">
+          <description>Senior Product Manager</description>
+          <inputEntry id="_rule_bb7422b73682_i0">
+            <text>"PRD-PM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_bb7422b73682_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ee7a529eed71">
+          <description>Principal Product Manager</description>
+          <inputEntry id="_rule_ee7a529eed71_i0">
+            <text>"PRD-PM-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ee7a529eed71_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_321979209aad">
+          <description>Technical Program Manager</description>
+          <inputEntry id="_rule_321979209aad_i0">
+            <text>"PRD-TPM-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_321979209aad_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3b9dba38f670">
+          <description>Senior Technical Program Manager</description>
+          <inputEntry id="_rule_3b9dba38f670_i0">
+            <text>"PRD-TPM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3b9dba38f670_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_17ef5c81c055">
+          <description>Product Operations Manager</description>
+          <inputEntry id="_rule_17ef5c81c055_i0">
+            <text>"PRD-OPS-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_17ef5c81c055_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_bdffbf383533">
+          <description>Director of Product</description>
+          <inputEntry id="_rule_bdffbf383533_i0">
+            <text>"PRD-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_bdffbf383533_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_44f618c8f0ac">
+          <description>VP of Product</description>
+          <inputEntry id="_rule_44f618c8f0ac_i0">
+            <text>"PRD-VP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_44f618c8f0ac_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b775d8b8c4db">
+          <description>Product Designer</description>
+          <inputEntry id="_rule_b775d8b8c4db_i0">
+            <text>"DES-PD-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b775d8b8c4db_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_556a8edffc9c">
+          <description>Senior Product Designer</description>
+          <inputEntry id="_rule_556a8edffc9c_i0">
+            <text>"DES-PD-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_556a8edffc9c_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_af03dbcf1a96">
+          <description>Staff Product Designer</description>
+          <inputEntry id="_rule_af03dbcf1a96_i0">
+            <text>"DES-PD-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_af03dbcf1a96_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7b1f68fff114">
+          <description>Brand Designer</description>
+          <inputEntry id="_rule_7b1f68fff114_i0">
+            <text>"DES-BRD-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7b1f68fff114_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d258b7a24a94">
+          <description>UX Writer / Content Designer</description>
+          <inputEntry id="_rule_d258b7a24a94_i0">
+            <text>"DES-CW-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d258b7a24a94_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_fa05a4917420">
+          <description>UX Researcher</description>
+          <inputEntry id="_rule_fa05a4917420_i0">
+            <text>"DES-UXR-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_fa05a4917420_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7379c0ae0db8">
+          <description>Senior UX Researcher</description>
+          <inputEntry id="_rule_7379c0ae0db8_i0">
+            <text>"DES-UXR-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7379c0ae0db8_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f72e85bfbd34">
+          <description>Director of Design</description>
+          <inputEntry id="_rule_f72e85bfbd34_i0">
+            <text>"DES-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f72e85bfbd34_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_65a49fc735a5">
+          <description>Data Analyst</description>
+          <inputEntry id="_rule_65a49fc735a5_i0">
+            <text>"DAT-ANL-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_65a49fc735a5_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e8a3428ac920">
+          <description>Senior Data Analyst</description>
+          <inputEntry id="_rule_e8a3428ac920_i0">
+            <text>"DAT-ANL-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e8a3428ac920_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_83d880582d35">
+          <description>Business Intelligence Developer</description>
+          <inputEntry id="_rule_83d880582d35_i0">
+            <text>"DAT-BI-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_83d880582d35_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3f3b58a0b4f9">
+          <description>Analytics Engineer</description>
+          <inputEntry id="_rule_3f3b58a0b4f9_i0">
+            <text>"DAT-AE-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3f3b58a0b4f9_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d1ce8a8fa233">
+          <description>Data Scientist</description>
+          <inputEntry id="_rule_d1ce8a8fa233_i0">
+            <text>"DAT-DS-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d1ce8a8fa233_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_050365cab762">
+          <description>Senior Data Scientist</description>
+          <inputEntry id="_rule_050365cab762_i0">
+            <text>"DAT-DS-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_050365cab762_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_8c179eae1751">
+          <description>Principal Data Scientist</description>
+          <inputEntry id="_rule_8c179eae1751_i0">
+            <text>"DAT-DS-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_8c179eae1751_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_924406dbc292">
+          <description>Data Architect</description>
+          <inputEntry id="_rule_924406dbc292_i0">
+            <text>"DAT-ARC-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_924406dbc292_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_de69bfd4108a">
+          <description>Director of Data</description>
+          <inputEntry id="_rule_de69bfd4108a_i0">
+            <text>"DAT-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_de69bfd4108a_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7a8f8046e13d">
+          <description>Sales Development Representative</description>
+          <inputEntry id="_rule_7a8f8046e13d_i0">
+            <text>"GTM-SDR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7a8f8046e13d_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_df849821eea7">
+          <description>Business Development Representative</description>
+          <inputEntry id="_rule_df849821eea7_i0">
+            <text>"GTM-BDR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_df849821eea7_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7ba5cd5e2adf">
+          <description>Sales Development Manager</description>
+          <inputEntry id="_rule_7ba5cd5e2adf_i0">
+            <text>"GTM-SDR-M"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7ba5cd5e2adf_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f8c35798aa27">
+          <description>Account Executive</description>
+          <inputEntry id="_rule_f8c35798aa27_i0">
+            <text>"GTM-AE-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f8c35798aa27_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ef57f6ee249a">
+          <description>Senior Account Executive</description>
+          <inputEntry id="_rule_ef57f6ee249a_i0">
+            <text>"GTM-AE-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ef57f6ee249a_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c74b964fd96d">
+          <description>Enterprise Account Executive</description>
+          <inputEntry id="_rule_c74b964fd96d_i0">
+            <text>"GTM-AE-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c74b964fd96d_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_bd575e1e1732">
+          <description>Strategic Account Executive</description>
+          <inputEntry id="_rule_bd575e1e1732_i0">
+            <text>"GTM-AE-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_bd575e1e1732_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3d37fc736a1b">
+          <description>Solutions Engineer</description>
+          <inputEntry id="_rule_3d37fc736a1b_i0">
+            <text>"GTM-SE"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3d37fc736a1b_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1c528cd4953a">
+          <description>Senior Solutions Engineer</description>
+          <inputEntry id="_rule_1c528cd4953a_i0">
+            <text>"GTM-SE-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1c528cd4953a_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b40d79ba1280">
+          <description>Sales Manager</description>
+          <inputEntry id="_rule_b40d79ba1280_i0">
+            <text>"GTM-SAM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b40d79ba1280_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ee15e61a3684">
+          <description>Partnerships Manager</description>
+          <inputEntry id="_rule_ee15e61a3684_i0">
+            <text>"GTM-PRT-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ee15e61a3684_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d35aa3ff67fd">
+          <description>Director of Partnerships</description>
+          <inputEntry id="_rule_d35aa3ff67fd_i0">
+            <text>"GTM-PRT-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d35aa3ff67fd_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f19e18ae8758">
+          <description>Sales Operations Manager</description>
+          <inputEntry id="_rule_f19e18ae8758_i0">
+            <text>"GTM-SOP-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f19e18ae8758_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_16a190fafa65">
+          <description>Revenue Operations Manager</description>
+          <inputEntry id="_rule_16a190fafa65_i0">
+            <text>"GTM-ROP-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_16a190fafa65_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ac7329b23190">
+          <description>Sales Enablement Manager</description>
+          <inputEntry id="_rule_ac7329b23190_i0">
+            <text>"GTM-SEN-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ac7329b23190_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_baef64c7f910">
+          <description>Director of Sales</description>
+          <inputEntry id="_rule_baef64c7f910_i0">
+            <text>"GTM-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_baef64c7f910_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_446ab2dbe42c">
+          <description>VP of Sales</description>
+          <inputEntry id="_rule_446ab2dbe42c_i0">
+            <text>"GTM-VP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_446ab2dbe42c_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2eb611400a9b">
+          <description>Chief Revenue Officer</description>
+          <inputEntry id="_rule_2eb611400a9b_i0">
+            <text>"GTM-CRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2eb611400a9b_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_6380197aa14e">
+          <description>Marketing Manager</description>
+          <inputEntry id="_rule_6380197aa14e_i0">
+            <text>"GTM-MKT-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_6380197aa14e_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_092f469ab737">
+          <description>Product Marketing Manager</description>
+          <inputEntry id="_rule_092f469ab737_i0">
+            <text>"MKT-PMM-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_092f469ab737_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b5004a55d1b0">
+          <description>Senior Product Marketing Manager</description>
+          <inputEntry id="_rule_b5004a55d1b0_i0">
+            <text>"MKT-PMM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b5004a55d1b0_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_205ebc6691f9">
+          <description>Content Marketing Manager</description>
+          <inputEntry id="_rule_205ebc6691f9_i0">
+            <text>"MKT-CNT-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_205ebc6691f9_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_239490d0852f">
+          <description>Demand Generation Manager</description>
+          <inputEntry id="_rule_239490d0852f_i0">
+            <text>"MKT-DMD-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_239490d0852f_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_895159057b42">
+          <description>Marketing Operations Manager</description>
+          <inputEntry id="_rule_895159057b42_i0">
+            <text>"MKT-OPS-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_895159057b42_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a66698eb371f">
+          <description>Events Marketing Manager</description>
+          <inputEntry id="_rule_a66698eb371f_i0">
+            <text>"MKT-EVT-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a66698eb371f_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_86ff48f5a727">
+          <description>Communications and PR Manager</description>
+          <inputEntry id="_rule_86ff48f5a727_i0">
+            <text>"MKT-COM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_86ff48f5a727_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_84df65303881">
+          <description>Director of Marketing</description>
+          <inputEntry id="_rule_84df65303881_i0">
+            <text>"MKT-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_84df65303881_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e567022a33eb">
+          <description>Chief Marketing Officer</description>
+          <inputEntry id="_rule_e567022a33eb_i0">
+            <text>"MKT-CMO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e567022a33eb_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_422a9c7737e3">
+          <description>Technical Support Engineer</description>
+          <inputEntry id="_rule_422a9c7737e3_i0">
+            <text>"GTM-SUP-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_422a9c7737e3_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_09bab53d1a31">
+          <description>Senior Technical Support Engineer</description>
+          <inputEntry id="_rule_09bab53d1a31_i0">
+            <text>"CSX-SUP-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_09bab53d1a31_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_9bdbdc99cb33">
+          <description>Support Manager</description>
+          <inputEntry id="_rule_9bdbdc99cb33_i0">
+            <text>"CSX-SUP-M"</text>
+          </inputEntry>
+          <outputEntry id="_rule_9bdbdc99cb33_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f9071be1213a">
+          <description>Customer Success Manager</description>
+          <inputEntry id="_rule_f9071be1213a_i0">
+            <text>"GTM-CSM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f9071be1213a_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ab9273d6c539">
+          <description>Senior Customer Success Manager</description>
+          <inputEntry id="_rule_ab9273d6c539_i0">
+            <text>"CSX-CSM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ab9273d6c539_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7392e63e4185">
+          <description>Technical Account Manager</description>
+          <inputEntry id="_rule_7392e63e4185_i0">
+            <text>"CSX-TAM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7392e63e4185_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3e78c16b651c">
+          <description>Implementation Consultant</description>
+          <inputEntry id="_rule_3e78c16b651c_i0">
+            <text>"CSX-IMP-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3e78c16b651c_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7c6e30d395fb">
+          <description>Professional Services Manager</description>
+          <inputEntry id="_rule_7c6e30d395fb_i0">
+            <text>"CSX-PS-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7c6e30d395fb_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f9c3f98af8f0">
+          <description>Director of Customer Success</description>
+          <inputEntry id="_rule_f9c3f98af8f0_i0">
+            <text>"CSX-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f9c3f98af8f0_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_de19b3f7e7ab">
+          <description>Paralegal</description>
+          <inputEntry id="_rule_de19b3f7e7ab_i0">
+            <text>"LEG-PAR-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_de19b3f7e7ab_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_df51530ecad7">
+          <description>Contracts Manager</description>
+          <inputEntry id="_rule_df51530ecad7_i0">
+            <text>"LEG-CON-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_df51530ecad7_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_462882c34f66">
+          <description>Legal Operations Manager</description>
+          <inputEntry id="_rule_462882c34f66_i0">
+            <text>"LEG-OPS-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_462882c34f66_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_24ca5d6d8fc8">
+          <description>Corporate Counsel</description>
+          <inputEntry id="_rule_24ca5d6d8fc8_i0">
+            <text>"COR-LEG-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_24ca5d6d8fc8_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_eeb9ed60e925">
+          <description>Senior Corporate Counsel</description>
+          <inputEntry id="_rule_eeb9ed60e925_i0">
+            <text>"LEG-CNS-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_eeb9ed60e925_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e867388b99c1">
+          <description>Privacy Counsel</description>
+          <inputEntry id="_rule_e867388b99c1_i0">
+            <text>"LEG-PRV-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e867388b99c1_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_dbfb93d0feb0">
+          <description>Intellectual Property Counsel</description>
+          <inputEntry id="_rule_dbfb93d0feb0_i0">
+            <text>"LEG-IPC-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_dbfb93d0feb0_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_07ecef0a84d9">
+          <description>Compliance Manager</description>
+          <inputEntry id="_rule_07ecef0a84d9_i0">
+            <text>"LEG-CMP-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_07ecef0a84d9_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1e6ed50a2a18">
+          <description>Risk Manager</description>
+          <inputEntry id="_rule_1e6ed50a2a18_i0">
+            <text>"LEG-RSK-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1e6ed50a2a18_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2c4f562210bb">
+          <description>General Counsel</description>
+          <inputEntry id="_rule_2c4f562210bb_i0">
+            <text>"LEG-GC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2c4f562210bb_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_26c605e6da1f">
+          <description>Staff Accountant</description>
+          <inputEntry id="_rule_26c605e6da1f_i0">
+            <text>"FIN-ACC-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_26c605e6da1f_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_cf1acb7a28dc">
+          <description>Senior Accountant</description>
+          <inputEntry id="_rule_cf1acb7a28dc_i0">
+            <text>"FIN-ACC-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_cf1acb7a28dc_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5dac9bc4d5c1">
+          <description>Financial Analyst</description>
+          <inputEntry id="_rule_5dac9bc4d5c1_i0">
+            <text>"COR-FIN-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5dac9bc4d5c1_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_98b16a1469e9">
+          <description>Senior FP&amp;A Analyst</description>
+          <inputEntry id="_rule_98b16a1469e9_i0">
+            <text>"FIN-FPA-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_98b16a1469e9_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4e52183e46ba">
+          <description>Finance Manager</description>
+          <inputEntry id="_rule_4e52183e46ba_i0">
+            <text>"COR-FIN-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4e52183e46ba_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_aeb7d9baee33">
+          <description>Payroll Specialist</description>
+          <inputEntry id="_rule_aeb7d9baee33_i0">
+            <text>"FIN-PAY-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_aeb7d9baee33_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ff0717b63823">
+          <description>Payroll Manager</description>
+          <inputEntry id="_rule_ff0717b63823_i0">
+            <text>"FIN-PAY-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ff0717b63823_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_dabdb6d72844">
+          <description>Procurement Manager</description>
+          <inputEntry id="_rule_dabdb6d72844_i0">
+            <text>"FIN-PRC-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_dabdb6d72844_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0312198bc7bc">
+          <description>Tax Manager</description>
+          <inputEntry id="_rule_0312198bc7bc_i0">
+            <text>"FIN-TAX-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0312198bc7bc_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c88bec0e8c00">
+          <description>Controller</description>
+          <inputEntry id="_rule_c88bec0e8c00_i0">
+            <text>"FIN-CTL-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c88bec0e8c00_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_8e5d98ad604a">
+          <description>Director of Finance</description>
+          <inputEntry id="_rule_8e5d98ad604a_i0">
+            <text>"FIN-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_8e5d98ad604a_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_210e00dd757c">
+          <description>Chief Financial Officer</description>
+          <inputEntry id="_rule_210e00dd757c_i0">
+            <text>"FIN-CFO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_210e00dd757c_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_69bc3a48ebc4">
+          <description>Sourcer</description>
+          <inputEntry id="_rule_69bc3a48ebc4_i0">
+            <text>"PPL-SRC-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_69bc3a48ebc4_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_242c866f6ffb">
+          <description>Technical Recruiter</description>
+          <inputEntry id="_rule_242c866f6ffb_i0">
+            <text>"COR-REC-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_242c866f6ffb_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_8f4c96d3b5f9">
+          <description>Senior Technical Recruiter</description>
+          <inputEntry id="_rule_8f4c96d3b5f9_i0">
+            <text>"PPL-REC-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_8f4c96d3b5f9_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4a9fbfcfccec">
+          <description>Recruiting Manager</description>
+          <inputEntry id="_rule_4a9fbfcfccec_i0">
+            <text>"PPL-REC-M"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4a9fbfcfccec_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_cf73d9b35ab1">
+          <description>People Operations Specialist</description>
+          <inputEntry id="_rule_cf73d9b35ab1_i0">
+            <text>"COR-HR-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_cf73d9b35ab1_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_51a3d463387c">
+          <description>HR Business Partner</description>
+          <inputEntry id="_rule_51a3d463387c_i0">
+            <text>"PPL-HRB-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_51a3d463387c_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_81387a6db15d">
+          <description>Compensation and Benefits Manager</description>
+          <inputEntry id="_rule_81387a6db15d_i0">
+            <text>"PPL-CMP-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_81387a6db15d_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_44e2059a30b5">
+          <description>Learning and Development Manager</description>
+          <inputEntry id="_rule_44e2059a30b5_i0">
+            <text>"PPL-LND-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_44e2059a30b5_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0933eb9eeb43">
+          <description>Diversity and Inclusion Program Manager</description>
+          <inputEntry id="_rule_0933eb9eeb43_i0">
+            <text>"PPL-DEI-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0933eb9eeb43_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4889f581ef81">
+          <description>Director of People</description>
+          <inputEntry id="_rule_4889f581ef81_i0">
+            <text>"PPL-DIR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4889f581ef81_o0">
+            <text>5</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_fbd00c5fb6f8">
+          <description>Chief People Officer</description>
+          <inputEntry id="_rule_fbd00c5fb6f8_i0">
+            <text>"PPL-CPO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_fbd00c5fb6f8_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a7e3091e6ff2">
+          <description>IT Help Desk Technician</description>
+          <inputEntry id="_rule_a7e3091e6ff2_i0">
+            <text>"ITW-HLP-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a7e3091e6ff2_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4bbc345f504b">
+          <description>IT Systems Administrator</description>
+          <inputEntry id="_rule_4bbc345f504b_i0">
+            <text>"COR-ITS-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4bbc345f504b_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_27c1ee1dd303">
+          <description>Senior IT Systems Engineer</description>
+          <inputEntry id="_rule_27c1ee1dd303_i0">
+            <text>"ITW-ITS-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_27c1ee1dd303_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c6fd45969397">
+          <description>IT Manager</description>
+          <inputEntry id="_rule_c6fd45969397_i0">
+            <text>"ITW-ITM-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c6fd45969397_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_99a8f4d60603">
+          <description>Office Coordinator</description>
+          <inputEntry id="_rule_99a8f4d60603_i0">
+            <text>"ITW-OFF-1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_99a8f4d60603_o0">
+            <text>1</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0026d6252e38">
+          <description>Workplace and Facilities Manager</description>
+          <inputEntry id="_rule_0026d6252e38_i0">
+            <text>"ITW-FAC-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0026d6252e38_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5ccf56d18854">
+          <description>Executive Assistant</description>
+          <inputEntry id="_rule_5ccf56d18854_i0">
+            <text>"OPS-EA-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5ccf56d18854_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a20497c221cd">
+          <description>Business Operations Manager</description>
+          <inputEntry id="_rule_a20497c221cd_i0">
+            <text>"COR-OPS-2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a20497c221cd_o0">
+            <text>2</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_796ffce363ea">
+          <description>Business Program Manager</description>
+          <inputEntry id="_rule_796ffce363ea_i0">
+            <text>"OPS-PMO-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_796ffce363ea_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d256828a42ce">
+          <description>Strategy and Operations Lead</description>
+          <inputEntry id="_rule_d256828a42ce_i0">
+            <text>"OPS-STR-3"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d256828a42ce_o0">
+            <text>3</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2dcd533b02b5">
+          <description>Chief of Staff</description>
+          <inputEntry id="_rule_2dcd533b02b5_i0">
+            <text>"OPS-COS-4"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2dcd533b02b5_o0">
+            <text>4</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4b4a82b50e98">
+          <description>Chief Operating Officer</description>
+          <inputEntry id="_rule_4b4a82b50e98_i0">
+            <text>"EXE-COO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4b4a82b50e98_o0">
+            <text>6</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_ca136a65af68">
+      <requiredAuthority href="#_ks_bef83d402603"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_cbc94e8a72fe" name="Deduction Rules">
+    <variable id="_var_050bed5240f5" name="Deduction Rules" typeRef="types.tAppliedRuleList"/>
+    <encapsulatedLogic id="_fn_12160b5056a3" kind="FEEL" typeRef="types.tAppliedRuleList">
+      <formalParameter id="_fp_3a8827f7cb8e" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_6c4e22d25e7c" name="subtotal" typeRef="number"/>
+      <formalParameter id="_fp_e64cc3d33015" name="band" typeRef="types.tSeniorityBand"/>
+      <formalParameter id="_fp_5e57a0b7ef6a" name="roleLevel" typeRef="number"/>
+      <formalParameter id="_fp_457a7174a7cb" name="missingHardRequirement" typeRef="boolean"/>
+      <formalParameter id="_fp_097daadd09e8" name="partTimeFraction" typeRef="types.tFraction"/>
+      <formalParameter id="_fp_c2b0e823235c" name="isEuropeanStatutoryMarket" typeRef="boolean"/>
+      <formalParameter id="_fp_fc8aa7446934" name="contractToHire" typeRef="boolean"/>
+      <decisionTable id="_dt_32902514acd3" typeRef="types.tAppliedRuleList" hitPolicy="COLLECT" preferredOrientation="Rule-as-Row" outputLabel="Applied rule">
+        <input id="_in_4c0c83351a71" label="Seniority band">
+          <inputExpression id="_ie_75bc8dcfd74d" typeRef="types.tSeniorityBand">
+            <text>band</text>
+          </inputExpression>
+        </input>
+        <input id="_in_dd0b7cdfc985" label="Role level">
+          <inputExpression id="_ie_484eaba814d6" typeRef="number">
+            <text>roleLevel</text>
+          </inputExpression>
+        </input>
+        <input id="_in_3825431275f9" label="Missing a hard requirement">
+          <inputExpression id="_ie_d240aa6a021c" typeRef="boolean">
+            <text>missingHardRequirement</text>
+          </inputExpression>
+        </input>
+        <input id="_in_5b5911d27a01" label="Fraction of full time">
+          <inputExpression id="_ie_6fe7a627edef" typeRef="types.tFraction">
+            <text>partTimeFraction</text>
+          </inputExpression>
+        </input>
+        <input id="_in_71fa18daf7bf" label="Statutory benefit market">
+          <inputExpression id="_ie_9cc8ab1a64e9" typeRef="boolean">
+            <text>isEuropeanStatutoryMarket</text>
+          </inputExpression>
+        </input>
+        <input id="_in_e3648632e230" label="Contract to hire">
+          <inputExpression id="_ie_71b595094fbb" typeRef="boolean">
+            <text>contractToHire</text>
+          </inputExpression>
+        </input>
+        <output id="_out_5135e951bcd6" name="ruleId" typeRef="types.tRuleId"/>
+        <output id="_out_41f6415f300b" name="description" typeRef="string"/>
+        <output id="_out_9494ec396c8d" name="amount" typeRef="types.tAmount"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_28a0139a6e63">
+          <inputEntry id="_rule_28a0139a6e63_i0">
+            <text>"DEVELOPING"</text>
+          </inputEntry>
+          <inputEntry id="_rule_28a0139a6e63_i1">
+            <text>&gt;= 3</text>
+          </inputEntry>
+          <inputEntry id="_rule_28a0139a6e63_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_28a0139a6e63_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_28a0139a6e63_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_28a0139a6e63_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_28a0139a6e63_o0">
+            <text>"MOD-DED-01"</text>
+          </outputEntry>
+          <outputEntry id="_rule_28a0139a6e63_o1">
+            <text>"Developing band in a level 3 or above role, ramp-up plan needed, -5%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_28a0139a6e63_o2">
+            <text>- baseSalary * 0.05</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ab1e8e8cec35">
+          <inputEntry id="_rule_ab1e8e8cec35_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ab1e8e8cec35_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ab1e8e8cec35_i2">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_ab1e8e8cec35_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ab1e8e8cec35_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ab1e8e8cec35_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_ab1e8e8cec35_o0">
+            <text>"MOD-DED-02"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ab1e8e8cec35_o1">
+            <text>"Missing a hard requirement that will be trained, -3%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ab1e8e8cec35_o2">
+            <text>- baseSalary * 0.03</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c4702db6c4f3">
+          <description>The only rule that scales the running total rather than the base.</description>
+          <inputEntry id="_rule_c4702db6c4f3_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_c4702db6c4f3_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_c4702db6c4f3_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_c4702db6c4f3_i3">
+            <text>&lt; 1</text>
+          </inputEntry>
+          <inputEntry id="_rule_c4702db6c4f3_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_c4702db6c4f3_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_c4702db6c4f3_o0">
+            <text>"MOD-DED-03"</text>
+          </outputEntry>
+          <outputEntry id="_rule_c4702db6c4f3_o1">
+            <text>"Reduced schedule, the whole offer is pro-rated to the agreed fraction"</text>
+          </outputEntry>
+          <outputEntry id="_rule_c4702db6c4f3_o2">
+            <text>- subtotal * (1 - partTimeFraction)</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_740465d128e4">
+          <inputEntry id="_rule_740465d128e4_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_740465d128e4_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_740465d128e4_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_740465d128e4_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_740465d128e4_i4">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_740465d128e4_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_740465d128e4_o0">
+            <text>"MOD-DED-04"</text>
+          </outputEntry>
+          <outputEntry id="_rule_740465d128e4_o1">
+            <text>"Market with employer-funded statutory benefits above the US baseline, -2%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_740465d128e4_o2">
+            <text>- baseSalary * 0.02</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_6a96f2df9794">
+          <inputEntry id="_rule_6a96f2df9794_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6a96f2df9794_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6a96f2df9794_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6a96f2df9794_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6a96f2df9794_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6a96f2df9794_i5">
+            <text>true</text>
+          </inputEntry>
+          <outputEntry id="_rule_6a96f2df9794_o0">
+            <text>"MOD-DED-05"</text>
+          </outputEntry>
+          <outputEntry id="_rule_6a96f2df9794_o1">
+            <text>"Contract to hire, recalculated on conversion, -4%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_6a96f2df9794_o2">
+            <text>- baseSalary * 0.04</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-DED-05</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_a7cb1270cb05">
+      <requiredAuthority href="#_ks_bef83d402603"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_5b2cceeaf85c" name="Deductions">
+    <variable id="_var_ecf594701afd" name="Deductions" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_bc00cc82389d" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_5a2940f383db" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_dd63284e8738" name="subtotal" typeRef="number"/>
+      <formalParameter id="_fp_64aae1712406" name="band" typeRef="types.tSeniorityBand"/>
+      <formalParameter id="_fp_3680fdc16bc0" name="roleLevel" typeRef="number"/>
+      <formalParameter id="_fp_e0f0e0ea2ce8" name="missingHardRequirement" typeRef="boolean"/>
+      <formalParameter id="_fp_f0dbb70456b4" name="partTimeFraction" typeRef="types.tFraction"/>
+      <formalParameter id="_fp_19a516e321ce" name="isEuropeanStatutoryMarket" typeRef="boolean"/>
+      <formalParameter id="_fp_65621dbfc2df" name="contractToHire" typeRef="boolean"/>
+      <context id="_ctx_5c78281b69ab" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_0f97a1840855">
+          <variable id="_cev_2a0481791632" name="rules" typeRef="types.tAppliedRuleList"/>
+          <literalExpression id="_le_cff697d10148">
+            <text>Deduction Rules(baseSalary, subtotal, band, roleLevel,
+  missingHardRequirement, partTimeFraction, isEuropeanStatutoryMarket,
+  contractToHire)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_41fbe193b504">
+          <variable id="_cev_a6383e1c00dd" name="raised" typeRef="types.tFlagList"/>
+          <literalExpression id="_le_c0e1d7c5d69e">
+            <text>[]</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_4fc0fd857517">
+          <literalExpression id="_le_fe4a7bf8ec08">
+            <text>{ amount: common.Sum Of Rules(rules),
+  appliedRules: if rules = null then [] else rules,
+  flags: if raised = null then [] else raised }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_eb9307bf432d">
+      <requiredKnowledge href="#_bkm_cbc94e8a72fe"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_1edfbd843722">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_061a207248f5"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_4ebabe2ba746">
+      <requiredAuthority href="#_ks_bef83d402603"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_9a776bccad09" name="DRD">
+      <dmndi:DMNShape id="_shape_5d73aae6a8d2" dmnElementRef="_ks_bef83d402603">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_4b9eeae56b46" dmnElementRef="_bkm_6003150c2380">
+        <dc:Bounds height="70" width="180" x="500" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_deab14e3cef3" dmnElementRef="_bkm_cbc94e8a72fe">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_6b57123d833b" dmnElementRef="_bkm_5b2cceeaf85c">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_85126924b190" dmnElementRef="_ar_ca136a65af68">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="590" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_cc855b29cede" dmnElementRef="_ar_a7cb1270cb05">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="370" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_e132d6bef23e" dmnElementRef="_kr_eb9307bf432d">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_33e80e3defe4" dmnElementRef="_ar_4ebabe2ba746">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

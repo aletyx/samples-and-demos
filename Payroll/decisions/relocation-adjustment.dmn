@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_ac731514f134" name="Relocation Adjustment" namespace="https://aletyx.ai/dmn/payroll/relocation-adjustment"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 9, group 3. Relocation and work mode.</description>
+  <import id="_imp_52b1c40d5c06" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_ab631a75a20a" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <knowledgeSource id="_ks_5e0b0da4397f" name="Relocation Policy" locationURI="../spec/candidate_offer.md#9-group-3--relocation-and-work-mode">
+    <description>Section 9: relocation and work mode. Lump-sum moving costs are handled by the relocation policy and are deliberately out of this model.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_c9be706799ac" name="Relocation Rules">
+    <description>MOD-LOC-01 to MOD-LOC-06, collected.</description>
+    <variable id="_var_67e88f7d66e5" name="Relocation Rules" typeRef="types.tAppliedRuleList"/>
+    <encapsulatedLogic id="_fn_415043895b2a" kind="FEEL" typeRef="types.tAppliedRuleList">
+      <formalParameter id="_fp_3541daf2daad" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_c741191c8b12" name="relocationRequired" typeRef="boolean"/>
+      <formalParameter id="_fp_7db08f88d869" name="relocationScope" typeRef="types.tRelocationScope"/>
+      <formalParameter id="_fp_f6e6cbfafff6" name="indexDrop" typeRef="boolean"/>
+      <formalParameter id="_fp_98e072e1c1fe" name="workMode" typeRef="types.tWorkMode"/>
+      <formalParameter id="_fp_bcf6d5d3eb5d" name="isUsTier1" typeRef="boolean"/>
+      <formalParameter id="_fp_90c65267cf4f" name="remoteEligibleRole" typeRef="boolean"/>
+      <decisionTable id="_dt_dbe4f4cdc6d5" typeRef="types.tAppliedRuleList" hitPolicy="COLLECT" preferredOrientation="Rule-as-Row" outputLabel="Applied rule">
+        <input id="_in_afb4da7b5c5f" label="Relocation required">
+          <inputExpression id="_ie_1f1cff1e06af" typeRef="boolean">
+            <text>relocationRequired</text>
+          </inputExpression>
+        </input>
+        <input id="_in_adcb00533f63" label="Relocation scope">
+          <inputExpression id="_ie_2ce5a253d869" typeRef="types.tRelocationScope">
+            <text>relocationScope</text>
+          </inputExpression>
+        </input>
+        <input id="_in_1ff2c14a6853" label="Destination index below current">
+          <inputExpression id="_ie_3f952980eb69" typeRef="boolean">
+            <text>indexDrop</text>
+          </inputExpression>
+        </input>
+        <input id="_in_5143f25a2707" label="Work mode">
+          <inputExpression id="_ie_54d206643ee1" typeRef="types.tWorkMode">
+            <text>workMode</text>
+          </inputExpression>
+        </input>
+        <input id="_in_97a40d6f4b39" label="US Tier 1 market">
+          <inputExpression id="_ie_ac9c9e874312" typeRef="boolean">
+            <text>isUsTier1</text>
+          </inputExpression>
+        </input>
+        <input id="_in_ac9957c32985" label="Role is remote eligible">
+          <inputExpression id="_ie_10aabb32d5a6" typeRef="boolean">
+            <text>remoteEligibleRole</text>
+          </inputExpression>
+        </input>
+        <output id="_out_9b8bfad4d316" name="ruleId" typeRef="types.tRuleId"/>
+        <output id="_out_da25ad07989b" name="description" typeRef="string"/>
+        <output id="_out_421c4063daf5" name="amount" typeRef="types.tAmount"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_ce0a9cc297aa">
+          <description>Permanent salary uplift, not a moving allowance.</description>
+          <inputEntry id="_rule_ce0a9cc297aa_i0">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_ce0a9cc297aa_i1">
+            <text>"domestic"</text>
+          </inputEntry>
+          <inputEntry id="_rule_ce0a9cc297aa_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ce0a9cc297aa_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ce0a9cc297aa_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ce0a9cc297aa_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_ce0a9cc297aa_o0">
+            <text>"MOD-LOC-01"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ce0a9cc297aa_o1">
+            <text>"Domestic relocation uplift of 4%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ce0a9cc297aa_o2">
+            <text>baseSalary * 0.04</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3505fc9a8026">
+          <description>Permanent salary uplift, not a moving allowance.</description>
+          <inputEntry id="_rule_3505fc9a8026_i0">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_3505fc9a8026_i1">
+            <text>"international"</text>
+          </inputEntry>
+          <inputEntry id="_rule_3505fc9a8026_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3505fc9a8026_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3505fc9a8026_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3505fc9a8026_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_3505fc9a8026_o0">
+            <text>"MOD-LOC-02"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3505fc9a8026_o1">
+            <text>"International relocation uplift of 7%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3505fc9a8026_o2">
+            <text>baseSalary * 0.07</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1fa38e083592">
+          <description>Softens a move to a cheaper market.</description>
+          <inputEntry id="_rule_1fa38e083592_i0">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_1fa38e083592_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_1fa38e083592_i2">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_1fa38e083592_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_1fa38e083592_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_1fa38e083592_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_1fa38e083592_o0">
+            <text>"MOD-LOC-03"</text>
+          </outputEntry>
+          <outputEntry id="_rule_1fa38e083592_o1">
+            <text>"Destination market index is below the candidate current market, 3%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_1fa38e083592_o2">
+            <text>baseSalary * 0.03</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ca0fd484833c">
+          <inputEntry id="_rule_ca0fd484833c_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ca0fd484833c_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ca0fd484833c_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ca0fd484833c_i3">
+            <text>"onsite"</text>
+          </inputEntry>
+          <inputEntry id="_rule_ca0fd484833c_i4">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_ca0fd484833c_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_ca0fd484833c_o0">
+            <text>"MOD-LOC-04"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ca0fd484833c_o1">
+            <text>"Onsite in a US Tier 1 market, commute compensation of 2%"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ca0fd484833c_o2">
+            <text>baseSalary * 0.02</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_6be58ff018ad">
+          <description>Recorded so the rationale shows it was considered.</description>
+          <inputEntry id="_rule_6be58ff018ad_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6be58ff018ad_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6be58ff018ad_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6be58ff018ad_i3">
+            <text>"remote"</text>
+          </inputEntry>
+          <inputEntry id="_rule_6be58ff018ad_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_6be58ff018ad_i5">
+            <text>true</text>
+          </inputEntry>
+          <outputEntry id="_rule_6be58ff018ad_o0">
+            <text>"MOD-LOC-05"</text>
+          </outputEntry>
+          <outputEntry id="_rule_6be58ff018ad_o1">
+            <text>"Remote in a remote-eligible role, no change"</text>
+          </outputEntry>
+          <outputEntry id="_rule_6be58ff018ad_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-05</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3c2c3b12d44e">
+          <inputEntry id="_rule_3c2c3b12d44e_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3c2c3b12d44e_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3c2c3b12d44e_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3c2c3b12d44e_i3">
+            <text>"hybrid"</text>
+          </inputEntry>
+          <inputEntry id="_rule_3c2c3b12d44e_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3c2c3b12d44e_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_3c2c3b12d44e_o0">
+            <text>"MOD-LOC-06"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3c2c3b12d44e_o1">
+            <text>"Hybrid working, no change"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3c2c3b12d44e_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-06</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_4b374a96e130">
+      <requiredAuthority href="#_ks_5e0b0da4397f"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_f74949676feb" name="Relocation Flags">
+    <description>MOD-LOC-07.</description>
+    <variable id="_var_9f213610760d" name="Relocation Flags" typeRef="types.tFlagList"/>
+    <encapsulatedLogic id="_fn_4cee202b2caa" kind="FEEL" typeRef="types.tFlagList">
+      <formalParameter id="_fp_7651f8d7dea3" name="visaSponsorshipRequired" typeRef="boolean"/>
+      <decisionTable id="_dt_580a87b8cc45" hitPolicy="COLLECT" preferredOrientation="Rule-as-Row" outputLabel="Review flag">
+        <input id="_in_69159f43dc03" label="Visa sponsorship required">
+          <inputExpression id="_ie_f381f34928b2" typeRef="boolean">
+            <text>visaSponsorshipRequired</text>
+          </inputExpression>
+        </input>
+        <output id="_out_086cb66e9183" typeRef="types.tFlag"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_de7e2d6151db">
+          <description>Legal confirms feasibility and timing before the offer is sent.</description>
+          <inputEntry id="_rule_de7e2d6151db_i0">
+            <text>true</text>
+          </inputEntry>
+          <outputEntry id="_rule_de7e2d6151db_o0">
+            <text>"VISA_REVIEW"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-LOC-07</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_a8eb49d9b77a">
+      <requiredAuthority href="#_ks_5e0b0da4397f"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_d8bb5b87e73f" name="Relocation Adjustment">
+    <variable id="_var_d9de2eeac53b" name="Relocation Adjustment" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_ada4c38ab187" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_bad27e709568" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_1092159b1e2f" name="relocationRequired" typeRef="boolean"/>
+      <formalParameter id="_fp_33b9295b7aef" name="relocationScope" typeRef="types.tRelocationScope"/>
+      <formalParameter id="_fp_d7220a9ec346" name="indexDrop" typeRef="boolean"/>
+      <formalParameter id="_fp_2f73125236e6" name="workMode" typeRef="types.tWorkMode"/>
+      <formalParameter id="_fp_1f8cc1fd272c" name="isUsTier1" typeRef="boolean"/>
+      <formalParameter id="_fp_bcd87b9acfe4" name="remoteEligibleRole" typeRef="boolean"/>
+      <formalParameter id="_fp_560c75897a5d" name="visaSponsorshipRequired" typeRef="boolean"/>
+      <context id="_ctx_37bcec838c2f" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_603cebd11353">
+          <variable id="_cev_5a6d205ad3ab" name="rules" typeRef="types.tAppliedRuleList"/>
+          <literalExpression id="_le_69c0ffba6163">
+            <text>Relocation Rules(baseSalary, relocationRequired, relocationScope,
+  indexDrop, workMode, isUsTier1, remoteEligibleRole)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_f6c0f085d1ae">
+          <variable id="_cev_1d97611fa4f7" name="raised" typeRef="types.tFlagList"/>
+          <literalExpression id="_le_5ee6e1e7e8fd">
+            <text>Relocation Flags(visaSponsorshipRequired)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_de623ed91216">
+          <literalExpression id="_le_1bf2319def4e">
+            <text>{ amount: common.Sum Of Rules(rules),
+  appliedRules: if rules = null then [] else rules,
+  flags: if raised = null then [] else raised }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_3faa33ae6799">
+      <requiredKnowledge href="#_bkm_c9be706799ac"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_abf673e4245e">
+      <requiredKnowledge href="#_bkm_f74949676feb"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_8cb27f5cb1bd">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_061a207248f5"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_eaf129c9040c">
+      <requiredAuthority href="#_ks_5e0b0da4397f"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_1b9d44ed135b" name="DRD">
+      <dmndi:DMNShape id="_shape_9df1ed1aa8fe" dmnElementRef="_ks_5e0b0da4397f">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_dca130dc309b" dmnElementRef="_bkm_c9be706799ac">
+        <dc:Bounds height="70" width="180" x="500" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_472f45c91d44" dmnElementRef="_bkm_f74949676feb">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_231aa62821f9" dmnElementRef="_bkm_d8bb5b87e73f">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_ee301ab0c9e3" dmnElementRef="_ar_4b374a96e130">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="590" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_539027258725" dmnElementRef="_ar_a8eb49d9b77a">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_74e68a9b757c" dmnElementRef="_kr_3faa33ae6799">
+        <di:waypoint x="590" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_d0d10372933a" dmnElementRef="_kr_abf673e4245e">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_74b3b3adcbc1" dmnElementRef="_ar_eaf129c9040c">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

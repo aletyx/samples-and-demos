@@ -1,0 +1,1554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_537448ebff67" name="Market Adjustment" namespace="https://aletyx.ai/dmn/payroll/market-adjustment"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 7, group 1. The only multiplicative modifier.</description>
+  <import id="_imp_4db307b23367" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <knowledgeSource id="_ks_6c4f9ebbc197" name="Market Index Policy" locationURI="../spec/candidate_offer.md#7-group-1--market-adjustment">
+    <description>Section 7: the index applied to the reference range for the location the candidate will be employed in. Reviewed twice a year under GOV-02.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_67f06d8fa69b" name="Market Index">
+    <description>City first, then country, then regional fallback. Because tMarketCode is an enumeration, MOD-MKT-90 (unknown market) cannot happen here; it is trapped in validation instead.</description>
+    <variable id="_var_c32523b5d218" name="Market Index" typeRef="types.tMarketIndex"/>
+    <encapsulatedLogic id="_fn_88171029fba3" kind="FEEL" typeRef="types.tMarketIndex">
+      <formalParameter id="_fp_43fc2adc9b9b" name="marketCode" typeRef="types.tMarketCode"/>
+      <decisionTable id="_dt_969c96045916" typeRef="types.tMarketIndex" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Market index">
+        <input id="_in_a767e011daef" label="Market code">
+          <inputExpression id="_ie_bc7c0ebb57ae" typeRef="types.tMarketCode">
+            <text>marketCode</text>
+          </inputExpression>
+        </input>
+        <output id="_out_b79d54f4eeb4" name="marketCode" typeRef="types.tMarketCode"/>
+        <output id="_out_8de0ccd05841" name="location" typeRef="string"/>
+        <output id="_out_6e90691bafb7" name="index" typeRef="types.tMarketIndexValue"/>
+        <output id="_out_52901e64495d" name="ruleId" typeRef="types.tRuleId"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_c6c55f1b28eb">
+          <description>United States — San Francisco Bay Area</description>
+          <inputEntry id="_rule_c6c55f1b28eb_i0">
+            <text>"US-SF"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c6c55f1b28eb_o0">
+            <text>"US-SF"</text>
+          </outputEntry>
+          <outputEntry id="_rule_c6c55f1b28eb_o1">
+            <text>"United States — San Francisco Bay Area"</text>
+          </outputEntry>
+          <outputEntry id="_rule_c6c55f1b28eb_o2">
+            <text>1.15</text>
+          </outputEntry>
+          <outputEntry id="_rule_c6c55f1b28eb_o3">
+            <text>"MOD-MKT-01"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_983a7118717c">
+          <description>United States — New York City</description>
+          <inputEntry id="_rule_983a7118717c_i0">
+            <text>"US-NYC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_983a7118717c_o0">
+            <text>"US-NYC"</text>
+          </outputEntry>
+          <outputEntry id="_rule_983a7118717c_o1">
+            <text>"United States — New York City"</text>
+          </outputEntry>
+          <outputEntry id="_rule_983a7118717c_o2">
+            <text>1.12</text>
+          </outputEntry>
+          <outputEntry id="_rule_983a7118717c_o3">
+            <text>"MOD-MKT-02"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_32d3456ec3ae">
+          <description>United States — Seattle</description>
+          <inputEntry id="_rule_32d3456ec3ae_i0">
+            <text>"US-SEA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_32d3456ec3ae_o0">
+            <text>"US-SEA"</text>
+          </outputEntry>
+          <outputEntry id="_rule_32d3456ec3ae_o1">
+            <text>"United States — Seattle"</text>
+          </outputEntry>
+          <outputEntry id="_rule_32d3456ec3ae_o2">
+            <text>1.08</text>
+          </outputEntry>
+          <outputEntry id="_rule_32d3456ec3ae_o3">
+            <text>"MOD-MKT-03"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f10c7ce944e8">
+          <description>United States — Boston</description>
+          <inputEntry id="_rule_f10c7ce944e8_i0">
+            <text>"US-BOS"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f10c7ce944e8_o0">
+            <text>"US-BOS"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f10c7ce944e8_o1">
+            <text>"United States — Boston"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f10c7ce944e8_o2">
+            <text>1.05</text>
+          </outputEntry>
+          <outputEntry id="_rule_f10c7ce944e8_o3">
+            <text>"MOD-MKT-04"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_59f478595098">
+          <description>United States — Austin</description>
+          <inputEntry id="_rule_59f478595098_i0">
+            <text>"US-AUS"</text>
+          </inputEntry>
+          <outputEntry id="_rule_59f478595098_o0">
+            <text>"US-AUS"</text>
+          </outputEntry>
+          <outputEntry id="_rule_59f478595098_o1">
+            <text>"United States — Austin"</text>
+          </outputEntry>
+          <outputEntry id="_rule_59f478595098_o2">
+            <text>1.0</text>
+          </outputEntry>
+          <outputEntry id="_rule_59f478595098_o3">
+            <text>"MOD-MKT-05"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-05</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_93671231673c">
+          <description>United States — Chicago</description>
+          <inputEntry id="_rule_93671231673c_i0">
+            <text>"US-CHI"</text>
+          </inputEntry>
+          <outputEntry id="_rule_93671231673c_o0">
+            <text>"US-CHI"</text>
+          </outputEntry>
+          <outputEntry id="_rule_93671231673c_o1">
+            <text>"United States — Chicago"</text>
+          </outputEntry>
+          <outputEntry id="_rule_93671231673c_o2">
+            <text>1.0</text>
+          </outputEntry>
+          <outputEntry id="_rule_93671231673c_o3">
+            <text>"MOD-MKT-06"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-06</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3e02cb8b1d3e">
+          <description>United States — Denver</description>
+          <inputEntry id="_rule_3e02cb8b1d3e_i0">
+            <text>"US-DEN"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3e02cb8b1d3e_o0">
+            <text>"US-DEN"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3e02cb8b1d3e_o1">
+            <text>"United States — Denver"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3e02cb8b1d3e_o2">
+            <text>0.98</text>
+          </outputEntry>
+          <outputEntry id="_rule_3e02cb8b1d3e_o3">
+            <text>"MOD-MKT-07"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-07</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e6c9263d2561">
+          <description>United States — all other locations</description>
+          <inputEntry id="_rule_e6c9263d2561_i0">
+            <text>"US-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e6c9263d2561_o0">
+            <text>"US-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e6c9263d2561_o1">
+            <text>"United States — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e6c9263d2561_o2">
+            <text>0.92</text>
+          </outputEntry>
+          <outputEntry id="_rule_e6c9263d2561_o3">
+            <text>"MOD-MKT-08"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-08</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_66fc06108d43">
+          <description>Canada — Toronto or Vancouver</description>
+          <inputEntry id="_rule_66fc06108d43_i0">
+            <text>"CA-TOR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_66fc06108d43_o0">
+            <text>"CA-TOR"</text>
+          </outputEntry>
+          <outputEntry id="_rule_66fc06108d43_o1">
+            <text>"Canada — Toronto or Vancouver"</text>
+          </outputEntry>
+          <outputEntry id="_rule_66fc06108d43_o2">
+            <text>0.88</text>
+          </outputEntry>
+          <outputEntry id="_rule_66fc06108d43_o3">
+            <text>"MOD-MKT-09"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-09</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f836acf1ffbb">
+          <description>Canada — all other locations</description>
+          <inputEntry id="_rule_f836acf1ffbb_i0">
+            <text>"CA-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f836acf1ffbb_o0">
+            <text>"CA-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f836acf1ffbb_o1">
+            <text>"Canada — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f836acf1ffbb_o2">
+            <text>0.78</text>
+          </outputEntry>
+          <outputEntry id="_rule_f836acf1ffbb_o3">
+            <text>"MOD-MKT-10"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-10</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5e6870692009">
+          <description>United Kingdom — London</description>
+          <inputEntry id="_rule_5e6870692009_i0">
+            <text>"UK-LON"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5e6870692009_o0">
+            <text>"UK-LON"</text>
+          </outputEntry>
+          <outputEntry id="_rule_5e6870692009_o1">
+            <text>"United Kingdom — London"</text>
+          </outputEntry>
+          <outputEntry id="_rule_5e6870692009_o2">
+            <text>0.95</text>
+          </outputEntry>
+          <outputEntry id="_rule_5e6870692009_o3">
+            <text>"MOD-MKT-11"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-11</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_dc16e3457a2f">
+          <description>United Kingdom — outside London</description>
+          <inputEntry id="_rule_dc16e3457a2f_i0">
+            <text>"UK-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_dc16e3457a2f_o0">
+            <text>"UK-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_dc16e3457a2f_o1">
+            <text>"United Kingdom — outside London"</text>
+          </outputEntry>
+          <outputEntry id="_rule_dc16e3457a2f_o2">
+            <text>0.78</text>
+          </outputEntry>
+          <outputEntry id="_rule_dc16e3457a2f_o3">
+            <text>"MOD-MKT-12"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-12</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0fee8f526229">
+          <description>Ireland — Dublin</description>
+          <inputEntry id="_rule_0fee8f526229_i0">
+            <text>"IE-DUB"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0fee8f526229_o0">
+            <text>"IE-DUB"</text>
+          </outputEntry>
+          <outputEntry id="_rule_0fee8f526229_o1">
+            <text>"Ireland — Dublin"</text>
+          </outputEntry>
+          <outputEntry id="_rule_0fee8f526229_o2">
+            <text>0.88</text>
+          </outputEntry>
+          <outputEntry id="_rule_0fee8f526229_o3">
+            <text>"MOD-MKT-13"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-13</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3947c8ecce14">
+          <description>Ireland — outside Dublin</description>
+          <inputEntry id="_rule_3947c8ecce14_i0">
+            <text>"IE-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3947c8ecce14_o0">
+            <text>"IE-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3947c8ecce14_o1">
+            <text>"Ireland — outside Dublin"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3947c8ecce14_o2">
+            <text>0.76</text>
+          </outputEntry>
+          <outputEntry id="_rule_3947c8ecce14_o3">
+            <text>"MOD-MKT-14"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-14</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_82b265b5c607">
+          <description>Switzerland — Zurich or Geneva</description>
+          <inputEntry id="_rule_82b265b5c607_i0">
+            <text>"CH-ZRH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_82b265b5c607_o0">
+            <text>"CH-ZRH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_82b265b5c607_o1">
+            <text>"Switzerland — Zurich or Geneva"</text>
+          </outputEntry>
+          <outputEntry id="_rule_82b265b5c607_o2">
+            <text>1.05</text>
+          </outputEntry>
+          <outputEntry id="_rule_82b265b5c607_o3">
+            <text>"MOD-MKT-20"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-20</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7c1590a4a970">
+          <description>Switzerland — other</description>
+          <inputEntry id="_rule_7c1590a4a970_i0">
+            <text>"CH-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7c1590a4a970_o0">
+            <text>"CH-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7c1590a4a970_o1">
+            <text>"Switzerland — other"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7c1590a4a970_o2">
+            <text>0.96</text>
+          </outputEntry>
+          <outputEntry id="_rule_7c1590a4a970_o3">
+            <text>"MOD-MKT-21"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-21</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_37e4f885f5c7">
+          <description>Germany — Munich</description>
+          <inputEntry id="_rule_37e4f885f5c7_i0">
+            <text>"DE-MUC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_37e4f885f5c7_o0">
+            <text>"DE-MUC"</text>
+          </outputEntry>
+          <outputEntry id="_rule_37e4f885f5c7_o1">
+            <text>"Germany — Munich"</text>
+          </outputEntry>
+          <outputEntry id="_rule_37e4f885f5c7_o2">
+            <text>0.88</text>
+          </outputEntry>
+          <outputEntry id="_rule_37e4f885f5c7_o3">
+            <text>"MOD-MKT-22"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-22</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_faacdffa60f5">
+          <description>Germany — Berlin</description>
+          <inputEntry id="_rule_faacdffa60f5_i0">
+            <text>"DE-BER"</text>
+          </inputEntry>
+          <outputEntry id="_rule_faacdffa60f5_o0">
+            <text>"DE-BER"</text>
+          </outputEntry>
+          <outputEntry id="_rule_faacdffa60f5_o1">
+            <text>"Germany — Berlin"</text>
+          </outputEntry>
+          <outputEntry id="_rule_faacdffa60f5_o2">
+            <text>0.84</text>
+          </outputEntry>
+          <outputEntry id="_rule_faacdffa60f5_o3">
+            <text>"MOD-MKT-23"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-23</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_51103e4c090b">
+          <description>Germany — all other locations</description>
+          <inputEntry id="_rule_51103e4c090b_i0">
+            <text>"DE-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_51103e4c090b_o0">
+            <text>"DE-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_51103e4c090b_o1">
+            <text>"Germany — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_51103e4c090b_o2">
+            <text>0.8</text>
+          </outputEntry>
+          <outputEntry id="_rule_51103e4c090b_o3">
+            <text>"MOD-MKT-24"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-24</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d4686b09c8b9">
+          <description>Netherlands — Amsterdam</description>
+          <inputEntry id="_rule_d4686b09c8b9_i0">
+            <text>"NL-AMS"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d4686b09c8b9_o0">
+            <text>"NL-AMS"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d4686b09c8b9_o1">
+            <text>"Netherlands — Amsterdam"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d4686b09c8b9_o2">
+            <text>0.87</text>
+          </outputEntry>
+          <outputEntry id="_rule_d4686b09c8b9_o3">
+            <text>"MOD-MKT-25"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-25</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7b6c56365408">
+          <description>Netherlands — all other locations</description>
+          <inputEntry id="_rule_7b6c56365408_i0">
+            <text>"NL-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7b6c56365408_o0">
+            <text>"NL-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7b6c56365408_o1">
+            <text>"Netherlands — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7b6c56365408_o2">
+            <text>0.8</text>
+          </outputEntry>
+          <outputEntry id="_rule_7b6c56365408_o3">
+            <text>"MOD-MKT-26"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-26</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1f0d5416a906">
+          <description>France — Paris</description>
+          <inputEntry id="_rule_1f0d5416a906_i0">
+            <text>"FR-PAR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1f0d5416a906_o0">
+            <text>"FR-PAR"</text>
+          </outputEntry>
+          <outputEntry id="_rule_1f0d5416a906_o1">
+            <text>"France — Paris"</text>
+          </outputEntry>
+          <outputEntry id="_rule_1f0d5416a906_o2">
+            <text>0.82</text>
+          </outputEntry>
+          <outputEntry id="_rule_1f0d5416a906_o3">
+            <text>"MOD-MKT-27"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-27</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2a4fd5937bd6">
+          <description>France — all other locations</description>
+          <inputEntry id="_rule_2a4fd5937bd6_i0">
+            <text>"FR-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2a4fd5937bd6_o0">
+            <text>"FR-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_2a4fd5937bd6_o1">
+            <text>"France — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_2a4fd5937bd6_o2">
+            <text>0.72</text>
+          </outputEntry>
+          <outputEntry id="_rule_2a4fd5937bd6_o3">
+            <text>"MOD-MKT-28"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-28</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f2b660bf6fa1">
+          <description>Belgium — Brussels</description>
+          <inputEntry id="_rule_f2b660bf6fa1_i0">
+            <text>"BE-BRU"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f2b660bf6fa1_o0">
+            <text>"BE-BRU"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f2b660bf6fa1_o1">
+            <text>"Belgium — Brussels"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f2b660bf6fa1_o2">
+            <text>0.8</text>
+          </outputEntry>
+          <outputEntry id="_rule_f2b660bf6fa1_o3">
+            <text>"MOD-MKT-29"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-29</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d7e5525650d3">
+          <description>Belgium — all other locations</description>
+          <inputEntry id="_rule_d7e5525650d3_i0">
+            <text>"BE-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d7e5525650d3_o0">
+            <text>"BE-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d7e5525650d3_o1">
+            <text>"Belgium — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d7e5525650d3_o2">
+            <text>0.74</text>
+          </outputEntry>
+          <outputEntry id="_rule_d7e5525650d3_o3">
+            <text>"MOD-MKT-30"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-30</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b0545ba4f552">
+          <description>Luxembourg</description>
+          <inputEntry id="_rule_b0545ba4f552_i0">
+            <text>"LU-LUX"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b0545ba4f552_o0">
+            <text>"LU-LUX"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b0545ba4f552_o1">
+            <text>"Luxembourg"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b0545ba4f552_o2">
+            <text>0.9</text>
+          </outputEntry>
+          <outputEntry id="_rule_b0545ba4f552_o3">
+            <text>"MOD-MKT-31"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-31</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d08c9cde3b2e">
+          <description>Austria — Vienna</description>
+          <inputEntry id="_rule_d08c9cde3b2e_i0">
+            <text>"AT-VIE"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d08c9cde3b2e_o0">
+            <text>"AT-VIE"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d08c9cde3b2e_o1">
+            <text>"Austria — Vienna"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d08c9cde3b2e_o2">
+            <text>0.78</text>
+          </outputEntry>
+          <outputEntry id="_rule_d08c9cde3b2e_o3">
+            <text>"MOD-MKT-32"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-32</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5cf5037736a2">
+          <description>Austria — all other locations</description>
+          <inputEntry id="_rule_5cf5037736a2_i0">
+            <text>"AT-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5cf5037736a2_o0">
+            <text>"AT-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_5cf5037736a2_o1">
+            <text>"Austria — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_5cf5037736a2_o2">
+            <text>0.72</text>
+          </outputEntry>
+          <outputEntry id="_rule_5cf5037736a2_o3">
+            <text>"MOD-MKT-33"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-33</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ca818a420722">
+          <description>Denmark — Copenhagen</description>
+          <inputEntry id="_rule_ca818a420722_i0">
+            <text>"DK-CPH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ca818a420722_o0">
+            <text>"DK-CPH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ca818a420722_o1">
+            <text>"Denmark — Copenhagen"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ca818a420722_o2">
+            <text>0.88</text>
+          </outputEntry>
+          <outputEntry id="_rule_ca818a420722_o3">
+            <text>"MOD-MKT-34"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-34</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_600153c39439">
+          <description>Sweden — Stockholm</description>
+          <inputEntry id="_rule_600153c39439_i0">
+            <text>"SE-STO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_600153c39439_o0">
+            <text>"SE-STO"</text>
+          </outputEntry>
+          <outputEntry id="_rule_600153c39439_o1">
+            <text>"Sweden — Stockholm"</text>
+          </outputEntry>
+          <outputEntry id="_rule_600153c39439_o2">
+            <text>0.82</text>
+          </outputEntry>
+          <outputEntry id="_rule_600153c39439_o3">
+            <text>"MOD-MKT-35"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-35</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b869d61a1437">
+          <description>Sweden — all other locations</description>
+          <inputEntry id="_rule_b869d61a1437_i0">
+            <text>"SE-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b869d61a1437_o0">
+            <text>"SE-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b869d61a1437_o1">
+            <text>"Sweden — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b869d61a1437_o2">
+            <text>0.74</text>
+          </outputEntry>
+          <outputEntry id="_rule_b869d61a1437_o3">
+            <text>"MOD-MKT-36"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-36</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ab4ec94a386d">
+          <description>Norway — Oslo</description>
+          <inputEntry id="_rule_ab4ec94a386d_i0">
+            <text>"NO-OSL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ab4ec94a386d_o0">
+            <text>"NO-OSL"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ab4ec94a386d_o1">
+            <text>"Norway — Oslo"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ab4ec94a386d_o2">
+            <text>0.85</text>
+          </outputEntry>
+          <outputEntry id="_rule_ab4ec94a386d_o3">
+            <text>"MOD-MKT-37"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-37</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7e9b2e35483f">
+          <description>Finland — Helsinki</description>
+          <inputEntry id="_rule_7e9b2e35483f_i0">
+            <text>"FI-HEL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7e9b2e35483f_o0">
+            <text>"FI-HEL"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7e9b2e35483f_o1">
+            <text>"Finland — Helsinki"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7e9b2e35483f_o2">
+            <text>0.78</text>
+          </outputEntry>
+          <outputEntry id="_rule_7e9b2e35483f_o3">
+            <text>"MOD-MKT-38"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-38</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_139955eb1c1f">
+          <description>Iceland — Reykjavik</description>
+          <inputEntry id="_rule_139955eb1c1f_i0">
+            <text>"IS-REY"</text>
+          </inputEntry>
+          <outputEntry id="_rule_139955eb1c1f_o0">
+            <text>"IS-REY"</text>
+          </outputEntry>
+          <outputEntry id="_rule_139955eb1c1f_o1">
+            <text>"Iceland — Reykjavik"</text>
+          </outputEntry>
+          <outputEntry id="_rule_139955eb1c1f_o2">
+            <text>0.78</text>
+          </outputEntry>
+          <outputEntry id="_rule_139955eb1c1f_o3">
+            <text>"MOD-MKT-39"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-39</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_fd003aa50537">
+          <description>Spain — Madrid or Barcelona</description>
+          <inputEntry id="_rule_fd003aa50537_i0">
+            <text>"ES-MAD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_fd003aa50537_o0">
+            <text>"ES-MAD"</text>
+          </outputEntry>
+          <outputEntry id="_rule_fd003aa50537_o1">
+            <text>"Spain — Madrid or Barcelona"</text>
+          </outputEntry>
+          <outputEntry id="_rule_fd003aa50537_o2">
+            <text>0.68</text>
+          </outputEntry>
+          <outputEntry id="_rule_fd003aa50537_o3">
+            <text>"MOD-MKT-40"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-40</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b86b15f1eeb2">
+          <description>Spain — all other locations</description>
+          <inputEntry id="_rule_b86b15f1eeb2_i0">
+            <text>"ES-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b86b15f1eeb2_o0">
+            <text>"ES-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b86b15f1eeb2_o1">
+            <text>"Spain — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b86b15f1eeb2_o2">
+            <text>0.6</text>
+          </outputEntry>
+          <outputEntry id="_rule_b86b15f1eeb2_o3">
+            <text>"MOD-MKT-41"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-41</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_74c7bb0ca0ee">
+          <description>Portugal — Lisbon or Porto</description>
+          <inputEntry id="_rule_74c7bb0ca0ee_i0">
+            <text>"PT-LIS"</text>
+          </inputEntry>
+          <outputEntry id="_rule_74c7bb0ca0ee_o0">
+            <text>"PT-LIS"</text>
+          </outputEntry>
+          <outputEntry id="_rule_74c7bb0ca0ee_o1">
+            <text>"Portugal — Lisbon or Porto"</text>
+          </outputEntry>
+          <outputEntry id="_rule_74c7bb0ca0ee_o2">
+            <text>0.58</text>
+          </outputEntry>
+          <outputEntry id="_rule_74c7bb0ca0ee_o3">
+            <text>"MOD-MKT-42"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-42</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_04c6ff87fff1">
+          <description>Portugal — all other locations</description>
+          <inputEntry id="_rule_04c6ff87fff1_i0">
+            <text>"PT-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_04c6ff87fff1_o0">
+            <text>"PT-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_04c6ff87fff1_o1">
+            <text>"Portugal — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_04c6ff87fff1_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_04c6ff87fff1_o3">
+            <text>"MOD-MKT-43"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-43</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5c1170e53e12">
+          <description>Italy — Milan</description>
+          <inputEntry id="_rule_5c1170e53e12_i0">
+            <text>"IT-MIL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5c1170e53e12_o0">
+            <text>"IT-MIL"</text>
+          </outputEntry>
+          <outputEntry id="_rule_5c1170e53e12_o1">
+            <text>"Italy — Milan"</text>
+          </outputEntry>
+          <outputEntry id="_rule_5c1170e53e12_o2">
+            <text>0.68</text>
+          </outputEntry>
+          <outputEntry id="_rule_5c1170e53e12_o3">
+            <text>"MOD-MKT-44"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-44</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4c85ea1cbac3">
+          <description>Italy — all other locations</description>
+          <inputEntry id="_rule_4c85ea1cbac3_i0">
+            <text>"IT-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4c85ea1cbac3_o0">
+            <text>"IT-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_4c85ea1cbac3_o1">
+            <text>"Italy — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_4c85ea1cbac3_o2">
+            <text>0.58</text>
+          </outputEntry>
+          <outputEntry id="_rule_4c85ea1cbac3_o3">
+            <text>"MOD-MKT-45"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-45</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_02766a6f7f57">
+          <description>Greece — Athens</description>
+          <inputEntry id="_rule_02766a6f7f57_i0">
+            <text>"GR-ATH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_02766a6f7f57_o0">
+            <text>"GR-ATH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_02766a6f7f57_o1">
+            <text>"Greece — Athens"</text>
+          </outputEntry>
+          <outputEntry id="_rule_02766a6f7f57_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_02766a6f7f57_o3">
+            <text>"MOD-MKT-46"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-46</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0f3d582facdc">
+          <description>Cyprus</description>
+          <inputEntry id="_rule_0f3d582facdc_i0">
+            <text>"CY-NIC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0f3d582facdc_o0">
+            <text>"CY-NIC"</text>
+          </outputEntry>
+          <outputEntry id="_rule_0f3d582facdc_o1">
+            <text>"Cyprus"</text>
+          </outputEntry>
+          <outputEntry id="_rule_0f3d582facdc_o2">
+            <text>0.5</text>
+          </outputEntry>
+          <outputEntry id="_rule_0f3d582facdc_o3">
+            <text>"MOD-MKT-47"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-47</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e898944dc638">
+          <description>Malta</description>
+          <inputEntry id="_rule_e898944dc638_i0">
+            <text>"MT-MLA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e898944dc638_o0">
+            <text>"MT-MLA"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e898944dc638_o1">
+            <text>"Malta"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e898944dc638_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_e898944dc638_o3">
+            <text>"MOD-MKT-48"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-48</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_83e0b9c46047">
+          <description>Poland — Warsaw or Krakow</description>
+          <inputEntry id="_rule_83e0b9c46047_i0">
+            <text>"PL-WAW"</text>
+          </inputEntry>
+          <outputEntry id="_rule_83e0b9c46047_o0">
+            <text>"PL-WAW"</text>
+          </outputEntry>
+          <outputEntry id="_rule_83e0b9c46047_o1">
+            <text>"Poland — Warsaw or Krakow"</text>
+          </outputEntry>
+          <outputEntry id="_rule_83e0b9c46047_o2">
+            <text>0.6</text>
+          </outputEntry>
+          <outputEntry id="_rule_83e0b9c46047_o3">
+            <text>"MOD-MKT-50"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-50</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ae4bbc6a4a1a">
+          <description>Poland — all other locations</description>
+          <inputEntry id="_rule_ae4bbc6a4a1a_i0">
+            <text>"PL-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ae4bbc6a4a1a_o0">
+            <text>"PL-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ae4bbc6a4a1a_o1">
+            <text>"Poland — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ae4bbc6a4a1a_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_ae4bbc6a4a1a_o3">
+            <text>"MOD-MKT-51"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-51</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_dd7cbc437f93">
+          <description>Czechia — Prague</description>
+          <inputEntry id="_rule_dd7cbc437f93_i0">
+            <text>"CZ-PRG"</text>
+          </inputEntry>
+          <outputEntry id="_rule_dd7cbc437f93_o0">
+            <text>"CZ-PRG"</text>
+          </outputEntry>
+          <outputEntry id="_rule_dd7cbc437f93_o1">
+            <text>"Czechia — Prague"</text>
+          </outputEntry>
+          <outputEntry id="_rule_dd7cbc437f93_o2">
+            <text>0.6</text>
+          </outputEntry>
+          <outputEntry id="_rule_dd7cbc437f93_o3">
+            <text>"MOD-MKT-52"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-52</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_aff6c20a6159">
+          <description>Czechia — all other locations</description>
+          <inputEntry id="_rule_aff6c20a6159_i0">
+            <text>"CZ-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_aff6c20a6159_o0">
+            <text>"CZ-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_aff6c20a6159_o1">
+            <text>"Czechia — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_aff6c20a6159_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_aff6c20a6159_o3">
+            <text>"MOD-MKT-53"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-53</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1782b291ee4f">
+          <description>Slovakia — Bratislava</description>
+          <inputEntry id="_rule_1782b291ee4f_i0">
+            <text>"SK-BTS"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1782b291ee4f_o0">
+            <text>"SK-BTS"</text>
+          </outputEntry>
+          <outputEntry id="_rule_1782b291ee4f_o1">
+            <text>"Slovakia — Bratislava"</text>
+          </outputEntry>
+          <outputEntry id="_rule_1782b291ee4f_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_1782b291ee4f_o3">
+            <text>"MOD-MKT-54"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-54</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_f9c06dfc4450">
+          <description>Hungary — Budapest</description>
+          <inputEntry id="_rule_f9c06dfc4450_i0">
+            <text>"HU-BUD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_f9c06dfc4450_o0">
+            <text>"HU-BUD"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f9c06dfc4450_o1">
+            <text>"Hungary — Budapest"</text>
+          </outputEntry>
+          <outputEntry id="_rule_f9c06dfc4450_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_f9c06dfc4450_o3">
+            <text>"MOD-MKT-55"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-55</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3a873bc928b7">
+          <description>Romania — Bucharest</description>
+          <inputEntry id="_rule_3a873bc928b7_i0">
+            <text>"RO-BUC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3a873bc928b7_o0">
+            <text>"RO-BUC"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3a873bc928b7_o1">
+            <text>"Romania — Bucharest"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3a873bc928b7_o2">
+            <text>0.5</text>
+          </outputEntry>
+          <outputEntry id="_rule_3a873bc928b7_o3">
+            <text>"MOD-MKT-56"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-56</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7908357b271d">
+          <description>Romania — all other locations</description>
+          <inputEntry id="_rule_7908357b271d_i0">
+            <text>"RO-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7908357b271d_o0">
+            <text>"RO-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7908357b271d_o1">
+            <text>"Romania — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_7908357b271d_o2">
+            <text>0.44</text>
+          </outputEntry>
+          <outputEntry id="_rule_7908357b271d_o3">
+            <text>"MOD-MKT-57"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-57</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4cad7c6a9638">
+          <description>Bulgaria — Sofia</description>
+          <inputEntry id="_rule_4cad7c6a9638_i0">
+            <text>"BG-SOF"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4cad7c6a9638_o0">
+            <text>"BG-SOF"</text>
+          </outputEntry>
+          <outputEntry id="_rule_4cad7c6a9638_o1">
+            <text>"Bulgaria — Sofia"</text>
+          </outputEntry>
+          <outputEntry id="_rule_4cad7c6a9638_o2">
+            <text>0.48</text>
+          </outputEntry>
+          <outputEntry id="_rule_4cad7c6a9638_o3">
+            <text>"MOD-MKT-58"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-58</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ac7d619b6115">
+          <description>Croatia — Zagreb</description>
+          <inputEntry id="_rule_ac7d619b6115_i0">
+            <text>"HR-ZAG"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ac7d619b6115_o0">
+            <text>"HR-ZAG"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ac7d619b6115_o1">
+            <text>"Croatia — Zagreb"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ac7d619b6115_o2">
+            <text>0.48</text>
+          </outputEntry>
+          <outputEntry id="_rule_ac7d619b6115_o3">
+            <text>"MOD-MKT-59"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-59</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_967dea32db4a">
+          <description>Slovenia — Ljubljana</description>
+          <inputEntry id="_rule_967dea32db4a_i0">
+            <text>"SI-LJU"</text>
+          </inputEntry>
+          <outputEntry id="_rule_967dea32db4a_o0">
+            <text>"SI-LJU"</text>
+          </outputEntry>
+          <outputEntry id="_rule_967dea32db4a_o1">
+            <text>"Slovenia — Ljubljana"</text>
+          </outputEntry>
+          <outputEntry id="_rule_967dea32db4a_o2">
+            <text>0.55</text>
+          </outputEntry>
+          <outputEntry id="_rule_967dea32db4a_o3">
+            <text>"MOD-MKT-60"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-60</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_22951941a5d9">
+          <description>Serbia — Belgrade</description>
+          <inputEntry id="_rule_22951941a5d9_i0">
+            <text>"RS-BEG"</text>
+          </inputEntry>
+          <outputEntry id="_rule_22951941a5d9_o0">
+            <text>"RS-BEG"</text>
+          </outputEntry>
+          <outputEntry id="_rule_22951941a5d9_o1">
+            <text>"Serbia — Belgrade"</text>
+          </outputEntry>
+          <outputEntry id="_rule_22951941a5d9_o2">
+            <text>0.45</text>
+          </outputEntry>
+          <outputEntry id="_rule_22951941a5d9_o3">
+            <text>"MOD-MKT-61"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-61</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_25d3db0be868">
+          <description>Estonia — Tallinn</description>
+          <inputEntry id="_rule_25d3db0be868_i0">
+            <text>"EE-TLL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_25d3db0be868_o0">
+            <text>"EE-TLL"</text>
+          </outputEntry>
+          <outputEntry id="_rule_25d3db0be868_o1">
+            <text>"Estonia — Tallinn"</text>
+          </outputEntry>
+          <outputEntry id="_rule_25d3db0be868_o2">
+            <text>0.55</text>
+          </outputEntry>
+          <outputEntry id="_rule_25d3db0be868_o3">
+            <text>"MOD-MKT-62"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-62</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_9428e4c75df9">
+          <description>Latvia — Riga</description>
+          <inputEntry id="_rule_9428e4c75df9_i0">
+            <text>"LV-RIX"</text>
+          </inputEntry>
+          <outputEntry id="_rule_9428e4c75df9_o0">
+            <text>"LV-RIX"</text>
+          </outputEntry>
+          <outputEntry id="_rule_9428e4c75df9_o1">
+            <text>"Latvia — Riga"</text>
+          </outputEntry>
+          <outputEntry id="_rule_9428e4c75df9_o2">
+            <text>0.5</text>
+          </outputEntry>
+          <outputEntry id="_rule_9428e4c75df9_o3">
+            <text>"MOD-MKT-63"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-63</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4b0ed6d54584">
+          <description>Lithuania — Vilnius</description>
+          <inputEntry id="_rule_4b0ed6d54584_i0">
+            <text>"LT-VNO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4b0ed6d54584_o0">
+            <text>"LT-VNO"</text>
+          </outputEntry>
+          <outputEntry id="_rule_4b0ed6d54584_o1">
+            <text>"Lithuania — Vilnius"</text>
+          </outputEntry>
+          <outputEntry id="_rule_4b0ed6d54584_o2">
+            <text>0.52</text>
+          </outputEntry>
+          <outputEntry id="_rule_4b0ed6d54584_o3">
+            <text>"MOD-MKT-64"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-64</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_9fbb871d9066">
+          <description>Ukraine — Kyiv</description>
+          <inputEntry id="_rule_9fbb871d9066_i0">
+            <text>"UA-KYI"</text>
+          </inputEntry>
+          <outputEntry id="_rule_9fbb871d9066_o0">
+            <text>"UA-KYI"</text>
+          </outputEntry>
+          <outputEntry id="_rule_9fbb871d9066_o1">
+            <text>"Ukraine — Kyiv"</text>
+          </outputEntry>
+          <outputEntry id="_rule_9fbb871d9066_o2">
+            <text>0.4</text>
+          </outputEntry>
+          <outputEntry id="_rule_9fbb871d9066_o3">
+            <text>"MOD-MKT-65"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-65</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c2f82a4c943c">
+          <description>Turkey — Istanbul</description>
+          <inputEntry id="_rule_c2f82a4c943c_i0">
+            <text>"TR-IST"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c2f82a4c943c_o0">
+            <text>"TR-IST"</text>
+          </outputEntry>
+          <outputEntry id="_rule_c2f82a4c943c_o1">
+            <text>"Turkey — Istanbul"</text>
+          </outputEntry>
+          <outputEntry id="_rule_c2f82a4c943c_o2">
+            <text>0.4</text>
+          </outputEntry>
+          <outputEntry id="_rule_c2f82a4c943c_o3">
+            <text>"MOD-MKT-66"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-66</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_cb5234c00611">
+          <description>Europe — any country not listed above</description>
+          <inputEntry id="_rule_cb5234c00611_i0">
+            <text>"EU-OTH"</text>
+          </inputEntry>
+          <outputEntry id="_rule_cb5234c00611_o0">
+            <text>"EU-OTH"</text>
+          </outputEntry>
+          <outputEntry id="_rule_cb5234c00611_o1">
+            <text>"Europe — any country not listed above"</text>
+          </outputEntry>
+          <outputEntry id="_rule_cb5234c00611_o2">
+            <text>0.55</text>
+          </outputEntry>
+          <outputEntry id="_rule_cb5234c00611_o3">
+            <text>"MOD-MKT-67"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-67</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b1b6ef863772">
+          <description>Israel — Tel Aviv</description>
+          <inputEntry id="_rule_b1b6ef863772_i0">
+            <text>"IL-TLV"</text>
+          </inputEntry>
+          <outputEntry id="_rule_b1b6ef863772_o0">
+            <text>"IL-TLV"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b1b6ef863772_o1">
+            <text>"Israel — Tel Aviv"</text>
+          </outputEntry>
+          <outputEntry id="_rule_b1b6ef863772_o2">
+            <text>0.92</text>
+          </outputEntry>
+          <outputEntry id="_rule_b1b6ef863772_o3">
+            <text>"MOD-MKT-70"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-70</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_04f3f70b4ff8">
+          <description>United Arab Emirates — Dubai</description>
+          <inputEntry id="_rule_04f3f70b4ff8_i0">
+            <text>"AE-DXB"</text>
+          </inputEntry>
+          <outputEntry id="_rule_04f3f70b4ff8_o0">
+            <text>"AE-DXB"</text>
+          </outputEntry>
+          <outputEntry id="_rule_04f3f70b4ff8_o1">
+            <text>"United Arab Emirates — Dubai"</text>
+          </outputEntry>
+          <outputEntry id="_rule_04f3f70b4ff8_o2">
+            <text>0.8</text>
+          </outputEntry>
+          <outputEntry id="_rule_04f3f70b4ff8_o3">
+            <text>"MOD-MKT-71"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-71</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d7a5fa0c5180">
+          <description>APAC Tier 1 — Singapore, Sydney, Tokyo</description>
+          <inputEntry id="_rule_d7a5fa0c5180_i0">
+            <text>"APAC-T1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d7a5fa0c5180_o0">
+            <text>"APAC-T1"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d7a5fa0c5180_o1">
+            <text>"APAC Tier 1 — Singapore, Sydney, Tokyo"</text>
+          </outputEntry>
+          <outputEntry id="_rule_d7a5fa0c5180_o2">
+            <text>0.85</text>
+          </outputEntry>
+          <outputEntry id="_rule_d7a5fa0c5180_o3">
+            <text>"MOD-MKT-72"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-72</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3ada818e1509">
+          <description>APAC Tier 2 — Bangalore, Manila, Ho Chi Minh City</description>
+          <inputEntry id="_rule_3ada818e1509_i0">
+            <text>"APAC-T2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3ada818e1509_o0">
+            <text>"APAC-T2"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3ada818e1509_o1">
+            <text>"APAC Tier 2 — Bangalore, Manila, Ho Chi Minh City"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3ada818e1509_o2">
+            <text>0.45</text>
+          </outputEntry>
+          <outputEntry id="_rule_3ada818e1509_o3">
+            <text>"MOD-MKT-73"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-73</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e0a11d6a8b53">
+          <description>Latin America Tier 1 — São Paulo, Mexico City, Santiago</description>
+          <inputEntry id="_rule_e0a11d6a8b53_i0">
+            <text>"LATAM-T1"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e0a11d6a8b53_o0">
+            <text>"LATAM-T1"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e0a11d6a8b53_o1">
+            <text>"Latin America Tier 1 — São Paulo, Mexico City, Santiago"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e0a11d6a8b53_o2">
+            <text>0.58</text>
+          </outputEntry>
+          <outputEntry id="_rule_e0a11d6a8b53_o3">
+            <text>"MOD-MKT-74"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-74</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_0e77531c5c2b">
+          <description>Latin America — all other locations</description>
+          <inputEntry id="_rule_0e77531c5c2b_i0">
+            <text>"LATAM-T2"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0e77531c5c2b_o0">
+            <text>"LATAM-T2"</text>
+          </outputEntry>
+          <outputEntry id="_rule_0e77531c5c2b_o1">
+            <text>"Latin America — all other locations"</text>
+          </outputEntry>
+          <outputEntry id="_rule_0e77531c5c2b_o2">
+            <text>0.48</text>
+          </outputEntry>
+          <outputEntry id="_rule_0e77531c5c2b_o3">
+            <text>"MOD-MKT-75"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-75</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_450ee94bbafc">
+          <description>South Africa — Johannesburg or Cape Town</description>
+          <inputEntry id="_rule_450ee94bbafc_i0">
+            <text>"ZA-JNB"</text>
+          </inputEntry>
+          <outputEntry id="_rule_450ee94bbafc_o0">
+            <text>"ZA-JNB"</text>
+          </outputEntry>
+          <outputEntry id="_rule_450ee94bbafc_o1">
+            <text>"South Africa — Johannesburg or Cape Town"</text>
+          </outputEntry>
+          <outputEntry id="_rule_450ee94bbafc_o2">
+            <text>0.45</text>
+          </outputEntry>
+          <outputEntry id="_rule_450ee94bbafc_o3">
+            <text>"MOD-MKT-76"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-MKT-76</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_b6199e302a58">
+      <requiredAuthority href="#_ks_6c4f9ebbc197"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_d1c123bc2751" name="Is US Tier 1">
+    <description>US Tier 1 markets, used by MOD-LOC-04.</description>
+    <variable id="_var_ca4c7775a333" name="Is US Tier 1" typeRef="boolean"/>
+    <encapsulatedLogic id="_fn_c990ef2e09dd" kind="FEEL" typeRef="boolean">
+      <formalParameter id="_fp_2de21567285d" name="marketCode" typeRef="types.tMarketCode"/>
+      <literalExpression id="_le_2648fcf27bfd">
+        <text>list contains(["US-SF", "US-NYC", "US-SEA"], marketCode)</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_dd88a592428d" name="Is European Statutory Market">
+    <description>Markets in sections 7.2 to 7.5, where MOD-DED-04 applies.</description>
+    <variable id="_var_4714df8f4d15" name="Is European Statutory Market" typeRef="boolean"/>
+    <encapsulatedLogic id="_fn_21047202de91" kind="FEEL" typeRef="boolean">
+      <formalParameter id="_fp_69c80fd8ad27" name="marketCode" typeRef="types.tMarketCode"/>
+      <literalExpression id="_le_d70ce62b76b5">
+        <text>list contains(
+  ["UK-LON", "UK-OTH", "IE-DUB", "IE-OTH", "CH-ZRH", "CH-OTH", "DE-MUC", "DE-BER", "DE-OTH", "NL-AMS", "NL-OTH", "FR-PAR", "FR-OTH", "BE-BRU", "BE-OTH", "LU-LUX", "AT-VIE", "AT-OTH", "DK-CPH", "SE-STO", "SE-OTH", "NO-OSL", "FI-HEL", "IS-REY", "ES-MAD", "ES-OTH", "PT-LIS", "PT-OTH", "IT-MIL", "IT-OTH", "GR-ATH", "CY-NIC", "MT-MLA", "PL-WAW", "PL-OTH", "CZ-PRG", "CZ-OTH", "SK-BTS", "HU-BUD", "RO-BUC", "RO-OTH", "BG-SOF", "HR-ZAG", "SI-LJU", "RS-BEG", "EE-TLL", "LV-RIX", "LT-VNO", "UA-KYI", "TR-IST", "EU-OTH"],
+  marketCode)</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_f522a08c291f" name="Market Adjustment">
+    <description>Expressed as an amount added to the base so that every group sums the same way. base x index equals base + base x (index - 1).</description>
+    <variable id="_var_f2f414bc2905" name="Market Adjustment" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_7d7415fc9cfa" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_91f3fc34966f" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_bf3118a8cfc5" name="marketCode" typeRef="types.tMarketCode"/>
+      <formalParameter id="_fp_81f3aee15702" name="legalEntityExists" typeRef="boolean"/>
+      <context id="_ctx_581b8b10bd62" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_4f5aad22014b">
+          <variable id="_cev_a64460574ac3" name="index" typeRef="types.tMarketIndex"/>
+          <literalExpression id="_le_0b0c1bb71d5c">
+            <text>Market Index(marketCode)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_0b35361db457">
+          <variable id="_cev_311c8b02a6f8" name="amount" typeRef="number"/>
+          <literalExpression id="_le_04d26c586958">
+            <text>baseSalary * (index.index - 1)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_6ade72823029">
+          <literalExpression id="_le_785023011afc">
+            <text>{ amount: amount,
+  appliedRules: [ { ruleId: index.ruleId,
+      description: index.location + " has a market index of "
+        + string(index.index),
+      amount: amount } ],
+  flags: if legalEntityExists = false then ["EOR_REVIEW"] else [] }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_ac9d58471234">
+      <requiredKnowledge href="#_bkm_67f06d8fa69b"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_63850fb7d579">
+      <requiredAuthority href="#_ks_6c4f9ebbc197"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_5311a71acf94" name="DRD">
+      <dmndi:DMNShape id="_shape_e693b1c41994" dmnElementRef="_ks_6c4f9ebbc197">
+        <dc:Bounds height="70" width="180" x="720" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_edd9b529fe51" dmnElementRef="_bkm_67f06d8fa69b">
+        <dc:Bounds height="70" width="180" x="500" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_0f9101a31ce8" dmnElementRef="_bkm_d1c123bc2751">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_4b50727e1704" dmnElementRef="_bkm_dd88a592428d">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_1e1c5c93dc11" dmnElementRef="_bkm_f522a08c291f">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_fabd0e5460b0" dmnElementRef="_ar_b6199e302a58">
+        <di:waypoint x="810" y="190"/>
+        <di:waypoint x="590" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_f28adba32447" dmnElementRef="_kr_ac9d58471234">
+        <di:waypoint x="590" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_3d26ab59c5f9" dmnElementRef="_ar_63850fb7d579">
+        <di:waypoint x="810" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

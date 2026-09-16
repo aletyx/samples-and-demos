@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_8289a6a18337" name="Competitive Adjustment" namespace="https://aletyx.ai/dmn/payroll/competitive-adjustment"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 11, group 5. Competitive position and negotiation.</description>
+  <import id="_imp_30369c02f252" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_c026eccc28a5" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <knowledgeSource id="_ks_d089aa956da3" name="Competitive Position Policy" locationURI="../spec/candidate_offer.md#11-group-5--competitive-and-negotiation">
+    <description>Section 11: verified competing offers, referrals, salary history and notice periods.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_4fdbb291daf0" name="Is Commission Role">
+    <description>Roles quoted as base only because a commission plan sits on top, listed under section 4.4.</description>
+    <variable id="_var_4aa78d498cfd" name="Is Commission Role" typeRef="boolean"/>
+    <encapsulatedLogic id="_fn_11e5f45bf5eb" kind="FEEL" typeRef="boolean">
+      <formalParameter id="_fp_a6d9d4adb8e0" name="roleCode" typeRef="types.tRoleCode"/>
+      <literalExpression id="_le_811ae1ec887d">
+        <text>list contains(
+  ["GTM-SDR", "GTM-BDR", "GTM-AE-1", "GTM-AE-2", "GTM-AE-3", "GTM-AE-4", "GTM-SAM", "GTM-PRT-2", "GTM-PRT-3", "GTM-DIR", "GTM-VP", "GTM-CRO"],
+  roleCode)</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_a89dcba9f82d" name="Is Executive Role">
+    <description>MOD-CMP-08. These offers are a starting point only.</description>
+    <variable id="_var_450be46cac11" name="Is Executive Role" typeRef="boolean"/>
+    <encapsulatedLogic id="_fn_ec89d76e1a51" kind="FEEL" typeRef="boolean">
+      <formalParameter id="_fp_d0b583231ff5" name="roleCode" typeRef="types.tRoleCode"/>
+      <literalExpression id="_le_8596fc41b763">
+        <text>list contains(
+  ["ENG-CTO", "FIN-CFO", "GTM-CRO", "MKT-CMO", "PPL-CPO", "EXE-COO", "LEG-GC", "ENG-VP", "PRD-VP", "GTM-VP"],
+  roleCode)</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_0599e2e0bcc6" name="Competitive Rules">
+    <variable id="_var_dffc2fa50db6" name="Competitive Rules" typeRef="types.tAppliedRuleList"/>
+    <encapsulatedLogic id="_fn_3458d7fb9075" kind="FEEL" typeRef="types.tAppliedRuleList">
+      <formalParameter id="_fp_ddcff549339f" name="subtotal" typeRef="number"/>
+      <formalParameter id="_fp_358462d93634" name="rangeMaximumAdjusted" typeRef="number"/>
+      <formalParameter id="_fp_739ccae75d1a" name="competingOffer" typeRef="types.tMoney"/>
+      <formalParameter id="_fp_53e004a97c5a" name="competingRatio" typeRef="number"/>
+      <formalParameter id="_fp_ddda5f6a070c" name="competingOfferVerified" typeRef="boolean"/>
+      <formalParameter id="_fp_e0a3f2b5d595" name="referralSource" typeRef="types.tReferralSource"/>
+      <formalParameter id="_fp_047db0d41f33" name="salaryHistoryBanned" typeRef="boolean"/>
+      <formalParameter id="_fp_19ae66228310" name="currentSalary" typeRef="types.tMoney"/>
+      <decisionTable id="_dt_8ac9a29a9592" typeRef="types.tAppliedRuleList" hitPolicy="COLLECT" preferredOrientation="Rule-as-Row" outputLabel="Applied rule">
+        <input id="_in_61ce771ff029" label="Competing offer verified">
+          <inputExpression id="_ie_63947858e7e2" typeRef="boolean">
+            <text>competingOfferVerified</text>
+          </inputExpression>
+        </input>
+        <input id="_in_233c0555a4c3" label="Competing offer over the subtotal">
+          <inputExpression id="_ie_52578750b967" typeRef="number">
+            <text>competingRatio</text>
+          </inputExpression>
+        </input>
+        <input id="_in_8be6fdaf7df7" label="Competing offer present">
+          <inputExpression id="_ie_193cc769b790" typeRef="boolean">
+            <text>competingOffer != null</text>
+          </inputExpression>
+        </input>
+        <input id="_in_f97dfa1ffa56" label="Referral source">
+          <inputExpression id="_ie_1585b643ad6d" typeRef="types.tReferralSource">
+            <text>referralSource</text>
+          </inputExpression>
+        </input>
+        <input id="_in_34b7edcbf8f9" label="Salary history banned here">
+          <inputExpression id="_ie_99c125066f4d" typeRef="boolean">
+            <text>salaryHistoryBanned</text>
+          </inputExpression>
+        </input>
+        <input id="_in_e0176f79fd2a" label="Current salary provided">
+          <inputExpression id="_ie_a26062ba00ba" typeRef="boolean">
+            <text>currentSalary != null</text>
+          </inputExpression>
+        </input>
+        <output id="_out_64061ff5e486" name="ruleId" typeRef="types.tRuleId"/>
+        <output id="_out_e5bf24987a01" name="description" typeRef="string"/>
+        <output id="_out_149c3031c752" name="amount" typeRef="types.tAmount"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_3753897412dd">
+          <description>Capped at the market-adjusted role maximum.</description>
+          <inputEntry id="_rule_3753897412dd_i0">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_3753897412dd_i1">
+            <text>(1..1.10]</text>
+          </inputEntry>
+          <inputEntry id="_rule_3753897412dd_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3753897412dd_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3753897412dd_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_3753897412dd_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_3753897412dd_o0">
+            <text>"MOD-CMP-01"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3753897412dd_o1">
+            <text>"Verified competing offer within 10%, matched up to the role maximum"</text>
+          </outputEntry>
+          <outputEntry id="_rule_3753897412dd_o2">
+            <text>min(competingOffer, rangeMaximumAdjusted) - subtotal</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_85b5ca76e441">
+          <description>Raises COMP_ESCALATION instead of matching.</description>
+          <inputEntry id="_rule_85b5ca76e441_i0">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_85b5ca76e441_i1">
+            <text>&gt; 1.10</text>
+          </inputEntry>
+          <inputEntry id="_rule_85b5ca76e441_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_85b5ca76e441_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_85b5ca76e441_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_85b5ca76e441_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_85b5ca76e441_o0">
+            <text>"MOD-CMP-02"</text>
+          </outputEntry>
+          <outputEntry id="_rule_85b5ca76e441_o1">
+            <text>"Verified competing offer more than 10% above, not matched automatically"</text>
+          </outputEntry>
+          <outputEntry id="_rule_85b5ca76e441_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e8f1d8d6bb67">
+          <description>Recorded so the file shows it was considered.</description>
+          <inputEntry id="_rule_e8f1d8d6bb67_i0">
+            <text>false</text>
+          </inputEntry>
+          <inputEntry id="_rule_e8f1d8d6bb67_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_e8f1d8d6bb67_i2">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_e8f1d8d6bb67_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_e8f1d8d6bb67_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_e8f1d8d6bb67_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_e8f1d8d6bb67_o0">
+            <text>"MOD-CMP-03"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e8f1d8d6bb67_o1">
+            <text>"Competing offer could not be verified, disregarded"</text>
+          </outputEntry>
+          <outputEntry id="_rule_e8f1d8d6bb67_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ccc13dd64c9c">
+          <inputEntry id="_rule_ccc13dd64c9c_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ccc13dd64c9c_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ccc13dd64c9c_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ccc13dd64c9c_i3">
+            <text>"employee_referral"</text>
+          </inputEntry>
+          <inputEntry id="_rule_ccc13dd64c9c_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_ccc13dd64c9c_i5">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_ccc13dd64c9c_o0">
+            <text>"MOD-CMP-04"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ccc13dd64c9c_o1">
+            <text>"Employee referral, the bonus goes to the referrer and not the candidate"</text>
+          </outputEntry>
+          <outputEntry id="_rule_ccc13dd64c9c_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_75d138943a2a">
+          <description>The value must not influence the offer.</description>
+          <inputEntry id="_rule_75d138943a2a_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_75d138943a2a_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_75d138943a2a_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_75d138943a2a_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_75d138943a2a_i4">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_75d138943a2a_i5">
+            <text>true</text>
+          </inputEntry>
+          <outputEntry id="_rule_75d138943a2a_o0">
+            <text>"MOD-CMP-05"</text>
+          </outputEntry>
+          <outputEntry id="_rule_75d138943a2a_o1">
+            <text>"Salary history discarded, the jurisdiction bans asking"</text>
+          </outputEntry>
+          <outputEntry id="_rule_75d138943a2a_o2">
+            <text>0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-05</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_596c6eadbdf0">
+      <requiredAuthority href="#_ks_d089aa956da3"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_71809437dd66" name="Competitive Flags">
+    <variable id="_var_020d7622e59b" name="Competitive Flags" typeRef="types.tFlagList"/>
+    <encapsulatedLogic id="_fn_6cada8a8b27f" kind="FEEL" typeRef="types.tFlagList">
+      <formalParameter id="_fp_d8c2be567f58" name="competingRatio" typeRef="number"/>
+      <formalParameter id="_fp_c7a9ccd70e39" name="competingOfferVerified" typeRef="boolean"/>
+      <formalParameter id="_fp_9bca735dcce7" name="noticePeriodDays" typeRef="types.tDays"/>
+      <formalParameter id="_fp_5597e2452baa" name="requisitionStatus" typeRef="types.tRequisitionStatus"/>
+      <formalParameter id="_fp_78056158bbf7" name="isCommissionRole" typeRef="boolean"/>
+      <formalParameter id="_fp_549385ab950b" name="competingOfferIsOTE" typeRef="boolean"/>
+      <formalParameter id="_fp_45d5eed2156e" name="isExecutiveRole" typeRef="boolean"/>
+      <decisionTable id="_dt_5bcab8d129cd" hitPolicy="COLLECT" preferredOrientation="Rule-as-Row" outputLabel="Review flag">
+        <input id="_in_0930c8d706a3" label="Competing offer verified">
+          <inputExpression id="_ie_c38992a9223c" typeRef="boolean">
+            <text>competingOfferVerified</text>
+          </inputExpression>
+        </input>
+        <input id="_in_9e7cffd472bc" label="Competing offer over the subtotal">
+          <inputExpression id="_ie_3433b9afd6e0" typeRef="number">
+            <text>competingRatio</text>
+          </inputExpression>
+        </input>
+        <input id="_in_59fad0ad65ee" label="Notice period in days">
+          <inputExpression id="_ie_cf59c380d797" typeRef="types.tDays">
+            <text>noticePeriodDays</text>
+          </inputExpression>
+        </input>
+        <input id="_in_9b2503db0135" label="Requisition status">
+          <inputExpression id="_ie_7b72f02bd656" typeRef="types.tRequisitionStatus">
+            <text>requisitionStatus</text>
+          </inputExpression>
+        </input>
+        <input id="_in_33b419718b00" label="Commission role">
+          <inputExpression id="_ie_e6edee8d37f9" typeRef="boolean">
+            <text>isCommissionRole</text>
+          </inputExpression>
+        </input>
+        <input id="_in_196edaeccff4" label="Offer quoted as on-target earnings">
+          <inputExpression id="_ie_228dee445b2a" typeRef="boolean">
+            <text>competingOfferIsOTE</text>
+          </inputExpression>
+        </input>
+        <input id="_in_b9bd7de1419d" label="Executive role">
+          <inputExpression id="_ie_1167bd4f42ed" typeRef="boolean">
+            <text>isExecutiveRole</text>
+          </inputExpression>
+        </input>
+        <output id="_out_4b29d59d86b2" typeRef="types.tFlag"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_921e255c50dc">
+          <description>Compensation reviews anything more than 10% above.</description>
+          <inputEntry id="_rule_921e255c50dc_i0">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_921e255c50dc_i1">
+            <text>&gt; 1.10</text>
+          </inputEntry>
+          <inputEntry id="_rule_921e255c50dc_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_921e255c50dc_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_921e255c50dc_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_921e255c50dc_i5">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_921e255c50dc_i6">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_921e255c50dc_o0">
+            <text>"COMP_ESCALATION"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_69c9556e49bb">
+          <inputEntry id="_rule_69c9556e49bb_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_69c9556e49bb_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_69c9556e49bb_i2">
+            <text>&gt; 60</text>
+          </inputEntry>
+          <inputEntry id="_rule_69c9556e49bb_i3">
+            <text>"critical"</text>
+          </inputEntry>
+          <inputEntry id="_rule_69c9556e49bb_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_69c9556e49bb_i5">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_69c9556e49bb_i6">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_69c9556e49bb_o0">
+            <text>"START_DATE_REVIEW"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-06</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_12b7dde66cfe">
+          <description>Base must be compared with base, not with OTE.</description>
+          <inputEntry id="_rule_12b7dde66cfe_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_12b7dde66cfe_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_12b7dde66cfe_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_12b7dde66cfe_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_12b7dde66cfe_i4">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_12b7dde66cfe_i5">
+            <text>true</text>
+          </inputEntry>
+          <inputEntry id="_rule_12b7dde66cfe_i6">
+            <text>-</text>
+          </inputEntry>
+          <outputEntry id="_rule_12b7dde66cfe_o0">
+            <text>"OTE_COMPARISON"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-07</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_b96808387f1b">
+          <description>The committee sets the final executive package.</description>
+          <inputEntry id="_rule_b96808387f1b_i0">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b96808387f1b_i1">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b96808387f1b_i2">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b96808387f1b_i3">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b96808387f1b_i4">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b96808387f1b_i5">
+            <text>-</text>
+          </inputEntry>
+          <inputEntry id="_rule_b96808387f1b_i6">
+            <text>true</text>
+          </inputEntry>
+          <outputEntry id="_rule_b96808387f1b_o0">
+            <text>"EXEC_COMP_REVIEW"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CMP-08</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_984191f9490b">
+      <requiredAuthority href="#_ks_d089aa956da3"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_c0935c42688f" name="Competitive Adjustment">
+    <description>Evaluated against the subtotal of every other group, because MOD-CMP-01 matches a competing offer against the whole offer.</description>
+    <variable id="_var_b62cc7385550" name="Competitive Adjustment" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_3fd549d1d0c3" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_80eee12d7c96" name="subtotal" typeRef="number"/>
+      <formalParameter id="_fp_b39df078cbab" name="rangeMaximumAdjusted" typeRef="number"/>
+      <formalParameter id="_fp_5243246e1ff7" name="competingOffer" typeRef="types.tMoney"/>
+      <formalParameter id="_fp_8ff0877f75f9" name="competingOfferVerified" typeRef="boolean"/>
+      <formalParameter id="_fp_daf0a59252f0" name="competingOfferIsOTE" typeRef="boolean"/>
+      <formalParameter id="_fp_4872419ce7aa" name="referralSource" typeRef="types.tReferralSource"/>
+      <formalParameter id="_fp_928e94c39283" name="salaryHistoryBanned" typeRef="boolean"/>
+      <formalParameter id="_fp_637b9f2878ad" name="currentSalary" typeRef="types.tMoney"/>
+      <formalParameter id="_fp_26b023b05857" name="noticePeriodDays" typeRef="types.tDays"/>
+      <formalParameter id="_fp_d258bbf8b05e" name="requisitionStatus" typeRef="types.tRequisitionStatus"/>
+      <formalParameter id="_fp_fec722a52ae2" name="isCommissionRole" typeRef="boolean"/>
+      <formalParameter id="_fp_aa39506e61bc" name="isExecutiveRole" typeRef="boolean"/>
+      <context id="_ctx_4136eb0a2e4e" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_3f7b02bd00a6">
+          <variable id="_cev_fc3dd67c4bfd" name="competingRatio" typeRef="number"/>
+          <literalExpression id="_le_be237220ba85">
+            <text>if competingOffer = null or subtotal = null or subtotal = 0
+then null else competingOffer / subtotal</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_aa31a053e4c8">
+          <variable id="_cev_538945d3b62d" name="rules" typeRef="types.tAppliedRuleList"/>
+          <literalExpression id="_le_2e319bcf54ec">
+            <text>Competitive Rules(subtotal, rangeMaximumAdjusted, competingOffer,
+  competingRatio, competingOfferVerified, referralSource,
+  salaryHistoryBanned, currentSalary)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_e904861a979c">
+          <variable id="_cev_890a02cdb2dd" name="raised" typeRef="types.tFlagList"/>
+          <literalExpression id="_le_b2ad5d59199e">
+            <text>Competitive Flags(competingRatio, competingOfferVerified, noticePeriodDays,
+  requisitionStatus, isCommissionRole, competingOfferIsOTE, isExecutiveRole)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_a49977eb866d">
+          <literalExpression id="_le_19eea8ea4362">
+            <text>{ amount: common.Sum Of Rules(rules),
+  appliedRules: if rules = null then [] else rules,
+  flags: if raised = null then [] else raised }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_783be70e1fcf">
+      <requiredKnowledge href="#_bkm_0599e2e0bcc6"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_161f1c759dfb">
+      <requiredKnowledge href="#_bkm_71809437dd66"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_81c6985033bb">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_061a207248f5"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_1640b3a79f87">
+      <requiredAuthority href="#_ks_d089aa956da3"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_6ebb60db83a3" name="DRD">
+      <dmndi:DMNShape id="_shape_c61dc6918561" dmnElementRef="_ks_d089aa956da3">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_c99aee78959f" dmnElementRef="_bkm_4fdbb291daf0">
+        <dc:Bounds height="70" width="180" x="720" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_ce95124c87ac" dmnElementRef="_bkm_a89dcba9f82d">
+        <dc:Bounds height="70" width="180" x="940" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_581701af6608" dmnElementRef="_bkm_0599e2e0bcc6">
+        <dc:Bounds height="70" width="180" x="500" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_3df7e3042152" dmnElementRef="_bkm_71809437dd66">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_98e7c5d13273" dmnElementRef="_bkm_c0935c42688f">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_55cbb17e9bf4" dmnElementRef="_ar_596c6eadbdf0">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="590" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_6e878feb05a7" dmnElementRef="_ar_984191f9490b">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_4325a7f9b6c2" dmnElementRef="_kr_783be70e1fcf">
+        <di:waypoint x="590" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_4b8d065199f9" dmnElementRef="_kr_161f1c759dfb">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_9525dcc94b8e" dmnElementRef="_ar_1640b3a79f87">
+        <di:waypoint x="370" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

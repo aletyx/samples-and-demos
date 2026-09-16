@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_1122cf6da4a0" name="Candidate Offer" namespace="https://aletyx.ai/dmn/payroll/candidate-offer"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Main executable model. Calculates the salary to offer a candidate by combining the rule models, and returns the rationale alongside the amount. Implements the candidate offer specification in Payroll/spec/candidate_offer.md.</description>
+  <import id="_imp_5ba16bd51594" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_fc89e9a4db44" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <import id="_imp_c009e5f33173" name="ranges" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/salary-ranges" locationURI="salary-ranges.dmn"/>
+  <import id="_imp_dcc03d3c3c19" name="base" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/base-salary" locationURI="base-salary.dmn"/>
+  <import id="_imp_a90723d69b2c" name="market" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/market-adjustment" locationURI="market-adjustment.dmn"/>
+  <import id="_imp_2c0768ad0a9f" name="certs" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/certification-bonus" locationURI="certification-bonus.dmn"/>
+  <import id="_imp_e5d55afaf8f8" name="relocation" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/relocation-adjustment" locationURI="relocation-adjustment.dmn"/>
+  <import id="_imp_7dad28e7d035" name="experience" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/experience-adjustment" locationURI="experience-adjustment.dmn"/>
+  <import id="_imp_3991b7e9ac1b" name="competitive" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/competitive-adjustment" locationURI="competitive-adjustment.dmn"/>
+  <import id="_imp_378ab16717cf" name="deductions" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/deductions" locationURI="deductions.dmn"/>
+  <import id="_imp_06e6e16f980b" name="guardrails" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/guardrails" locationURI="guardrails.dmn"/>
+  <import id="_imp_a75b0c0bc076" name="validation" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/offer-validation" locationURI="offer-validation.dmn"/>
+  <knowledgeSource id="_ks_b24903d1383e" name="Candidate Offer Specification" locationURI="../spec/candidate_offer.md">
+    <description>The whole specification. Every decision in this model names the section or rule it implements, so a change to the document can be traced to the decisions it affects.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <inputData id="_id_83b3d4f56707" name="Candidate">
+    <description>One candidate, for one role. Section 3.</description>
+    <variable id="_var_814a73e1fbc0" name="Candidate" typeRef="types.tCandidate"/>
+  </inputData>
+  <decision id="_dec_0cbb7316302f" name="Offer Validation">
+    <description>Runs first and is the only place that inspects data quality.</description>
+    <question>Is this candidate record complete enough to calculate an offer?</question>
+    <variable id="_var_6f10eb8ddf1d" name="Offer Validation" typeRef="types.tValidation"/>
+    <informationRequirement id="_ir_95daa7e644a7">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_e06230fb7893">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/offer-validation#_bkm_be4f98aad628"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_229fee3e19b0">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_a6c2c1b575f4">
+      <text>validation.Candidate Validation(Candidate)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_fe4a50097058" name="Salary Range">
+    <description>Section 4.</description>
+    <question>What is the reference salary range for this role?</question>
+    <variable id="_var_c7a2512b0d77" name="Salary Range" typeRef="types.tSalaryRange"/>
+    <informationRequirement id="_ir_71eb7fda31fe">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_04dbddb0e6dc">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/salary-ranges#_bkm_8f52e93399ff"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_dbaa03267a10">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_b8f0603724a0">
+      <text>ranges.Salary Range For Role(Candidate.roleCode)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_4d4a638850e5" name="Destination Market">
+    <description>Section 7.</description>
+    <question>What index applies to the market the candidate will work in?</question>
+    <variable id="_var_9e9e3e8aedda" name="Destination Market" typeRef="types.tMarketIndex"/>
+    <informationRequirement id="_ir_5891ec432c55">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_6377db1225d1">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/market-adjustment#_bkm_67f06d8fa69b"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_1c536e24d159">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_753a2b02c8ae">
+      <text>market.Market Index(Candidate.marketCode)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_cdad560bbdb5" name="Origin Market">
+    <description>Only needed by MOD-LOC-03, which softens a move to a market with a lower index.</description>
+    <question>What index applies where the candidate works today?</question>
+    <variable id="_var_de0863dbb95f" name="Origin Market" typeRef="types.tMarketIndex"/>
+    <informationRequirement id="_ir_faa035a13dba">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_ec87fa4f6040">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/market-adjustment#_bkm_67f06d8fa69b"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_500743ba8277">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_5bee1f64d4ca">
+      <text>if Candidate.currentMarketCode = null then null
+else market.Market Index(Candidate.currentMarketCode)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_95ee03aa86d5" name="Base Salary">
+    <description>Section 5, BASE-01 to BASE-07.</description>
+    <question>Where in the range does the interview score place this candidate?</question>
+    <variable id="_var_2adab8146ac5" name="Base Salary" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_80f09dfce70b">
+      <requiredDecision href="#_dec_fe4a50097058"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_8b1fea8c7dd7">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_1c59b634530c">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/base-salary#_bkm_8026810fc9e9"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_c1ad57925a03">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_adcdd2e83a8a">
+      <text>base.Base Salary(Salary Range, Candidate.seniorityScore)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_53ef7fb80980" name="Market Adjustment">
+    <description>Section 7, group 1.</description>
+    <question>What does the location change?</question>
+    <variable id="_var_2ec39b5663a6" name="Market Adjustment" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_1e8f90317d8c">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_4b0d6874f417">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_1d16d8ddfd00">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/market-adjustment#_bkm_f522a08c291f"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_7e94679c2bc9">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_609b695ab076">
+      <text>market.Market Adjustment(Base Salary.amount, Candidate.marketCode,
+  Candidate.legalEntityExists)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_2cd8badda958" name="Certification Bonus">
+    <description>Section 8, group 2.</description>
+    <question>What do the candidate's certifications add?</question>
+    <variable id="_var_c4d527976465" name="Certification Bonus" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_762988e60887">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_d586b5d04e78">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_8775552f5b1e">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/certification-bonus#_bkm_4045c7baf6a7"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_18b7372827fd">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_ff31d8a59778">
+      <text>certs.Certification Bonus(Base Salary.amount,
+  Candidate.certifications, Candidate.roleCode)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_e886b92ce5e8" name="Relocation Adjustment">
+    <description>Section 9, group 3.</description>
+    <question>What does moving, or the working arrangement, change?</question>
+    <variable id="_var_74b04d975551" name="Relocation Adjustment" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_1d2062bf23ab">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_cd819b8aea33">
+      <requiredDecision href="#_dec_4d4a638850e5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_6178d0ef3224">
+      <requiredDecision href="#_dec_cdad560bbdb5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_7d5f342a4d26">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_0addcfb93f7e">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/relocation-adjustment#_bkm_d8bb5b87e73f"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_52d251e46578">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/market-adjustment#_bkm_67f06d8fa69b"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_0e777d055585">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/market-adjustment#_bkm_d1c123bc2751"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_452dfd77c89b">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_be17dca37072">
+      <text>relocation.Relocation Adjustment(
+  Base Salary.amount,
+  Candidate.relocationRequired,
+  Candidate.relocationScope,
+  Origin Market != null
+    and Origin Market.index &gt; Destination Market.index,
+  Candidate.workMode,
+  market.Is US Tier 1(Candidate.marketCode),
+  Candidate.remoteEligibleRole,
+  Candidate.visaSponsorshipRequired)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_04383a95a174" name="Experience Adjustment">
+    <description>Section 10, group 4.</description>
+    <question>What do experience and the difficulty of the search change?</question>
+    <variable id="_var_c088a5ec1962" name="Experience Adjustment" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_ceea49beea15">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_3bb1f189649d">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_964802f282d3">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/experience-adjustment#_bkm_67e8224daf31"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_3010dbae6a61">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_64a4b67f76d5">
+      <text>experience.Experience Adjustment(Base Salary.amount,
+  Candidate.yearsExperience, Candidate.roleExpectedYears,
+  Candidate.seniorityScore, Candidate.requisitionStatus,
+  Candidate.coreDomainExperience, Candidate.boomerang)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_b5b15eaa65dc" name="Subtotal Before Deductions">
+    <description>Groups 1 to 4 added to the base.</description>
+    <question>What does the offer stand at before deductions?</question>
+    <variable id="_var_8bad6c81ef28" name="Subtotal Before Deductions" typeRef="number"/>
+    <informationRequirement id="_ir_cbf16f51c437">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_42af9a2f02b1">
+      <requiredDecision href="#_dec_53ef7fb80980"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_b9bf85abe639">
+      <requiredDecision href="#_dec_2cd8badda958"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_a657a475f9d6">
+      <requiredDecision href="#_dec_e886b92ce5e8"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_a5f94ffba0ca">
+      <requiredDecision href="#_dec_04383a95a174"/>
+    </informationRequirement>
+    <literalExpression id="_le_93a3373577e3">
+      <text>Base Salary.amount + Market Adjustment.amount
+  + Certification Bonus.amount + Relocation Adjustment.amount
+  + Experience Adjustment.amount</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_24ee43f20083" name="Deductions">
+    <description>Section 12, group 6.</description>
+    <question>What must be deducted?</question>
+    <variable id="_var_d90501691bfe" name="Deductions" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_445162cdc2f4">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_c5a97245cfd3">
+      <requiredDecision href="#_dec_b5b15eaa65dc"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_39c61acd4f24">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_dd5b7075872a">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/deductions#_bkm_5b2cceeaf85c"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_4346a1350b40">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/base-salary#_bkm_1bbb420a3080"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_a7d3ad483136">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/deductions#_bkm_6003150c2380"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_8a764bf6be35">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/market-adjustment#_bkm_dd88a592428d"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_24b714ab31d8">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_f4dca33befb6">
+      <text>deductions.Deductions(Base Salary.amount, Subtotal Before Deductions,
+  base.Seniority Band(Candidate.seniorityScore),
+  deductions.Role Level(Candidate.roleCode),
+  Candidate.missingHardRequirement, Candidate.partTimeFraction,
+  market.Is European Statutory Market(Candidate.marketCode),
+  Candidate.contractToHire)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_9ec0a090c721" name="Subtotal Before Competitive">
+    <description>MOD-CMP-01 matches a competing offer against the whole offer, so group 5 is evaluated after group 6 rather than before it. The specification lists group 5 first, which cannot be executed literally.</description>
+    <question>What does the offer stand at before the competitive check?</question>
+    <variable id="_var_bcb889aca11b" name="Subtotal Before Competitive" typeRef="number"/>
+    <informationRequirement id="_ir_21f57a5f9c64">
+      <requiredDecision href="#_dec_b5b15eaa65dc"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_91b19745d849">
+      <requiredDecision href="#_dec_24ee43f20083"/>
+    </informationRequirement>
+    <literalExpression id="_le_c29d5c095c6d">
+      <text>Subtotal Before Deductions + Deductions.amount</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_8f76854dbde4" name="Competitive Adjustment">
+    <description>Section 11, group 5.</description>
+    <question>Does a verified competing offer change anything?</question>
+    <variable id="_var_cd84ec189fb9" name="Competitive Adjustment" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_c93d44dadd42">
+      <requiredDecision href="#_dec_9ec0a090c721"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_62604086d8aa">
+      <requiredDecision href="#_dec_fe4a50097058"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_afd8569aee90">
+      <requiredDecision href="#_dec_4d4a638850e5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_20f7f1ba66d8">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_d9262af91058">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/competitive-adjustment#_bkm_c0935c42688f"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_7b3064e21eda">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/competitive-adjustment#_bkm_4fdbb291daf0"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_591fdb333b53">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/competitive-adjustment#_bkm_a89dcba9f82d"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_7f8cdff44e9f">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_ec8a7c01261d">
+      <text>competitive.Competitive Adjustment(
+  Subtotal Before Competitive,
+  Salary Range.maximum * Destination Market.index,
+  Candidate.competingOffer, Candidate.competingOfferVerified,
+  Candidate.competingOfferIsOTE, Candidate.referralSource,
+  Candidate.salaryHistoryBanned, Candidate.currentSalary,
+  Candidate.noticePeriodDays, Candidate.requisitionStatus,
+  competitive.Is Commission Role(Candidate.roleCode),
+  competitive.Is Executive Role(Candidate.roleCode))</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_d88498b23ef8" name="Guarded Offer">
+    <description>Section 13, group 7. Runs last and can override every earlier group.</description>
+    <question>Do the guardrails change the result?</question>
+    <variable id="_var_25568de72d89" name="Guarded Offer" typeRef="types.tModifierResult"/>
+    <informationRequirement id="_ir_3c7d724e071b">
+      <requiredDecision href="#_dec_9ec0a090c721"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_e92db4b7bc5e">
+      <requiredDecision href="#_dec_8f76854dbde4"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_6ab3dcd43927">
+      <requiredDecision href="#_dec_fe4a50097058"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_b20c64c4759a">
+      <requiredDecision href="#_dec_4d4a638850e5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_a8cf96b423b0">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_8ce28541acbd">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/guardrails#_bkm_515db5e5e108"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_6d992f54c649">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <literalExpression id="_le_dc1eb72c99c4">
+      <text>guardrails.Guarded Offer(
+  Subtotal Before Competitive + Competitive Adjustment.amount,
+  Salary Range, Destination Market.index, Candidate.lowestPaidPeerSalary,
+  Candidate.legalMinimumSalary, Candidate.publishedRangeMinimum)</text>
+    </literalExpression>
+  </decision>
+  <decision id="_dec_b9a4b0d1a183" name="Candidate Offer">
+    <description>Section 14. Returns the amount together with every rule that fired and a plain-language rationale, so the offer can be explained years later.</description>
+    <question>What should we offer this candidate, and why?</question>
+    <variable id="_var_5c521978e084" name="Candidate Offer" typeRef="types.tOffer"/>
+    <informationRequirement id="_ir_7e79906a3543">
+      <requiredDecision href="#_dec_0cbb7316302f"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_1a4fd3e630b2">
+      <requiredDecision href="#_dec_95ee03aa86d5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_a72bc18eb6c3">
+      <requiredDecision href="#_dec_53ef7fb80980"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_5aae634292d1">
+      <requiredDecision href="#_dec_2cd8badda958"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_fa73646fd77d">
+      <requiredDecision href="#_dec_e886b92ce5e8"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_15346aeaed76">
+      <requiredDecision href="#_dec_04383a95a174"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_dee4d5edef6a">
+      <requiredDecision href="#_dec_24ee43f20083"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_3b924e017336">
+      <requiredDecision href="#_dec_8f76854dbde4"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_37a285dd40b1">
+      <requiredDecision href="#_dec_d88498b23ef8"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_e9784fa17edc">
+      <requiredDecision href="#_dec_fe4a50097058"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_750b944fff48">
+      <requiredDecision href="#_dec_4d4a638850e5"/>
+    </informationRequirement>
+    <informationRequirement id="_ir_f38c71df20b5">
+      <requiredInput href="#_id_83b3d4f56707"/>
+    </informationRequirement>
+    <knowledgeRequirement id="_kr_1b9b258032d7">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_71a557b5d00b"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_3edaf0117072">
+      <requiredAuthority href="#_ks_b24903d1383e"/>
+    </authorityRequirement>
+    <context id="_ctx_edb39ab6cf48" typeRef="types.tOffer">
+      <contextEntry id="_ce_d5f01770a78a">
+        <variable id="_cev_2023036d99c8" name="noOffer" typeRef="boolean"/>
+        <literalExpression id="_le_c08794c379bf">
+          <text>Offer Validation.isValid = false or Base Salary.amount = null</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_c7329c41f204">
+        <variable id="_cev_d6ac2da6619c" name="allRules" typeRef="types.tAppliedRuleList"/>
+        <literalExpression id="_le_823dd79063d1">
+          <text>concatenate(Base Salary.appliedRules, Market Adjustment.appliedRules,
+  Certification Bonus.appliedRules, Relocation Adjustment.appliedRules,
+  Experience Adjustment.appliedRules, Deductions.appliedRules,
+  Competitive Adjustment.appliedRules, Guarded Offer.appliedRules)</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_7194ec655c05">
+        <variable id="_cev_c3bf729c7729" name="allFlags" typeRef="types.tFlagList"/>
+        <literalExpression id="_le_55502bce46ed">
+          <text>distinct values(concatenate(Base Salary.flags, Market Adjustment.flags,
+  Certification Bonus.flags, Relocation Adjustment.flags,
+  Experience Adjustment.flags, Deductions.flags,
+  Competitive Adjustment.flags, Guarded Offer.flags))</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_28ca83d9ab0a">
+        <variable id="_cev_b3c651b10ecd" name="blockingFlags" typeRef="types.tFlagList"/>
+        <literalExpression id="_le_94decef8bd4b">
+          <text>allFlags[not(list contains(["FLOOR_APPLIED", "CAP_APPLIED"], item))]</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_5fd1cd29420d">
+        <variable id="_cev_7507bff3f6c8" name="amount" typeRef="number"/>
+        <literalExpression id="_le_22201e5aa7e8">
+          <text>if noOffer then null else Guarded Offer.amount</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_76a8a0406f12">
+        <variable id="_cev_31e3cb0cf65c" name="status" typeRef="types.tStatus"/>
+        <literalExpression id="_le_307348584c65">
+          <text>if noOffer then "NO_OFFER"
+else if count(blockingFlags) &gt; 0 then "PENDING_REVIEW"
+else "READY_TO_SEND"</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_771efc738973">
+        <variable id="_cev_d28661829613" name="rationale" typeRef="string"/>
+        <literalExpression id="_le_9a565088ddba">
+          <text>string join(
+  concatenate(
+    if noOffer and Offer Validation.isValid = false
+      then Offer Validation.errors else [],
+    for r in allRules return common.Rule Line(r),
+    if noOffer then [] else
+      [ "Final offer: " + string(amount)
+        + " USD, compa-ratio "
+        + string(decimal(amount / (Salary Range.midpoint * Destination Market.index), 2))
+        + " [GRD-06]" ],
+    if count(blockingFlags) = 0 then []
+      else [ "Cannot be sent until these reviews clear [GRD-07]: "
+             + string join(blockingFlags, ", ") ]),
+  "
+")</text>
+        </literalExpression>
+      </contextEntry>
+      <contextEntry id="_ce_589d0523ae5d">
+        <literalExpression id="_le_932402dba2b9">
+          <text>{ offerAmount: amount,
+  currency: "USD",
+  roleCode: Candidate.roleCode,
+  roleName: Salary Range.roleName,
+  rangeMinimum: Salary Range.minimum * Destination Market.index,
+  rangeMidpoint: Salary Range.midpoint * Destination Market.index,
+  rangeMaximum: Salary Range.maximum * Destination Market.index,
+  compaRatio: if noOffer then null
+    else decimal(amount / (Salary Range.midpoint * Destination Market.index), 2),
+  baseBeforeModifiers: Base Salary.amount,
+  appliedRules: allRules,
+  flags: allFlags,
+  status: status,
+  rationale: rationale }</text>
+        </literalExpression>
+      </contextEntry>
+    </context>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_3855657179f3" name="DRD">
+      <dmndi:DMNShape id="_shape_0f017b4b74bc" dmnElementRef="_ks_b24903d1383e">
+        <dc:Bounds height="70" width="180" x="280" y="1230"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_19efb1bb25a3" dmnElementRef="_id_83b3d4f56707">
+        <dc:Bounds height="70" width="180" x="60" y="1230"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_f2380d047a19" dmnElementRef="_dec_0cbb7316302f">
+        <dc:Bounds height="70" width="180" x="280" y="1100"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_37d8c5b5bc29" dmnElementRef="_dec_fe4a50097058">
+        <dc:Bounds height="70" width="180" x="720" y="1100"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_c700fee7cc27" dmnElementRef="_dec_4d4a638850e5">
+        <dc:Bounds height="70" width="180" x="60" y="1100"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_efb9a1969039" dmnElementRef="_dec_cdad560bbdb5">
+        <dc:Bounds height="70" width="180" x="500" y="1100"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_f467c8186772" dmnElementRef="_dec_95ee03aa86d5">
+        <dc:Bounds height="70" width="180" x="60" y="970"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_b6590c5c87a5" dmnElementRef="_dec_53ef7fb80980">
+        <dc:Bounds height="70" width="180" x="500" y="840"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_5b754d328bd3" dmnElementRef="_dec_2cd8badda958">
+        <dc:Bounds height="70" width="180" x="60" y="840"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_13a452bbf3d5" dmnElementRef="_dec_e886b92ce5e8">
+        <dc:Bounds height="70" width="180" x="720" y="840"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_bed01af82974" dmnElementRef="_dec_04383a95a174">
+        <dc:Bounds height="70" width="180" x="280" y="840"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_3dc4c7c23351" dmnElementRef="_dec_b5b15eaa65dc">
+        <dc:Bounds height="70" width="180" x="60" y="710"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_4c138d0a5cf3" dmnElementRef="_dec_24ee43f20083">
+        <dc:Bounds height="70" width="180" x="60" y="580"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_82118922fe25" dmnElementRef="_dec_9ec0a090c721">
+        <dc:Bounds height="70" width="180" x="60" y="450"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_3e012314fa7d" dmnElementRef="_dec_8f76854dbde4">
+        <dc:Bounds height="70" width="180" x="60" y="320"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_db26deb56f41" dmnElementRef="_dec_d88498b23ef8">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_5cd68e3bbbf9" dmnElementRef="_dec_b9a4b0d1a183">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_170f874762cc" dmnElementRef="_ir_95daa7e644a7">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="370" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_423f961db54f" dmnElementRef="_ar_229fee3e19b0">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="370" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_a0e9cc39cc69" dmnElementRef="_ir_71eb7fda31fe">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="810" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_0e2e946592db" dmnElementRef="_ar_dbaa03267a10">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="810" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_92af5f713034" dmnElementRef="_ir_5891ec432c55">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_1ff4ecf4c274" dmnElementRef="_ar_1c536e24d159">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_7b93e9bc9836" dmnElementRef="_ir_faa035a13dba">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="590" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_bf1c075452e9" dmnElementRef="_ar_500743ba8277">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="590" y="1170"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_06c72d8869a0" dmnElementRef="_ir_80f09dfce70b">
+        <di:waypoint x="810" y="1100"/>
+        <di:waypoint x="150" y="1040"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_ad746beed21b" dmnElementRef="_ir_8b1fea8c7dd7">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="1040"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_869bbc8f2e49" dmnElementRef="_ar_c1ad57925a03">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="1040"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_db7b9231ac22" dmnElementRef="_ir_1e8f90317d8c">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="590" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_c059dd329642" dmnElementRef="_ir_4b0d6874f417">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="590" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_3936c38e1960" dmnElementRef="_ar_7e94679c2bc9">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="590" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_242dac24a18e" dmnElementRef="_ir_762988e60887">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="150" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_70686f9caa04" dmnElementRef="_ir_d586b5d04e78">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_d5628e889502" dmnElementRef="_ar_18b7372827fd">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_15b71dcaeb06" dmnElementRef="_ir_1d2062bf23ab">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="810" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_fa2713a120ea" dmnElementRef="_ir_cd819b8aea33">
+        <di:waypoint x="150" y="1100"/>
+        <di:waypoint x="810" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_b0de9cb408d4" dmnElementRef="_ir_6178d0ef3224">
+        <di:waypoint x="590" y="1100"/>
+        <di:waypoint x="810" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_8d653c8ae6ce" dmnElementRef="_ir_7d5f342a4d26">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="810" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_e46bfdd45a4b" dmnElementRef="_ar_452dfd77c89b">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="810" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_e957e3e579c5" dmnElementRef="_ir_ceea49beea15">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="370" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_538399b38595" dmnElementRef="_ir_3bb1f189649d">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="370" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_db83098bf14b" dmnElementRef="_ar_3010dbae6a61">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="370" y="910"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_2ca78b7a77be" dmnElementRef="_ir_cbf16f51c437">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="150" y="780"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_827a714d7ce0" dmnElementRef="_ir_42af9a2f02b1">
+        <di:waypoint x="590" y="840"/>
+        <di:waypoint x="150" y="780"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_51c494951f0e" dmnElementRef="_ir_b9bf85abe639">
+        <di:waypoint x="150" y="840"/>
+        <di:waypoint x="150" y="780"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_fdac738c51e6" dmnElementRef="_ir_a657a475f9d6">
+        <di:waypoint x="810" y="840"/>
+        <di:waypoint x="150" y="780"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_536e48f36653" dmnElementRef="_ir_a5f94ffba0ca">
+        <di:waypoint x="370" y="840"/>
+        <di:waypoint x="150" y="780"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_2c9b24b6f2c9" dmnElementRef="_ir_445162cdc2f4">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="150" y="650"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_690b7b258957" dmnElementRef="_ir_c5a97245cfd3">
+        <di:waypoint x="150" y="710"/>
+        <di:waypoint x="150" y="650"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_d23686330b0e" dmnElementRef="_ir_39c61acd4f24">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="650"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_83c2eef1c42b" dmnElementRef="_ar_24b714ab31d8">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="650"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_392564ea9879" dmnElementRef="_ir_21f57a5f9c64">
+        <di:waypoint x="150" y="710"/>
+        <di:waypoint x="150" y="520"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_e9290b98ad47" dmnElementRef="_ir_91b19745d849">
+        <di:waypoint x="150" y="580"/>
+        <di:waypoint x="150" y="520"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_ac6e85cd12c5" dmnElementRef="_ir_c93d44dadd42">
+        <di:waypoint x="150" y="450"/>
+        <di:waypoint x="150" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_cafebccfef84" dmnElementRef="_ir_62604086d8aa">
+        <di:waypoint x="810" y="1100"/>
+        <di:waypoint x="150" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_eaad9885c675" dmnElementRef="_ir_afd8569aee90">
+        <di:waypoint x="150" y="1100"/>
+        <di:waypoint x="150" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_71880107b2d6" dmnElementRef="_ir_20f7f1ba66d8">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_b0a6e894d263" dmnElementRef="_ar_7f8cdff44e9f">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_61b67fb20cc0" dmnElementRef="_ir_3c7d724e071b">
+        <di:waypoint x="150" y="450"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_396efabe47f8" dmnElementRef="_ir_e92db4b7bc5e">
+        <di:waypoint x="150" y="320"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_c49450a77533" dmnElementRef="_ir_6ab3dcd43927">
+        <di:waypoint x="810" y="1100"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_32c2b9465c95" dmnElementRef="_ir_b20c64c4759a">
+        <di:waypoint x="150" y="1100"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_fa6b170f3407" dmnElementRef="_ir_a8cf96b423b0">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_04250915be90" dmnElementRef="_ar_6d992f54c649">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_05ae2c45bec2" dmnElementRef="_ir_7e79906a3543">
+        <di:waypoint x="370" y="1100"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_a3c875af0977" dmnElementRef="_ir_1a4fd3e630b2">
+        <di:waypoint x="150" y="970"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_a352b6eab808" dmnElementRef="_ir_a72bc18eb6c3">
+        <di:waypoint x="590" y="840"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_628b5317b659" dmnElementRef="_ir_5aae634292d1">
+        <di:waypoint x="150" y="840"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_5ee965b93491" dmnElementRef="_ir_fa73646fd77d">
+        <di:waypoint x="810" y="840"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_25411777cde5" dmnElementRef="_ir_15346aeaed76">
+        <di:waypoint x="370" y="840"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_070f95d0f802" dmnElementRef="_ir_dee4d5edef6a">
+        <di:waypoint x="150" y="580"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_ff18faf18614" dmnElementRef="_ir_3b924e017336">
+        <di:waypoint x="150" y="320"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_0a0d9533b9ef" dmnElementRef="_ir_37a285dd40b1">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_4e8da6cd7a8a" dmnElementRef="_ir_e9784fa17edc">
+        <di:waypoint x="810" y="1100"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_761d9a477741" dmnElementRef="_ir_750b944fff48">
+        <di:waypoint x="150" y="1100"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_b337c85851da" dmnElementRef="_ir_f38c71df20b5">
+        <di:waypoint x="150" y="1230"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_5e54a6aae788" dmnElementRef="_ar_3edaf0117072">
+        <di:waypoint x="370" y="1230"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

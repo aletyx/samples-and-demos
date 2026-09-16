@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_05b0c5f134e8" name="Guardrails" namespace="https://aletyx.ai/dmn/payroll/guardrails"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 13, group 7. Guardrails.</description>
+  <import id="_imp_f6ae869b857e" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <import id="_imp_57321113e238" name="common" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/common" locationURI="payroll-common.dmn"/>
+  <knowledgeSource id="_ks_fd5842ed4397" name="Guardrail Policy" locationURI="../spec/candidate_offer.md#13-group-7--guardrails">
+    <description>Section 13: the floors, caps, approval thresholds and internal equity checks that run last and can override every other group.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_515db5e5e108" name="Guarded Offer">
+    <description>GRD-01 to GRD-06. Returns the final amount, what it changed, and the reviews that must clear before the offer can be sent.</description>
+    <variable id="_var_597006a9fea2" name="Guarded Offer" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_b2d28f862629" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_cfc10ce0ea2c" name="subtotal" typeRef="number"/>
+      <formalParameter id="_fp_04697d59ec66" name="range" typeRef="types.tSalaryRange"/>
+      <formalParameter id="_fp_317cda89df59" name="marketIndex" typeRef="number"/>
+      <formalParameter id="_fp_433a14882d13" name="lowestPaidPeerSalary" typeRef="types.tMoney"/>
+      <formalParameter id="_fp_3e353d618b3d" name="legalMinimumSalary" typeRef="types.tMoney"/>
+      <formalParameter id="_fp_03317a1084c3" name="publishedRangeMinimum" typeRef="types.tMoney"/>
+      <context id="_ctx_70f0890a282f" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_8f9473ae1175">
+          <variable id="_cev_c6b886464e8e" name="floor" typeRef="number"/>
+          <literalExpression id="_le_a0428b934dc6">
+            <text>range.minimum * marketIndex</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_9234fe706e5a">
+          <variable id="_cev_16c48be81b79" name="maximumAdjusted" typeRef="number"/>
+          <literalExpression id="_le_4cb1fed85dea">
+            <text>range.maximum * marketIndex</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_891c9b756d68">
+          <variable id="_cev_e5df1ca3667a" name="ceiling" typeRef="number"/>
+          <literalExpression id="_le_fdee5f66ae27">
+            <text>maximumAdjusted * 1.10</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_b33fd4c3beb2">
+          <variable id="_cev_a15a4628b474" name="legalFloor" typeRef="number"/>
+          <literalExpression id="_le_38d84499548d">
+            <text>max([ if legalMinimumSalary = null then 0 else legalMinimumSalary,
+      if publishedRangeMinimum = null then 0 else publishedRangeMinimum ])</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_80c395986019">
+          <variable id="_cev_4cece48f6b97" name="afterFloor" typeRef="number"/>
+          <literalExpression id="_le_7cc1b97137ba">
+            <text>if subtotal &lt; floor then floor else subtotal</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_9775c6dfc52c">
+          <variable id="_cev_2bc54902e0ca" name="afterCeiling" typeRef="number"/>
+          <literalExpression id="_le_b8cb7e3ca451">
+            <text>if afterFloor &gt; ceiling then ceiling else afterFloor</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_12dfdc4b2247">
+          <variable id="_cev_3622ed63bd1d" name="afterLegal" typeRef="number"/>
+          <literalExpression id="_le_9b8be8700ae9">
+            <text>if afterCeiling &lt; legalFloor then legalFloor else afterCeiling</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_80b6d5791150">
+          <variable id="_cev_e0f35fd3af79" name="rounded" typeRef="number"/>
+          <literalExpression id="_le_2e000eea1386">
+            <text>common.Round To Nearest 500(afterLegal)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_5e377e976730">
+          <variable id="_cev_b9ac3553819d" name="adjustments" typeRef="types.tAppliedRuleList"/>
+          <literalExpression id="_le_0feb63a2435b">
+            <text>concatenate(
+  if subtotal &lt; floor then [ { ruleId: "GRD-01",
+      description: "Raised to the market-adjusted role minimum of "
+        + string(decimal(floor, 0)), amount: floor - subtotal } ] else [],
+  if afterFloor &gt; ceiling then [ { ruleId: "GRD-02",
+      description: "Capped at 10% above the market-adjusted role maximum, "
+        + string(decimal(ceiling, 0)), amount: ceiling - afterFloor } ] else [],
+  if afterCeiling &lt; legalFloor then [ { ruleId: "GRD-05",
+      description: "Raised to the statutory or published range floor of "
+        + string(decimal(legalFloor, 0)), amount: legalFloor - afterCeiling } ] else [],
+  [ { ruleId: "GRD-06", description: "Final offer rounded to the nearest 500",
+      amount: rounded - afterLegal } ])</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_36f02ad0a8d6">
+          <variable id="_cev_fd9875371fd0" name="raised" typeRef="types.tFlagList"/>
+          <literalExpression id="_le_29fb606b1b08">
+            <text>concatenate(
+  if subtotal &lt; floor then ["FLOOR_APPLIED"] else [],
+  if afterFloor &gt; ceiling then ["CAP_APPLIED"] else [],
+  if rounded &gt; maximumAdjusted then ["VP_APPROVAL_REQUIRED"] else [],
+  if lowestPaidPeerSalary != null and rounded &gt; lowestPaidPeerSalary * 1.10
+    then ["INTERNAL_EQUITY_REVIEW"] else [],
+  if publishedRangeMinimum != null and rounded &lt; publishedRangeMinimum
+    then ["PUBLISHED_RANGE_REVIEW"] else [])</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_0eb4c3eb5f16">
+          <literalExpression id="_le_1695d0fc47b3">
+            <text>{ amount: rounded, appliedRules: adjustments, flags: raised }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_7e7d69118f78">
+      <requiredKnowledge href="https://aletyx.ai/dmn/payroll/common#_bkm_4f35d46e4cb9"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_7a4cfda927af">
+      <requiredAuthority href="#_ks_fd5842ed4397"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_f666d4631e0f" name="DRD">
+      <dmndi:DMNShape id="_shape_450345a9ebfe" dmnElementRef="_ks_fd5842ed4397">
+        <dc:Bounds height="70" width="180" x="280" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_9536dba33860" dmnElementRef="_bkm_515db5e5e108">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_fb765673d645" dmnElementRef="_ar_7a4cfda927af">
+        <di:waypoint x="370" y="60"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

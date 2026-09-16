@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_a5dc8703bed2" name="Payroll Common" namespace="https://aletyx.ai/dmn/payroll/common"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Small shared functions. No business policy lives here.</description>
+  <import id="_imp_0d939743ba58" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <businessKnowledgeModel id="_bkm_4f35d46e4cb9" name="Round To Nearest 500">
+    <description>Rounding used by BASE-07 and GRD-06.</description>
+    <variable id="_var_0dfe6d0db78c" name="Round To Nearest 500" typeRef="number"/>
+    <encapsulatedLogic id="_fn_762d1ee22515" kind="FEEL" typeRef="number">
+      <formalParameter id="_fp_830d6011025b" name="amount" typeRef="number"/>
+      <literalExpression id="_le_7d74eafb5b67">
+        <text>if amount = null then null else round half up(amount / 500, 0) * 500</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_061a207248f5" name="Sum Of Rules">
+    <description>Total contribution of a list of applied rules. Returns 0 for an empty list rather than null.</description>
+    <variable id="_var_37a10742df12" name="Sum Of Rules" typeRef="number"/>
+    <encapsulatedLogic id="_fn_9e8b7e719685" kind="FEEL" typeRef="number">
+      <formalParameter id="_fp_93af7891a318" name="rules" typeRef="types.tAppliedRuleList"/>
+      <literalExpression id="_le_44d4d24ce651">
+        <text>if rules = null or count(rules) = 0 then 0 else sum(for r in rules return r.amount)</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_7ea7f6535d5b" name="Merge Results">
+    <description>Combines the results of several rule modules into one.</description>
+    <variable id="_var_247702123cfa" name="Merge Results" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_b743b1bd8024" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_19426a687b38" name="results" typeRef="Any"/>
+      <literalExpression id="_le_7f76509e8ff5">
+        <text>{
+  amount: sum(for r in results return r.amount),
+  appliedRules: flatten(for r in results return r.appliedRules),
+  flags: flatten(for r in results return r.flags)
+}</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_6fbd5f91bfa1" name="Amount Text">
+    <description>Formats a modifier amount for the rationale, whole units with an explicit sign.</description>
+    <variable id="_var_e397be01cdfd" name="Amount Text" typeRef="string"/>
+    <encapsulatedLogic id="_fn_9b208256cb16" kind="FEEL" typeRef="string">
+      <formalParameter id="_fp_9143570d36e4" name="amount" typeRef="number"/>
+      <literalExpression id="_le_286ba36a5e51">
+        <text>if amount = null then "" else
+  (if amount &lt; 0 then "-" else "+") + string(decimal(abs(amount), 0))</text>
+      </literalExpression>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_71a557b5d00b" name="Rule Line">
+    <description>One line of the rationale text.</description>
+    <variable id="_var_f210f5bd74df" name="Rule Line" typeRef="string"/>
+    <encapsulatedLogic id="_fn_8fd17e164df8" kind="FEEL" typeRef="string">
+      <formalParameter id="_fp_c9bca72268f8" name="rule" typeRef="types.tAppliedRule"/>
+      <literalExpression id="_le_fa482798cd1a">
+        <text>"[" + rule.ruleId + "] " + rule.description + (if rule.amount = null or rule.amount = 0 then "" else ": " + Amount Text(rule.amount))</text>
+      </literalExpression>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_36446c6839f0">
+      <requiredKnowledge href="#_bkm_6fbd5f91bfa1"/>
+    </knowledgeRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_677d44a74c2c" name="DRD">
+      <dmndi:DMNShape id="_shape_1b7a17d46eae" dmnElementRef="_bkm_4f35d46e4cb9">
+        <dc:Bounds height="70" width="180" x="500" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_7a14d67e1851" dmnElementRef="_bkm_061a207248f5">
+        <dc:Bounds height="70" width="180" x="720" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_17d095e0c2e2" dmnElementRef="_bkm_7ea7f6535d5b">
+        <dc:Bounds height="70" width="180" x="280" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_032ec95e2719" dmnElementRef="_bkm_6fbd5f91bfa1">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_dc090beae1e8" dmnElementRef="_bkm_71a557b5d00b">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_9686c8cb64d9" dmnElementRef="_kr_36446c6839f0">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

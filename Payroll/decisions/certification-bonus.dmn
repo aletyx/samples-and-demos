@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20230324/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+             id="_defs_c723eb47ac51" name="Certification Bonus" namespace="https://aletyx.ai/dmn/payroll/certification-bonus"
+             exporter="Aletyx Payroll sample" exporterVersion="1.0">
+  <description>Section 8, group 2. Skills and certifications.</description>
+  <import id="_imp_471b9dbb2799" name="types" importType="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="https://aletyx.ai/dmn/payroll/types" locationURI="payroll-types.dmn"/>
+  <knowledgeSource id="_ks_0ec0a16b9a4c" name="Certification Policy" locationURI="../spec/candidate_offer.md#8-group-2--skills-and-certifications">
+    <description>Section 8: which certifications attract a bonus, which roles they count for, and the cap of two.</description>
+    <type>Policy document</type>
+  </knowledgeSource>
+  <businessKnowledgeModel id="_bkm_03b8eec1306f" name="Certification Rate">
+    <description>MOD-CRT-01 to MOD-CRT-17. Bar admission is rated 0 because MOD-CRT-94 makes it a prerequisite.</description>
+    <variable id="_var_7eaf884893fe" name="Certification Rate" typeRef="number"/>
+    <encapsulatedLogic id="_fn_541c2204e3fb" kind="FEEL" typeRef="number">
+      <formalParameter id="_fp_d9b1c2f94437" name="certification" typeRef="types.tCertificationCode"/>
+      <decisionTable id="_dt_2a2c9d08463b" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Bonus rate">
+        <input id="_in_2ed4c00b4f4c" label="Certification">
+          <inputExpression id="_ie_018e2bb304f8" typeRef="types.tCertificationCode">
+            <text>certification</text>
+          </inputExpression>
+        </input>
+        <output id="_out_65cbea0321f3" typeRef="number"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_0c2299dfe3be">
+          <description>Cloud provider professional-level architect or engineer</description>
+          <inputEntry id="_rule_0c2299dfe3be_i0">
+            <text>"CLOUD-PRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_0c2299dfe3be_o0">
+            <text>0.03</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_cc1fa3841396">
+          <description>Cloud provider associate-level</description>
+          <inputEntry id="_rule_cc1fa3841396_i0">
+            <text>"CLOUD-ASSOC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_cc1fa3841396_o0">
+            <text>0.015</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_200097b720f9">
+          <description>Certified Kubernetes Administrator or equivalent</description>
+          <inputEntry id="_rule_200097b720f9_i0">
+            <text>"K8S-CKA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_200097b720f9_o0">
+            <text>0.025</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5309c3407f0a">
+          <description>CISSP</description>
+          <inputEntry id="_rule_5309c3407f0a_i0">
+            <text>"SEC-CISSP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5309c3407f0a_o0">
+            <text>0.04</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_76428378cd90">
+          <description>OSCP</description>
+          <inputEntry id="_rule_76428378cd90_i0">
+            <text>"SEC-OSCP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_76428378cd90_o0">
+            <text>0.04</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-05</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2ede88030dda">
+          <description>Recognized product or agile certification</description>
+          <inputEntry id="_rule_2ede88030dda_i0">
+            <text>"PM-AGILE"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2ede88030dda_o0">
+            <text>0.01</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-06</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_beba58f9211d">
+          <description>Recognized data platform professional certification</description>
+          <inputEntry id="_rule_beba58f9211d_i0">
+            <text>"DATA-PRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_beba58f9211d_o0">
+            <text>0.02</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-07</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_7892d0057d4a">
+          <description>PhD in a field directly relevant to the role</description>
+          <inputEntry id="_rule_7892d0057d4a_i0">
+            <text>"PHD-FIELD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_7892d0057d4a_o0">
+            <text>0.05</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-08</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a31177710205">
+          <description>Master's degree in a field directly relevant to the role</description>
+          <inputEntry id="_rule_a31177710205_i0">
+            <text>"MS-FIELD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a31177710205_o0">
+            <text>0.02</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-09</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ada888f3de7d">
+          <description>Certified Public Accountant or national equivalent</description>
+          <inputEntry id="_rule_ada888f3de7d_i0">
+            <text>"FIN-CPA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ada888f3de7d_o0">
+            <text>0.03</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-10</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_43ad029156ed">
+          <description>CFA charterholder</description>
+          <inputEntry id="_rule_43ad029156ed_i0">
+            <text>"FIN-CFA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_43ad029156ed_o0">
+            <text>0.03</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-11</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_aaeaa8a5cea4">
+          <description>Bar admission in the jurisdiction the role serves</description>
+          <inputEntry id="_rule_aaeaa8a5cea4_i0">
+            <text>"LEG-BAR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_aaeaa8a5cea4_o0">
+            <text>0.0</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-12</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_159e129457b5">
+          <description>Privacy certification such as CIPP/E or CIPP/US</description>
+          <inputEntry id="_rule_159e129457b5_i0">
+            <text>"PRV-CIPP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_159e129457b5_o0">
+            <text>0.025</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-13</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_21620d7362b2">
+          <description>SHRM-SCP, SPHR or national HR equivalent</description>
+          <inputEntry id="_rule_21620d7362b2_i0">
+            <text>"HR-SHRM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_21620d7362b2_o0">
+            <text>0.015</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-14</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d47b27515598">
+          <description>Project Management Professional</description>
+          <inputEntry id="_rule_d47b27515598_i0">
+            <text>"PM-PMP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d47b27515598_o0">
+            <text>0.01</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-15</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_6c4c12c7be4e">
+          <description>Vendor certification on the company's CRM or sales platform</description>
+          <inputEntry id="_rule_6c4c12c7be4e_i0">
+            <text>"SAL-CRM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_6c4c12c7be4e_o0">
+            <text>0.01</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-16</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_523fd22ead94">
+          <description>Recognized marketing analytics or automation certification</description>
+          <inputEntry id="_rule_523fd22ead94_i0">
+            <text>"MKT-ANL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_523fd22ead94_o0">
+            <text>0.01</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-17</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_7b2767b54e07">
+      <requiredAuthority href="#_ks_0ec0a16b9a4c"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_d416e855cd18" name="Certification Rule Id">
+    <description>Keeps each certification bonus traceable to its rule.</description>
+    <variable id="_var_8c439c967e62" name="Certification Rule Id" typeRef="types.tRuleId"/>
+    <encapsulatedLogic id="_fn_a503c98096c4" kind="FEEL" typeRef="types.tRuleId">
+      <formalParameter id="_fp_2a82ca809bd0" name="certification" typeRef="types.tCertificationCode"/>
+      <decisionTable id="_dt_fb6eb674ac5d" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Rule identifier">
+        <input id="_in_ff3ee12036e9" label="Certification">
+          <inputExpression id="_ie_88cac4f47205" typeRef="types.tCertificationCode">
+            <text>certification</text>
+          </inputExpression>
+        </input>
+        <output id="_out_d328423cca8c" typeRef="types.tRuleId"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_2bd76b0191f3">
+          <description>Cloud provider professional-level architect or engineer</description>
+          <inputEntry id="_rule_2bd76b0191f3_i0">
+            <text>"CLOUD-PRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2bd76b0191f3_o0">
+            <text>"MOD-CRT-01"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-01</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3b1116329e39">
+          <description>Cloud provider associate-level</description>
+          <inputEntry id="_rule_3b1116329e39_i0">
+            <text>"CLOUD-ASSOC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3b1116329e39_o0">
+            <text>"MOD-CRT-02"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-02</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1f0949aaf2cf">
+          <description>Certified Kubernetes Administrator or equivalent</description>
+          <inputEntry id="_rule_1f0949aaf2cf_i0">
+            <text>"K8S-CKA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1f0949aaf2cf_o0">
+            <text>"MOD-CRT-03"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-03</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_5fccf6564ee6">
+          <description>CISSP</description>
+          <inputEntry id="_rule_5fccf6564ee6_i0">
+            <text>"SEC-CISSP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_5fccf6564ee6_o0">
+            <text>"MOD-CRT-04"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-04</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_525156cc6b7f">
+          <description>OSCP</description>
+          <inputEntry id="_rule_525156cc6b7f_i0">
+            <text>"SEC-OSCP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_525156cc6b7f_o0">
+            <text>"MOD-CRT-05"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-05</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_85e9a3b641df">
+          <description>Recognized product or agile certification</description>
+          <inputEntry id="_rule_85e9a3b641df_i0">
+            <text>"PM-AGILE"</text>
+          </inputEntry>
+          <outputEntry id="_rule_85e9a3b641df_o0">
+            <text>"MOD-CRT-06"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-06</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_33a9fca7510a">
+          <description>Recognized data platform professional certification</description>
+          <inputEntry id="_rule_33a9fca7510a_i0">
+            <text>"DATA-PRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_33a9fca7510a_o0">
+            <text>"MOD-CRT-07"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-07</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2715b4f9dfcd">
+          <description>PhD in a field directly relevant to the role</description>
+          <inputEntry id="_rule_2715b4f9dfcd_i0">
+            <text>"PHD-FIELD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2715b4f9dfcd_o0">
+            <text>"MOD-CRT-08"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-08</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a2da9af66676">
+          <description>Master's degree in a field directly relevant to the role</description>
+          <inputEntry id="_rule_a2da9af66676_i0">
+            <text>"MS-FIELD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a2da9af66676_o0">
+            <text>"MOD-CRT-09"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-09</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_71b636c9f321">
+          <description>Certified Public Accountant or national equivalent</description>
+          <inputEntry id="_rule_71b636c9f321_i0">
+            <text>"FIN-CPA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_71b636c9f321_o0">
+            <text>"MOD-CRT-10"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-10</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_8047d09ec28a">
+          <description>CFA charterholder</description>
+          <inputEntry id="_rule_8047d09ec28a_i0">
+            <text>"FIN-CFA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_8047d09ec28a_o0">
+            <text>"MOD-CRT-11"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-11</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ab29a3bf26ce">
+          <description>Bar admission in the jurisdiction the role serves</description>
+          <inputEntry id="_rule_ab29a3bf26ce_i0">
+            <text>"LEG-BAR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ab29a3bf26ce_o0">
+            <text>"MOD-CRT-12"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-12</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_ad94b873723a">
+          <description>Privacy certification such as CIPP/E or CIPP/US</description>
+          <inputEntry id="_rule_ad94b873723a_i0">
+            <text>"PRV-CIPP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_ad94b873723a_o0">
+            <text>"MOD-CRT-13"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-13</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_1dd672e398da">
+          <description>SHRM-SCP, SPHR or national HR equivalent</description>
+          <inputEntry id="_rule_1dd672e398da_i0">
+            <text>"HR-SHRM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_1dd672e398da_o0">
+            <text>"MOD-CRT-14"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-14</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d188afb2d2fe">
+          <description>Project Management Professional</description>
+          <inputEntry id="_rule_d188afb2d2fe_i0">
+            <text>"PM-PMP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d188afb2d2fe_o0">
+            <text>"MOD-CRT-15"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-15</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_9e64c35f6975">
+          <description>Vendor certification on the company's CRM or sales platform</description>
+          <inputEntry id="_rule_9e64c35f6975_i0">
+            <text>"SAL-CRM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_9e64c35f6975_o0">
+            <text>"MOD-CRT-16"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-16</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_262e727c605f">
+          <description>Recognized marketing analytics or automation certification</description>
+          <inputEntry id="_rule_262e727c605f_i0">
+            <text>"MKT-ANL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_262e727c605f_o0">
+            <text>"MOD-CRT-17"</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-17</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_99af9c58c89c" name="Certification Scope">
+    <description>Section 8.1. Role code prefixes a certification counts for.</description>
+    <variable id="_var_8e936c463ca8" name="Certification Scope" typeRef="Any"/>
+    <encapsulatedLogic id="_fn_f119c443139d" kind="FEEL" typeRef="Any">
+      <formalParameter id="_fp_aca5680ded1d" name="certification" typeRef="types.tCertificationCode"/>
+      <decisionTable id="_dt_ae8e6fdb5733" hitPolicy="UNIQUE" preferredOrientation="Rule-as-Row" outputLabel="Role code prefixes it counts for">
+        <input id="_in_71f81e26402e" label="Certification">
+          <inputExpression id="_ie_c2881c9038ec" typeRef="types.tCertificationCode">
+            <text>certification</text>
+          </inputExpression>
+        </input>
+        <output id="_out_237d2ccc7b02" typeRef="Any"/>
+        <annotation name="Specification rule"/>
+        <rule id="_rule_8850ca66e3f1">
+          <description>Cloud provider professional-level architect or engineer</description>
+          <inputEntry id="_rule_8850ca66e3f1_i0">
+            <text>"CLOUD-PRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_8850ca66e3f1_o0">
+            <text>["ENG-", "DAT-", "ITW-", "COR-ITS-2", "GTM-SE"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a40dee838fda">
+          <description>Cloud provider associate-level</description>
+          <inputEntry id="_rule_a40dee838fda_i0">
+            <text>"CLOUD-ASSOC"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a40dee838fda_o0">
+            <text>["ENG-", "DAT-", "ITW-", "COR-ITS-2", "GTM-SE"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_18926641ebe7">
+          <description>Certified Kubernetes Administrator or equivalent</description>
+          <inputEntry id="_rule_18926641ebe7_i0">
+            <text>"K8S-CKA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_18926641ebe7_o0">
+            <text>["ENG-", "ITW-ITS-3", "ITW-ITM-3"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_01be43877cf4">
+          <description>CISSP</description>
+          <inputEntry id="_rule_01be43877cf4_i0">
+            <text>"SEC-CISSP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_01be43877cf4_o0">
+            <text>["ENG-SEC-", "ENG-SRE-", "ITW-", "COR-ITS-2", "LEG-CMP-3", "LEG-RSK-3"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_9fb8497cbd8c">
+          <description>OSCP</description>
+          <inputEntry id="_rule_9fb8497cbd8c_i0">
+            <text>"SEC-OSCP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_9fb8497cbd8c_o0">
+            <text>["ENG-SEC-", "ENG-SRE-", "ITW-", "COR-ITS-2", "LEG-CMP-3", "LEG-RSK-3"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_d97eab4dc085">
+          <description>Recognized product or agile certification</description>
+          <inputEntry id="_rule_d97eab4dc085_i0">
+            <text>"PM-AGILE"</text>
+          </inputEntry>
+          <outputEntry id="_rule_d97eab4dc085_o0">
+            <text>["PRD-", "ENG-EM-", "OPS-PMO-3"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_547adc7a350f">
+          <description>Recognized data platform professional certification</description>
+          <inputEntry id="_rule_547adc7a350f_i0">
+            <text>"DATA-PRO"</text>
+          </inputEntry>
+          <outputEntry id="_rule_547adc7a350f_o0">
+            <text>["DAT-", "ENG-DAT-", "ENG-MLE-", "ENG-DBA-2"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_e464d0329f08">
+          <description>PhD in a field directly relevant to the role</description>
+          <inputEntry id="_rule_e464d0329f08_i0">
+            <text>"PHD-FIELD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_e464d0329f08_o0">
+            <text>[""]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_3f658dfeae5e">
+          <description>Master's degree in a field directly relevant to the role</description>
+          <inputEntry id="_rule_3f658dfeae5e_i0">
+            <text>"MS-FIELD"</text>
+          </inputEntry>
+          <outputEntry id="_rule_3f658dfeae5e_o0">
+            <text>[""]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_90bfac700171">
+          <description>Certified Public Accountant or national equivalent</description>
+          <inputEntry id="_rule_90bfac700171_i0">
+            <text>"FIN-CPA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_90bfac700171_o0">
+            <text>["FIN-", "COR-FIN-"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_2aa668ab2d43">
+          <description>CFA charterholder</description>
+          <inputEntry id="_rule_2aa668ab2d43_i0">
+            <text>"FIN-CFA"</text>
+          </inputEntry>
+          <outputEntry id="_rule_2aa668ab2d43_o0">
+            <text>["FIN-", "COR-FIN-"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_bd5529765b99">
+          <description>Bar admission in the jurisdiction the role serves</description>
+          <inputEntry id="_rule_bd5529765b99_i0">
+            <text>"LEG-BAR"</text>
+          </inputEntry>
+          <outputEntry id="_rule_bd5529765b99_o0">
+            <text>["LEG-", "COR-LEG-3"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_4ffe0bfdecd1">
+          <description>Privacy certification such as CIPP/E or CIPP/US</description>
+          <inputEntry id="_rule_4ffe0bfdecd1_i0">
+            <text>"PRV-CIPP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_4ffe0bfdecd1_o0">
+            <text>["LEG-PRV-3", "LEG-CMP-3", "LEG-RSK-3", "ENG-SEC-", "COR-LEG-3"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_cefe8fe477a6">
+          <description>SHRM-SCP, SPHR or national HR equivalent</description>
+          <inputEntry id="_rule_cefe8fe477a6_i0">
+            <text>"HR-SHRM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_cefe8fe477a6_o0">
+            <text>["PPL-", "COR-HR-2", "COR-REC-2"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_149fda065b9d">
+          <description>Project Management Professional</description>
+          <inputEntry id="_rule_149fda065b9d_i0">
+            <text>"PM-PMP"</text>
+          </inputEntry>
+          <outputEntry id="_rule_149fda065b9d_o0">
+            <text>["PRD-TPM-", "OPS-PMO-3", "OPS-STR-3", "CSX-PS-3", "CSX-IMP-2"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_a711bb4e88a7">
+          <description>Vendor certification on the company's CRM or sales platform</description>
+          <inputEntry id="_rule_a711bb4e88a7_i0">
+            <text>"SAL-CRM"</text>
+          </inputEntry>
+          <outputEntry id="_rule_a711bb4e88a7_o0">
+            <text>["GTM-", "MKT-OPS-2", "CSX-"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+        <rule id="_rule_c0d94a12c623">
+          <description>Recognized marketing analytics or automation certification</description>
+          <inputEntry id="_rule_c0d94a12c623_i0">
+            <text>"MKT-ANL"</text>
+          </inputEntry>
+          <outputEntry id="_rule_c0d94a12c623_o0">
+            <text>["MKT-", "GTM-MKT-2", "DAT-ANL-"]</text>
+          </outputEntry>
+          <annotationEntry>
+            <text>MOD-CRT-92</text>
+          </annotationEntry>
+        </rule>
+      </decisionTable>
+    </encapsulatedLogic>
+    <authorityRequirement id="_ar_d88c70018a7b">
+      <requiredAuthority href="#_ks_0ec0a16b9a4c"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_eed69853a095" name="Certification Relevant">
+    <description>MOD-CRT-92. A certification outside its mapped roles scores nothing.</description>
+    <variable id="_var_cbd9f07bb57d" name="Certification Relevant" typeRef="boolean"/>
+    <encapsulatedLogic id="_fn_a2604ee9e0a4" kind="FEEL" typeRef="boolean">
+      <formalParameter id="_fp_808e25d21318" name="certification" typeRef="types.tCertificationCode"/>
+      <formalParameter id="_fp_43491603fb1f" name="roleCode" typeRef="types.tRoleCode"/>
+      <literalExpression id="_le_37b99a0b6b5f">
+        <text>some prefix in Certification Scope(certification)
+satisfies starts with(roleCode, prefix)</text>
+      </literalExpression>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_53e6f3ed3da7">
+      <requiredKnowledge href="#_bkm_99af9c58c89c"/>
+    </knowledgeRequirement>
+  </businessKnowledgeModel>
+  <businessKnowledgeModel id="_bkm_4045c7baf6a7" name="Certification Bonus">
+    <description>Applies MOD-CRT-91 (PhD excludes Master's), then MOD-CRT-90 (the two highest only). Expired certifications are rejected in validation under MOD-CRT-93, not here.</description>
+    <variable id="_var_909bdd31df1a" name="Certification Bonus" typeRef="types.tModifierResult"/>
+    <encapsulatedLogic id="_fn_e7462c49c870" kind="FEEL" typeRef="types.tModifierResult">
+      <formalParameter id="_fp_24f5b3dde637" name="baseSalary" typeRef="number"/>
+      <formalParameter id="_fp_ddb22b56fd87" name="certifications" typeRef="types.tCertificationList"/>
+      <formalParameter id="_fp_2d3910384105" name="roleCode" typeRef="types.tRoleCode"/>
+      <context id="_ctx_65636528fdbc" typeRef="types.tModifierResult">
+        <contextEntry id="_ce_e9e6d729bcb4">
+          <variable id="_cev_fc231a5ea702" name="declared" typeRef="types.tCertificationList"/>
+          <literalExpression id="_le_7ab2077f6fde">
+            <text>if certifications = null then [] else certifications</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_b4afeba0f144">
+          <variable id="_cev_d332fa3041cd" name="relevant" typeRef="types.tCertificationList"/>
+          <literalExpression id="_le_4ad2ad8dbc04">
+            <text>declared[Certification Relevant(item, roleCode)]</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_4be73e0bb028">
+          <variable id="_cev_371161899e84" name="deduped" typeRef="types.tCertificationList"/>
+          <literalExpression id="_le_b20334ad15d4">
+            <text>if list contains(relevant, "PHD-FIELD")
+then relevant[item != "MS-FIELD"] else relevant</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_99b43853a08b">
+          <variable id="_cev_fb0edad96fba" name="scored"/>
+          <literalExpression id="_le_c787025c2c75">
+            <text>for c in deduped return
+  { code: c, rate: Certification Rate(c), ruleId: Certification Rule Id(c) }</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_66b6a0ba4064">
+          <variable id="_cev_30cb44006ae3" name="paying"/>
+          <literalExpression id="_le_43203ae5ed76">
+            <text>scored[rate &gt; 0]</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_76eeba7c8939">
+          <variable id="_cev_b82fb631b03f" name="ranked"/>
+          <literalExpression id="_le_efc65f42a31f">
+            <text>sort(paying, function(a, b) a.rate &gt; b.rate)</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_cb33aeaab531">
+          <variable id="_cev_66f0733b28ab" name="top"/>
+          <literalExpression id="_le_ecf628e8de6f">
+            <text>if count(ranked) &gt; 2 then sublist(ranked, 1, 2) else ranked</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_7e953371bf79">
+          <variable id="_cev_e1e38d285262" name="prerequisites"/>
+          <literalExpression id="_le_9b8d4928e0dc">
+            <text>deduped[Certification Rate(item) = 0]</text>
+          </literalExpression>
+        </contextEntry>
+        <contextEntry id="_ce_ef10303daf01">
+          <literalExpression id="_le_55eee960cc82">
+            <text>{ amount: if count(top) = 0 then 0
+    else sum(for t in top return baseSalary * t.rate),
+  appliedRules: concatenate(
+    for t in top return
+      { ruleId: t.ruleId,
+        description: t.code + " adds " + string(decimal(t.rate * 100, 1)) + "% of base",
+        amount: baseSalary * t.rate },
+    for p in prerequisites return
+      { ruleId: "MOD-CRT-94",
+        description: p + " is a prerequisite for this role, not a bonus",
+        amount: 0 }),
+  flags: [] }</text>
+          </literalExpression>
+        </contextEntry>
+      </context>
+    </encapsulatedLogic>
+    <knowledgeRequirement id="_kr_a06d83edfda8">
+      <requiredKnowledge href="#_bkm_eed69853a095"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_cad505310e49">
+      <requiredKnowledge href="#_bkm_03b8eec1306f"/>
+    </knowledgeRequirement>
+    <knowledgeRequirement id="_kr_433128f3e362">
+      <requiredKnowledge href="#_bkm_d416e855cd18"/>
+    </knowledgeRequirement>
+    <authorityRequirement id="_ar_e00cc2b2deef">
+      <requiredAuthority href="#_ks_0ec0a16b9a4c"/>
+    </authorityRequirement>
+  </businessKnowledgeModel>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_diag_01e2896e7641" name="DRD">
+      <dmndi:DMNShape id="_shape_c9c217efb13f" dmnElementRef="_ks_0ec0a16b9a4c">
+        <dc:Bounds height="70" width="180" x="60" y="320"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_c33d6e71ae06" dmnElementRef="_bkm_03b8eec1306f">
+        <dc:Bounds height="70" width="180" x="280" y="320"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_dfb73842040b" dmnElementRef="_bkm_d416e855cd18">
+        <dc:Bounds height="70" width="180" x="500" y="320"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_eb025504473e" dmnElementRef="_bkm_99af9c58c89c">
+        <dc:Bounds height="70" width="180" x="720" y="320"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_06d6428ebf36" dmnElementRef="_bkm_eed69853a095">
+        <dc:Bounds height="70" width="180" x="60" y="190"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="_shape_28fdcf24ddaf" dmnElementRef="_bkm_4045c7baf6a7">
+        <dc:Bounds height="70" width="180" x="60" y="60"/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="_edge_79b4df9ee6c9" dmnElementRef="_ar_7b2767b54e07">
+        <di:waypoint x="150" y="320"/>
+        <di:waypoint x="370" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_74c353a6012e" dmnElementRef="_ar_d88c70018a7b">
+        <di:waypoint x="150" y="320"/>
+        <di:waypoint x="810" y="390"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_f15cd2811cd4" dmnElementRef="_kr_53e6f3ed3da7">
+        <di:waypoint x="810" y="320"/>
+        <di:waypoint x="150" y="260"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_f88e20044607" dmnElementRef="_kr_a06d83edfda8">
+        <di:waypoint x="150" y="190"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_eeea3c190ef2" dmnElementRef="_kr_cad505310e49">
+        <di:waypoint x="370" y="320"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_2abed014dcf2" dmnElementRef="_kr_433128f3e362">
+        <di:waypoint x="590" y="320"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="_edge_f4bc11b03dd6" dmnElementRef="_ar_e00cc2b2deef">
+        <di:waypoint x="150" y="320"/>
+        <di:waypoint x="150" y="130"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
