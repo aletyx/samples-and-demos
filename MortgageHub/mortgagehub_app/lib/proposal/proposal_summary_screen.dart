@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'proposal_check.dart';
@@ -202,7 +204,8 @@ class _Group extends StatelessWidget {
 }
 
 /// The regulatory check section: asks [checker] once, then shows the
-/// verdict, the figures it worked out and each check with its reason.
+/// verdict, the figures it worked out and each check with its reason, and
+/// a button that shows or hides the aityx request and response behind it.
 class RegulatoryCheckCard extends StatefulWidget {
   const RegulatoryCheckCard({super.key, required this.request, this.checker});
 
@@ -221,6 +224,7 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
   late final ProposalChecker _checker =
       widget.checker ?? (_owned = ApiProposalChecker());
   late Future<ProposalCheck> _check = _checker.check(widget.request);
+  bool _showAityx = false;
 
   @override
   void dispose() {
@@ -348,7 +352,70 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
           color: scheme.onSurfaceVariant,
         ),
       ),
+      if (check.aityxRequest != null || check.aityxResponse != null) ...[
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const Key('aityxToggle'),
+            onPressed: () => setState(() => _showAityx = !_showAityx),
+            icon: Icon(_showAityx ? Icons.expand_less : Icons.data_object),
+            label: Text(
+              _showAityx
+                  ? 'Hide aityx request and response'
+                  : 'Show aityx request and response',
+            ),
+          ),
+        ),
+        if (_showAityx) ...[
+          _JsonBlock(
+            'Request: POST /v1/systemone (the API key is not shown)',
+            check.aityxRequest,
+          ),
+          _JsonBlock('Response', check.aityxResponse),
+        ],
+      ],
     ];
+  }
+}
+
+/// [json], pretty-printed and selectable, under [title].
+class _JsonBlock extends StatelessWidget {
+  const _JsonBlock(this.title, this.json);
+
+  final String title;
+  final Object? json;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(title, style: theme.textTheme.titleSmall),
+          const SizedBox(height: 4),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 320),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: SelectableText(
+                const JsonEncoder.withIndent('  ').convert(json),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
