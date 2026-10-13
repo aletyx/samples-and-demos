@@ -1,0 +1,168 @@
+/// Mortgage Hub's API. Holds the aityx.ai key, which must never reach the
+/// app, and answers:
+///
+///   GET  /api/health           {"ok": true, "aityx": true when the key is set}
+///   POST /api/proposals/check  a ProposalRequest's JSON → the regulatory
+///                              check (see lib/proposal_check.dart)
+///
+/// Settings, from the environment (scripts/api.sh loads .env):
+///   AITYX_API_KEY   the key (secret)
+///   AITYX_URL       aityx's base URL (default https://api.aityx.ai)
+///   API_PORT        the port (default 8881)
+///   MORTGAGEHUB_BIND_HOST  the address to bind (default 127.0.0.1)
+///   ALLOWED_ORIGINS comma-separated origins allowed by CORS
+///                   (default http://localhost:8880)
+///   ASSUMED_RATE    the annual rate in % for payment estimates (default 6.5)
+library;
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:mortgagehub_api/proposal_check.dart';
+
+const _maxBody = 64 * 1024;
+
+Future<void> main() async {
+  final env = Platform.environment;
+  final key = env['AITYX_API_KEY'] ?? '';
+  final aityx = Uri.parse(
+    (env['AITYX_URL'] ?? '').isEmpty
+        ? 'https://api.aityx.ai'
+        : env['AITYX_URL']!,
+  );
+  if (aityx.scheme != 'https') {
+    stderr.writeln('error: AITYX_URL must be https');
+    exit(1);
+  }
+  final port = int.parse(env['API_PORT'] ?? '8881');
+  final host = env['MORTGAGEHUB_BIND_HOST'] ?? '127.0.0.1';
+  final origins = (env['ALLOWED_ORIGINS'] ?? 'http://localhost:8880')
+      .split(',')
+      .map((origin) => origin.trim())
+      .where((origin) => origin.isNotEmpty)
+      .toSet();
+  final assumedRate = double.parse(env['ASSUMED_RATE'] ?? '6.5');
+  final modelFile = File.fromUri(
+    Platform.script.resolve('../models/proposal-check.json'),
+  );
+  final model = jsonDecode(await modelFile.readAsString());
+  if (key.isEmpty) stderr.writeln('warning: AITYX_API_KEY is not set');
+
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
+  final server = await HttpServer.bind(host, port);
+  stdout.writeln(
+    'mortgagehub_api on http://$host:$port (aityx: ${aityx.host})',
+  );
+
+  await for (final request in server) {
+    unawaited(
+      _handle(request, key, aityx, origins, assumedRate, model, client),
+    );
+  }
+}
+
+Future<void> _handle(
+  HttpRequest request,
+  String key,
+  Uri aityx,
+  Set<String> origins,
+  double assumedRate,
+  Object? model,
+  HttpClient client,
+) async {
+  final response = request.response;
+  final origin = request.headers.value('origin');
+  if (origin != null && origins.contains(origin)) {
+    response.headers
+      ..set('Access-Control-Allow-Origin', origin)
+      ..set('Vary', 'Origin')
+      ..set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      ..set('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  try {
+    final path = request.uri.path;
+    if (request.method == 'OPTIONS') {
+      response.statusCode = HttpStatus.noContent;
+    } else if (path == '/api/health' && request.method == 'GET') {
+      _json(response, 200, {'ok': true, 'aityx': key.isNotEmpty});
+    } else if (path == '/api/proposals/check' && request.method == 'POST') {
+      await _check(request, key, aityx, assumedRate, model, client);
+    } else {
+      _json(response, 404, {'error': 'not found'});
+    }
+  } catch (error) {
+    stderr.writeln('error: ${request.method} ${request.uri.path}: $error');
+    _json(response, 500, {'error': 'internal error'});
+  } finally {
+    await response.close();
+  }
+}
+
+Future<void> _check(
+  HttpRequest request,
+  String key,
+  Uri aityx,
+  double assumedRate,
+  Object? model,
+  HttpClient client,
+) async {
+  final response = request.response;
+  if (key.isEmpty) {
+    return _json(response, 503, {'error': 'aityx is not set up'});
+  }
+  final Map<String, Object?> state;
+  try {
+    final body = await _readBody(request);
+    final json = jsonDecode(body);
+    if (json is! Map<String, Object?>) {
+      throw InvalidRequest('expected an object');
+    }
+    state = toState(json, assumedRate);
+  } on InvalidRequest catch (error) {
+    return _json(response, 400, {'error': error.message});
+  } on FormatException {
+    return _json(response, 400, {'error': 'invalid JSON'});
+  }
+
+  final call = await client.postUrl(aityx.resolve('/v1/systemone'));
+  call.headers
+    ..set('Authorization', 'Bearer $key')
+    ..contentType = ContentType.json;
+  call.write(jsonEncode({'decision': model, 'state': state}));
+  final answer = await call.close().timeout(const Duration(seconds: 60));
+  final text = await answer.transform(utf8.decoder).join();
+  if (answer.statusCode != 200) {
+    // aityx's problem details never include the key.
+    stderr.writeln('aityx: HTTP ${answer.statusCode}: $text');
+    return _json(response, 502, {
+      'error': 'aityx answered HTTP ${answer.statusCode}',
+    });
+  }
+  try {
+    final result = toResult(
+      jsonDecode(text) as Map<String, Object?>,
+      assumedRate,
+    );
+    _json(response, 200, result);
+  } on FormatException catch (error) {
+    stderr.writeln('$error');
+    _json(response, 502, {'error': 'unexpected answer from aityx'});
+  }
+}
+
+Future<String> _readBody(HttpRequest request) async {
+  final bytes = <int>[];
+  await for (final chunk in request) {
+    bytes.addAll(chunk);
+    if (bytes.length > _maxBody) throw InvalidRequest('request too large');
+  }
+  return utf8.decode(bytes);
+}
+
+void _json(HttpResponse response, int status, Object body) {
+  response
+    ..statusCode = status
+    ..headers.contentType = ContentType.json
+    ..write(jsonEncode(body));
+}
