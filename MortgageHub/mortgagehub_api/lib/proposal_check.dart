@@ -140,3 +140,18 @@ Map<String, Object?> toResult(
     ],
   };
 }
+
+/// [result] with what the app shows under the check: the body [sent] to
+/// aityx and its [answers] (parsed from [text]), under `aityx`. Left out if
+/// [text] contains the [key], so the key never reaches the app.
+Map<String, Object?> withAityx(
+  Map<String, Object?> result,
+  Map<String, Object?> sent,
+  Map<String, Object?> answers,
+  String text,
+  String key,
+) => {
+  ...result,
+  if (key.isEmpty || !text.contains(key))
+    'aityx': {'request': sent, 'response': answers},
+};

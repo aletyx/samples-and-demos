@@ -67,3 +67,8 @@ spec.
     rules, so `scripts/model-test.sh` runs them on aityx with expected
     verdicts at each boundary. The app's name on Android and iOS is now
     Mortgage Hub.
+11. **Add a button to show or hide the aityx request and response at the
+    end of the regulatory check.** The API now returns the body it sent to
+    aityx and aityx's answer with the check, and the
+    [regulatory check](regulatory-check.md) ends with **Show / Hide aityx
+    request and response**, showing both as JSON.

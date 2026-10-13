@@ -3,7 +3,9 @@
 ///
 ///   GET  /api/health           {"ok": true, "aityx": true when the key is set}
 ///   POST /api/proposals/check  a ProposalRequest's JSON → the regulatory
-///                              check (see lib/proposal_check.dart)
+///                              check (see lib/proposal_check.dart), with
+///                              the body sent to aityx and its answer under
+///                              "aityx" (the key, a header, is in neither)
 ///
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY   the key (secret)
@@ -125,11 +127,12 @@ Future<void> _check(
     return _json(response, 400, {'error': 'invalid JSON'});
   }
 
+  final sent = {'decision': model, 'state': state};
   final call = await client.postUrl(aityx.resolve('/v1/systemone'));
   call.headers
     ..set('Authorization', 'Bearer $key')
     ..contentType = ContentType.json;
-  call.write(jsonEncode({'decision': model, 'state': state}));
+  call.write(jsonEncode(sent));
   final answer = await call.close().timeout(const Duration(seconds: 60));
   final text = await answer.transform(utf8.decoder).join();
   if (answer.statusCode != 200) {
@@ -140,11 +143,9 @@ Future<void> _check(
     });
   }
   try {
-    final result = toResult(
-      jsonDecode(text) as Map<String, Object?>,
-      assumedRate,
-    );
-    _json(response, 200, result);
+    final answers = jsonDecode(text) as Map<String, Object?>;
+    final result = toResult(answers, assumedRate);
+    _json(response, 200, withAityx(result, sent, answers, text, key));
   } on FormatException catch (error) {
     stderr.writeln('$error');
     _json(response, 502, {'error': 'unexpected answer from aityx'});
