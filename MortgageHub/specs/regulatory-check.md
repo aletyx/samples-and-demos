@@ -1,0 +1,104 @@
+# Regulatory check
+
+The proposal summary's **Regulatory check** section says whether a lender
+can process the proposal under current US mortgage rules: **Processable**,
+**Needs review** or **Not processable**, with the loan-to-value against the
+program's maximum, the estimated monthly payment, the debt-to-income ratio
+with that payment, and each check with its result (pass, review, fail) and
+reason. The verdict comes from [aityx.ai](aityx.md), which executes the
+rules as a decision model.
+
+```
+app (summary)  ──POST /api/proposals/check──▶  mortgagehub_api  ──POST /v1/systemone──▶  aityx.ai
+               ◀── status, figures, checks ──  (holds the key)  ◀── answers, receipt ────
+```
+
+- **The app** ([proposal_check.dart](../mortgagehub_app/lib/proposal/proposal_check.dart))
+  posts the request's JSON to `API_BASE_URL` (a dart-define;
+  `http://localhost:8881` by default) and shows a spinner, then the result,
+  or the error with **Try again**.
+- **The API** ([mortgagehub_api/](../mortgagehub_api)) maps the request to
+  the model's inputs ([lib/proposal_check.dart](../mortgagehub_api/lib/proposal_check.dart)),
+  without the borrower's name, email or phone, sends them with the model
+  to aityx's System One (deterministic, about 6,000 input tokens a check),
+  and returns the status, the figures and the five checks. It answers 400
+  to a malformed request, 503 without a key, and 502 when aityx fails.
+- **The model** ([models/proposal-check.json](../mortgagehub_api/models/proposal-check.json))
+  is a native aityx model: inputs, then decision tables (FIRST hit, a
+  `# why` on every row citing the rule) and expressions. It's kept in the
+  repo and sent with each call, since aityx stores no models.
+
+## The rules (as of October 2026)
+
+**Figures.** Loan amount: price less down payment, the balance, or the
+balance plus cash out. LTV = loan ÷ value. Payment: principal and interest
+at `ASSUMED_RATE` (6.5% by default) over the term, plus taxes (1.0% of the
+value a year when not given), insurance (0.35% a year when not given) and
+HOA dues; mortgage insurance isn't included. DTI = (payment + monthly
+debts) ÷ monthly gross income.
+
+**Program eligibility.** FHA, VA and USDA only for a primary residence
+(HUD Handbook 4000.1; 38 U.S.C. 3704(c); 7 CFR 3555). VA needs military
+service. USDA: no cash-out, no 2-4 units, refinances only of USDA loans
+(review), and always a review of the rural area and the county income limit
+(115% of the median). Conventional: second homes 1 unit only; manufactured
+homes not as investments. "Not sure" is checked as conventional.
+
+**Maximum LTV.** Conventional from Fannie Mae's Eligibility Matrix (August
+5, 2026, Desktop Underwriter):
+
+| | Purchase / rate-and-term | Cash-out |
+|---|---|---|
+| Primary, 1 unit | 97% fixed (above 95% a purchase needs a first-time buyer; a refinance needs Fannie Mae to own the loan: review), 95% ARM | 80% |
+| Primary, 2-4 units | 95% | 75% |
+| Primary, manufactured | 97% fixed, 95% ARM | 65% |
+| Second home, 1 unit | 90% | 75% |
+| Investment, 1 unit | 85% purchase, 75% refinance | 75% |
+| Investment, 2-4 units | 75% | 70% |
+
+FHA: 96.5% purchase (below 620 and above 90%: review, since 500-579 needs
+10% down), 97.75% rate-and-term, 80% cash-out. VA: 100% (cash-out above
+90%: review, the usual lender cap). USDA: 100%. Above 80%, conventional
+loans need private mortgage insurance; FHA loans always carry MIP.
+
+**Loan limits (2026).** Conventional: above the FHFA baseline of $832,750
+(AK, HI, GU, VI: $1,249,125) is high-balance, depending on the county:
+review; above the ceiling of $1,249,125 (AK, HI, GU, VI: $1,873,675) is a
+jumbo loan: review. FHA: above the floor of $541,287 depends on the
+county: review; above the ceiling of $1,249,125: fail (ML 2025-23). VA: no
+limit with full entitlement. USDA: no loan limit.
+
+**Credit score.** Unknown: review. Below 620: review for every program
+(conventional: DU dropped its 620 minimum in November 2025, lenders
+haven't; FHA: 580 / 500 tiers; VA: lender minimums of 580-620). USDA below
+640: review (GUS automatic approval).
+
+**Debt-to-income.** Conventional: above 50% fail (DU's maximum), above 45%
+review. FHA: above 57% fail, above 43% review. VA: above 41% review
+(residual income). USDA: above 41% review. Every lender also verifies the
+ability to repay (Regulation Z, 12 CFR 1026.43).
+
+**Status.** Any fail: Not processable; else any review: Needs review;
+else Processable.
+
+## Verified
+
+- 17 scenarios against aityx (each program's eligibility, the LTV
+  maximums, the limits, credit and DTI) gave the expected results; the
+  payment matched a hand calculation ($400,000 at 6.5% over 30 years:
+  $2,528.27).
+- The app's client against the running API and aityx, with Fill random
+  requests: every status came back, with the right failing checks.
+- CORS answers only the app's origins (`ALLOWED_ORIGINS`).
+
+## Known limitations
+
+- Self-reported answers only: no credit report, documents or appraisal.
+  It's not a credit decision or a Loan Estimate.
+- County-level limits (FHFA, FHA, USDA income) aren't looked up: amounts
+  between the floor and the ceiling are reviews.
+- 2-4 unit loan limits and Freddie Mac's rules aren't modeled; FHA and VA
+  rules use the common thresholds, not each lender's overlays.
+- The payment uses one assumed rate, not a priced rate.
+- The rules are dated (2026 limits, the August 2026 matrix) and need
+  updating when they change.
