@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'proposal_request.dart';
@@ -50,7 +51,7 @@ class ProposalCheck {
 
 enum CheckStatus {
   processable('processable', 'Processable'),
-  needsReview('needs_review', 'Needs review'),
+  needsReview('needs_review', 'Requires review'),
   notProcessable('not_processable', 'Not processable');
 
   const CheckStatus(this.wireName, this.label);
@@ -62,6 +63,23 @@ enum CheckStatus {
   static CheckStatus parse(String name) =>
       values.firstWhere((status) => status.wireName == name);
 }
+
+/// The theme color of a verdict: aqua, yellow or red.
+Color statusColor(BuildContext context, CheckStatus status) {
+  final scheme = Theme.of(context).colorScheme;
+  return switch (status) {
+    CheckStatus.processable => scheme.secondary,
+    CheckStatus.needsReview => scheme.primary,
+    CheckStatus.notProcessable => scheme.error,
+  };
+}
+
+/// The icon of a verdict.
+IconData statusIcon(CheckStatus status) => switch (status) {
+  CheckStatus.processable => Icons.verified_outlined,
+  CheckStatus.needsReview => Icons.rule,
+  CheckStatus.notProcessable => Icons.block,
+};
 
 enum CheckResult { pass, review, fail }
 

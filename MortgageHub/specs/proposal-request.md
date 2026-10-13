@@ -79,8 +79,13 @@ email or phone is required to submit.
 
 ## Fill random
 
-The app bar's **Fill random** fills every field with a random request that
-passes the form's checks, for demos and testing
+The app bar's **Fill random** is a split button. Clicking it fills every
+field with a random request that passes the form's checks, for demos and
+testing. Its arrow opens a menu, **Processable**, **Requires review** and
+**Not processable**, that fills a request built to get that verdict from
+the [regulatory check](regulatory-check.md) (see
+[Fill random for a verdict](#fill-random-for-a-verdict)). Plain random
+requests come from
 ([random_proposal.dart](../mortgagehub_app/lib/proposal/random_proposal.dart)).
 Names, streets, cities and ZIP codes come from the
 [`faker`](https://pub.dev/packages/faker) package (the most used Dart
@@ -95,6 +100,31 @@ for condos and townhouses and once in four for other homes. FHA, VA
 and USDA come only with a primary residence, and VA always with military
 service. It also ticks the consent, and clears the errors of an earlier
 submit.
+
+### Fill random for a verdict
+
+[targeted_proposal.dart](../mortgagehub_app/lib/proposal/targeted_proposal.dart)
+starts from a request that passes every check with room to spare (a
+known credit score from 640 up, no USDA, loans under FHA's $541,287 floor
+and the $832,750 baseline, an LTV under each program's maximum, a DTI of
+20 to 36%), then, for a verdict other than Processable, adds one reason
+picked at random:
+
+- **Requires review:** no credit score; a score below 620; a high-balance
+  conventional loan ($850,000 to $1.2 million, outside AK, HI, GU and
+  VI); USDA; a conventional DTI of 46.5 to 49%; a VA cash-out at 92 to
+  98%.
+- **Not processable:** a conventional primary purchase at 98 to 99.5%
+  LTV; an investment purchase at 88 to 95%; a conventional DTI of 56 to
+  75%; an FHA loan above the $1,249,125 ceiling; a second home with 2-4
+  units; a manufactured home as an investment; a USDA cash-out.
+
+Every request still passes the form's own checks, so the failures are
+ones only the regulatory check catches. The income is worked out for the
+DTI with the API's default rate (6.5%). The generator aims; aityx gives
+the verdict. Checked live: 270 of 270 requests (90 per verdict, two seed
+sets) got their verdict; `flutter test --run-skipped --tags aityx` reruns
+it against the running API.
 
 ## What's not asked, and why
 

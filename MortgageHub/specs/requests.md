@@ -67,3 +67,9 @@ spec.
     rules, so `scripts/model-test.sh` runs them on aityx with expected
     verdicts at each boundary. The app's name on Android and iOS is now
     Mortgage Hub.
+11. **Make Fill random a split button: click it, or pick the data to
+    generate: Processable, Requires review or Not processable.** Added
+    the menu and a generator that builds a request for each verdict
+    ([Fill random for a verdict](proposal-request.md#fill-random-for-a-verdict)),
+    checked live against aityx. The verdict label "Needs review" is now
+    "Requires review" everywhere.

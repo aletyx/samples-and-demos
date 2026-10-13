@@ -35,7 +35,7 @@ void main() {
     expect(checker.last, same(request));
     expect(find.text('Regulatory check'), findsOneWidget);
     expect(find.byKey(const Key('checkStatus')), findsOneWidget);
-    expect(find.text('Needs review'), findsOneWidget);
+    expect(find.text('Requires review'), findsOneWidget);
     expect(find.text('Loan-to-value (max 97.0%)'), findsOneWidget);
     expect(find.text(r'$3,091'), findsOneWidget);
     expect(find.text('35.9%'), findsOneWidget);
@@ -65,7 +65,7 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
     expect(checker.calls, 2);
-    expect(find.text('Needs review'), findsOneWidget);
+    expect(find.text('Requires review'), findsOneWidget);
   });
 
   test('the API client posts the request and parses the answer', () async {

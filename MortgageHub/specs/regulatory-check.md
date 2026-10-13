@@ -2,7 +2,7 @@
 
 The proposal summary's **Regulatory check** section says whether a lender
 can process the proposal under current US mortgage rules: **Processable**,
-**Needs review** or **Not processable**, with the loan-to-value against the
+**Requires review** or **Not processable**, with the loan-to-value against the
 program's maximum, the estimated monthly payment, the debt-to-income ratio
 with that payment, and each check with its result (pass, review, fail) and
 reason. The verdict comes from [aityx.ai](aityx.md), which executes the
@@ -83,7 +83,7 @@ review. FHA: above 57% fail, above 43% review. VA: above 41% review
 (residual income). USDA: above 41% review. Every lender also verifies the
 ability to repay (Regulation Z, 12 CFR 1026.43).
 
-**Status.** Any fail: Not processable; else any review: Needs review;
+**Status.** Any fail: Not processable; else any review: Requires review;
 else Processable.
 
 ## Verified
