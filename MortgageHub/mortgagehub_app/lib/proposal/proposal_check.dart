@@ -97,26 +97,34 @@ abstract interface class ProposalChecker {
   Future<ProposalCheck> check(ProposalRequest request);
 }
 
-/// The app's API, at API_BASE_URL (scripts/flutter-web.sh sets it to the
-/// local API).
+/// The app's API, at API_BASE_URL: empty means the app's own origin (the
+/// dev server proxies /api/ to the API; see scripts/flutter-web.sh).
 class ApiProposalChecker implements ProposalChecker {
   ApiProposalChecker({http.Client? client, String? baseUrl})
     : _client = client ?? http.Client(),
+      _ownsClient = client == null,
       _baseUrl = baseUrl ?? _defaultBaseUrl;
 
-  static const _defaultBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:8881',
-  );
+  static const _defaultBaseUrl = String.fromEnvironment('API_BASE_URL');
 
   final http.Client _client;
+  final bool _ownsClient;
   final String _baseUrl;
+
+  Uri get _checkUrl => _baseUrl.isEmpty
+      ? Uri.base.resolve('/api/proposals/check')
+      : Uri.parse('$_baseUrl/api/proposals/check');
+
+  /// Closes the HTTP client it made; a client passed in is the caller's.
+  void close() {
+    if (_ownsClient) _client.close();
+  }
 
   @override
   Future<ProposalCheck> check(ProposalRequest request) async {
     final response = await _client
         .post(
-          Uri.parse('$_baseUrl/api/proposals/check'),
+          _checkUrl,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(request.toJson()),
         )

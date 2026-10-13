@@ -57,3 +57,13 @@ spec.
    name.
 9. **Have Fill random leave optional fields empty at random.** HOA dues
    are now random too (taxes, insurance and savings already were).
+10. **Merge, rebuild and restart.** Before merging, fixed the code
+    review's findings: the rules compared a rounded LTV and DTI (97.0002%
+    passed a 97% maximum), so the model now compares exact values and the
+    API rounds them for display; release Android builds lacked the
+    INTERNET permission; the app's HTTP client was never closed; the web
+    app couldn't reach the API behind a forwarded port, so the dev server
+    now proxies `/api/` on the app's own origin; and nothing tested the
+    rules, so `scripts/model-test.sh` runs them on aityx with expected
+    verdicts at each boundary. The app's name on Android and iOS is now
+    Mortgage Hub.

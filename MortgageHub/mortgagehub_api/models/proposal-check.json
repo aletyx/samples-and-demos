@@ -116,8 +116,8 @@
     },
     "ltv": {
       "type": "number",
-      "desc": "Loan-to-value, in percent.",
-      "expr": "decimal(loan_amount / property_value * 100, 2)"
+      "desc": "Loan-to-value, in percent, unrounded: the rules compare the exact value.",
+      "expr": "loan_amount / property_value * 100"
     },
     "high_cost_state": {
       "type": "boolean",
@@ -145,8 +145,8 @@
     },
     "dti": {
       "type": "number",
-      "desc": "Back-end debt-to-income ratio with the new housing payment, in percent.",
-      "expr": "decimal((housing_payment + monthly_debts) / (annual_income / 12) * 100, 2)"
+      "desc": "Back-end debt-to-income ratio with the new housing payment, in percent, unrounded: the rules compare the exact value.",
+      "expr": "(housing_payment + monthly_debts) / (annual_income / 12) * 100"
     },
     "max_ltv": {
       "type": "number",

@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The regulatory check calls the API (release builds too). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="mortgagehub_app"
+        android:label="Mortgage Hub"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

@@ -21,6 +21,11 @@ as a 16 px favicon.
     removed.
   - **iOS:** the whole `AppIcon.appiconset`, with alpha removed.
 
+## Name
+
+The app is **Mortgage Hub** wherever people see its name: the browser tab
+and web manifest, Android's launcher label and iOS's display name.
+
 ## Known limitations
 
 - The Android and iOS icons haven't been seen on a device.

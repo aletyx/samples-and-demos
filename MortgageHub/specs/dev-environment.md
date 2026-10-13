@@ -26,9 +26,13 @@
     has its key, ⚪ it doesn't). Sourcing the script defines
     `run_checks` (one pass) without starting the loop.
 - `devbox run web` runs only the web server, `devbox run api` only the API.
-- The web app calls the API at `API_BASE_URL` (a dart-define:
-  `scripts/flutter-web.sh` passes the local API, `scripts/make.sh`
-  `API_BASE_URL` or `http://localhost:8881`).
+- The web app calls the API at `API_BASE_URL` (a dart-define). The dev
+  server leaves it empty: the app calls `/api/` on its own origin, which
+  the dev server proxies to the API (`web_dev_config.yaml`, generated from
+  `API_PORT`, git-ignored). `scripts/make.sh` passes `API_BASE_URL`, or
+  `http://localhost:8881`.
+- `bash scripts/model-test.sh` runs the mortgage rules on aityx with
+  expected verdicts (see [Regulatory check](regulatory-check.md#verified)).
 - **Version**: `X.Y.Z`, X and Y from `version.X.txt` and `version.Y.txt`
   (0.1 today), Z the build time as `YYYYMMDDHHMM` UTC; the build number is
   the same time in Unix seconds

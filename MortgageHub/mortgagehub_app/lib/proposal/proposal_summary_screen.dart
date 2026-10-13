@@ -61,10 +61,7 @@ class ProposalSummaryScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                RegulatoryCheckCard(
-                  request: r,
-                  checker: checker ?? ApiProposalChecker(),
-                ),
+                RegulatoryCheckCard(request: r, checker: checker),
                 _Group('The loan', {
                   'Purpose': r.purpose.label,
                   'Program': r.program.label,
@@ -207,24 +204,32 @@ class _Group extends StatelessWidget {
 /// The regulatory check section: asks [checker] once, then shows the
 /// verdict, the figures it worked out and each check with its reason.
 class RegulatoryCheckCard extends StatefulWidget {
-  const RegulatoryCheckCard({
-    super.key,
-    required this.request,
-    required this.checker,
-  });
+  const RegulatoryCheckCard({super.key, required this.request, this.checker});
 
   final ProposalRequest request;
-  final ProposalChecker checker;
+
+  /// Who runs the check; without one, the card makes (and closes) an
+  /// [ApiProposalChecker].
+  final ProposalChecker? checker;
 
   @override
   State<RegulatoryCheckCard> createState() => _RegulatoryCheckCardState();
 }
 
 class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
-  late Future<ProposalCheck> _check = widget.checker.check(widget.request);
+  ApiProposalChecker? _owned;
+  late final ProposalChecker _checker =
+      widget.checker ?? (_owned = ApiProposalChecker());
+  late Future<ProposalCheck> _check = _checker.check(widget.request);
+
+  @override
+  void dispose() {
+    _owned?.close();
+    super.dispose();
+  }
 
   void _retry() {
-    final check = widget.checker.check(widget.request);
+    final check = _checker.check(widget.request);
     setState(() {
       _check = check;
     });

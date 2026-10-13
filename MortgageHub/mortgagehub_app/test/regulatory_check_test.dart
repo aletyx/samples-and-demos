@@ -122,4 +122,17 @@ void main() {
       ),
     );
   });
+
+  test('an empty base URL calls the app\'s own origin', () async {
+    late Uri url;
+    final client = MockClient((call) async {
+      url = call.url;
+      return http.Response('{"error":"x"}', 500);
+    });
+    await expectLater(
+      ApiProposalChecker(client: client, baseUrl: '').check(request),
+      throwsA(isA<ProposalCheckException>()),
+    );
+    expect(url, Uri.base.resolve('/api/proposals/check'));
+  });
 }

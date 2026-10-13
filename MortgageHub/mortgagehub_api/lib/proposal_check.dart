@@ -88,6 +88,8 @@ Map<String, Object?> _group(Map<String, Object?> request, String key) {
   return group;
 }
 
+num _round2(num value) => (value * 100).round() / 100;
+
 /// The API's answer, from aityx's [response] to the model: the status, the
 /// figures it worked out, and each check's result and reason. Throws
 /// [FormatException] when the answers aren't what the model gives.
@@ -115,11 +117,12 @@ Map<String, Object?> toResult(
     'status': field('status', 'choice'),
     'figures': {
       'loanAmount': number('loan_amount'),
-      'ltv': number('ltv'),
+      // The model keeps LTV and DTI exact for its rules; shown rounded.
+      'ltv': _round2(number('ltv')),
       'maxLtv': number('max_ltv'),
       'principalAndInterest': number('principal_and_interest'),
       'housingPayment': number('housing_payment'),
-      'dti': number('dti'),
+      'dti': _round2(number('dti')),
       'assumedRate': assumedRate,
     },
     'checks': [

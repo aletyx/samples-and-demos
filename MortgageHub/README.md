@@ -23,7 +23,8 @@ The toolchain is pinned in [devbox.json](devbox.json) and locked in
 2. For the regulatory check, put the aityx settings in `.env` (see
    [.env.example](.env.example)): `AITYX_API_KEY`, and
    `AITYX_URL=https://console-stage.aityx.ai` for a stage key. Check them
-   with `bash scripts/aityx-check.sh`.
+   with `bash scripts/aityx-check.sh`, and the mortgage rules with
+   `bash scripts/model-test.sh`.
 3. From this folder:
 
    ```bash
@@ -35,7 +36,7 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 | URL | What |
 |---|---|
 | http://localhost:8880/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
-| http://localhost:8881/api/health | The API ([scripts/api.sh](scripts/api.sh)) |
+| http://localhost:8881/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
 
 A `health-check` monitor logs one line every 15 s (set
 `HEALTH_CHECK_INTERVAL` to change it): the time, then each check as its
