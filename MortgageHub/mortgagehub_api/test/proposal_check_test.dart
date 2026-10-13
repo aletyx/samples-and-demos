@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:mortgagehub_api/proposal_check.dart';
 import 'package:test/test.dart';
 
@@ -122,5 +124,38 @@ void main() {
       throwsFormatException,
     );
     expect(() => toResult({'answers': {}}, 6.5), throwsFormatException);
+  });
+
+  test('adds the aityx request and response to the result', () {
+    final sent = {
+      'decision': {'name': 'proposal-check'},
+      'state': {'loan_program': 'fha'},
+    };
+    final answers = {
+      'answers': {'status': {}},
+      'receipt': {'id': 'r1'},
+      'usage': {'input_tokens': 6000},
+    };
+    final result = withAityx(
+      {'status': 'processable'},
+      sent,
+      answers,
+      jsonEncode(answers),
+      'secret-key',
+    );
+    expect(result['status'], 'processable');
+    expect(result['aityx'], {'request': sent, 'response': answers});
+  });
+
+  test('leaves the aityx answer out if it contains the key', () {
+    final answers = {'echo': 'Bearer secret-key'};
+    final result = withAityx(
+      {'status': 'processable'},
+      {'state': {}},
+      answers,
+      jsonEncode(answers),
+      'secret-key',
+    );
+    expect(result, {'status': 'processable'});
   });
 }

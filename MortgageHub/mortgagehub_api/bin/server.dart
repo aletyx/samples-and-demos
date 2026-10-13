@@ -145,11 +145,7 @@ Future<void> _check(
   try {
     final answers = jsonDecode(text) as Map<String, Object?>;
     final result = toResult(answers, assumedRate);
-    // Shown in the app; never if aityx were to echo the key.
-    if (!text.contains(key)) {
-      result['aityx'] = {'request': sent, 'response': answers};
-    }
-    _json(response, 200, result);
+    _json(response, 200, withAityx(result, sent, answers, text, key));
   } on FormatException catch (error) {
     stderr.writeln('$error');
     _json(response, 502, {'error': 'unexpected answer from aityx'});
