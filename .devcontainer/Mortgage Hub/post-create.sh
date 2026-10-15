@@ -56,15 +56,8 @@ fail() {
   exit 1
 }
 
-# First the locked store paths, straight from cache.nixos.org (no GitHub
-# API), quietly: listing and copying ~800 paths would push everything else
-# out of the creation log. Then `devbox install` finds them cached.
-paths=$(jq -r --arg sys "$(uname -m)-linux" \
-  '.packages[].systems[$sys].outputs[]?.path // empty' devbox.lock)
-echo "post-create: fetching $(wc -l <<<"$paths") locked Nix store paths..."
-xargs -r nix-store --quiet --realise <<<"$paths" >/dev/null ||
-  fail "fetching the Nix store"
-
+# devbox.lock records each package's store path, so `devbox install`
+# copies them from cache.nixos.org itself; only nixpkgs comes from GitHub.
 echo "post-create: devbox install..."
 devbox install || fail "devbox install"
 

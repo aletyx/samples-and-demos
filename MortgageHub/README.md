@@ -146,18 +146,23 @@ the repository holds several samples, so the configuration matters.
 On first start,
 [post-create.sh](../.devcontainer/Mortgage%20Hub/post-create.sh) moves to
 this folder, downloads the locked Nix store paths and runs `devbox
-install`; it also says whether your key arrived. Then:
+install`; it also says whether your key arrived. Then, on that and every
+later start,
+[post-start.sh](../.devcontainer/Mortgage%20Hub/post-start.sh) starts the
+services in the background and makes port **8880** public. There is
+nothing to run: once the app has compiled, a minute or two on the first
+start, open port 8880 from the **Ports** panel (Codespaces may open it
+in a browser tab for you). Its bare URL redirects to the app at `/app/`.
 
-```bash
-devbox services up --pcflags "--tui=false"
-```
+Watch the services with `devbox services attach`, restart them with
+`devbox services restart`, and stop them with `devbox services stop`;
+the start-up log is `/tmp/mortgagehub-services.log`.
 
-and open the forwarded port **8880** at `/app/`. The codespace makes
-that port public when it starts, so the link opens for anyone you share
-it with — and they run regulatory checks on your [aityx](https://aityx.ai) key. Set it back
-to private in the **Ports** panel if you don't want that. Export `GITHUB_TOKEN` (for
-example `export GITHUB_TOKEN=$(gh auth token)`) before `devbox install` if
-it fails with HTTP 403.
+The port is public, so the link opens for anyone you share it with — and
+they run regulatory checks on your [aityx](https://aityx.ai) key. Set it
+back to private in the **Ports** panel if you don't want that. If
+`devbox install` fails with HTTP 403, export `GITHUB_TOKEN` (for example
+`export GITHUB_TOKEN=$(gh auth token)`) and run it again.
 
 ## Run it in a dev container locally
 
