@@ -106,9 +106,11 @@ submit.
 [targeted_proposal.dart](../mortgagehub_app/lib/proposal/targeted_proposal.dart)
 starts from a request that passes every check with room to spare (a
 known credit score from 640 up, no USDA, loans under FHA's $541,287 floor
-and the $832,750 baseline, an LTV under each program's maximum, a DTI of
-20 to 36%), then, for a verdict other than Processable, adds one reason
-picked at random:
+and under the $832,750 baseline wherever the baseline applies, an LTV
+under each program's maximum, a DTI of 20 to 36%), then, for a verdict
+other than Processable, adds one reason picked at random. VA is the one
+exception to the baseline: it has no loan limit with full entitlement, so
+a processable VA draft can run above $832,750.
 
 - **Requires review:** no credit score; a score below 620; a high-balance
   conventional loan ($850,000 to $1.2 million, outside AK, HI, GU and

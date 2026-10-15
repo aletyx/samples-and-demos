@@ -176,7 +176,11 @@ class _Draft {
       CreditScoreRange.s640,
     ]);
     state = base.state;
-    // Loans stay under FHA's $541,287 floor and the $832,750 baseline.
+    // Loans stay under FHA's $541,287 floor, and under the $832,750
+    // conforming baseline for every program the baseline applies to. VA is
+    // the exception: it has no loan limit with full entitlement (the
+    // model's limit_check, 38 U.S.C. 3703), so a VA draft may run past the
+    // baseline at up to 95% of $900,000.
     final maxValue = program == LoanProgram.fha ? 550000 : 900000;
     setValue(amount(150000, maxValue), ltv: number(40, safeLtv));
     taxRate = base.annualTaxes == null ? null : number(0.5, 2) / 100;
