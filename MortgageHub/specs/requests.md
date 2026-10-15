@@ -141,3 +141,10 @@ spec.
     `devcontainer.json` sets `dart.flutterSdkPath` to it and adds
     `~/flutter/bin` to the PATH of every terminal. See
     [Development environment](dev-environment.md).
+
+17. **Add screenshots of the codespace setup to the instructions.** The
+    README's *Run it in a codespace* steps now show the *New secret* form
+    (with a placeholder key) and the *Create a new codespace* page, with
+    a note to check that `AITYX_API_KEY` is ticked as associated with the
+    repository. The repository README points to them. See
+    [Development environment](dev-environment.md).
