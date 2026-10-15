@@ -219,3 +219,8 @@ spec.
     and opens in the browser once. The site root now redirects to
     `/app/`: the dev server proxies `/` to the API, which answers with a
     302. See [Development environment](dev-environment.md).
+
+27. **The port is still private; tell users to check its visibility.**
+    `public-port.sh` now also runs when VS Code attaches, and skips if a
+    run is still retrying. Both READMEs' codespace steps now say to check
+    that port 8880 is Public in the Ports panel, and how to set it by hand.

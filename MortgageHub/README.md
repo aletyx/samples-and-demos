@@ -158,9 +158,18 @@ Watch the services with `devbox services attach`, restart them with
 `devbox services restart`, and stop them with `devbox services stop`;
 the start-up log is `/tmp/mortgagehub-services.log`.
 
-The port is public, so the link opens for anyone you share it with — and
-they run regulatory checks on your [aityx](https://aityx.ai) key. Set it
-back to private in the **Ports** panel if you don't want that. If
+**Check the port's visibility.** In the **Ports** panel, the
+*Visibility* column for 8880 should say **Public**. The codespace sets
+it when it starts and again when VS Code attaches, but GitHub does not
+always apply it, and an organization can forbid public ports. If it says
+**Private**, right-click the port, choose **Port Visibility → Public**
+and reload the app. The panel can also lag behind the real setting; from
+a terminal, `gh codespace ports -c "$CODESPACE_NAME"` shows it, and
+`/tmp/public-port.log` says whether the automatic change worked.
+
+A public port opens for anyone you share the link with — and they run
+regulatory checks on your [aityx](https://aityx.ai) key. Set it back to
+private in the **Ports** panel if you don't want that. If
 `devbox install` fails with HTTP 403, export `GITHUB_TOKEN` (for example
 `export GITHUB_TOKEN=$(gh auth token)`) and run it again.
 

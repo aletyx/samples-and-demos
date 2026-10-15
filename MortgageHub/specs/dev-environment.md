@@ -118,8 +118,12 @@
   10 s, for up to 20 minutes) until the port is forwarded, and logs to
   `/tmp/public-port.log`. `devcontainer.json` has no setting for it. Only
   8880 is public: the API's 8881 is not forwarded, and the app reaches it
-  through the web server's `/api/` proxy. An organization policy can
-  forbid public ports, in which case the port stays private.
+  through the web server's `/api/` proxy. It runs again from
+  `postAttachCommand`, because a visibility set at start does not always
+  stick; a second run while one is still retrying does nothing. An
+  organization policy can forbid public ports, in which case the port
+  stays private. The READMEs tell the user to check the port's visibility
+  in the Ports panel and set it to Public by hand if needed.
 - **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`
   alone under `secrets`, so GitHub asks the person creating a codespace
   for their own key, keeps it against their account and passes it in as an

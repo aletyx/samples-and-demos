@@ -48,8 +48,10 @@ Codespaces → New with options*, pick **Mortgage Hub** as the dev container
 configuration.
 
 Once it starts, the app starts too: when it has compiled, a minute or
-two on the first start, open port **8880** from the **Ports** panel. The
-port is public, so the link can be shared. The full
+two on the first start, open port **8880** from the **Ports** panel.
+Check that its visibility says **Public**, so the link can be shared; if
+it says Private, right-click it and choose **Port Visibility → Public**.
+The full
 instructions, including running it without a codespace, are in the
 [Mortgage Hub README](MortgageHub/README.md).
 

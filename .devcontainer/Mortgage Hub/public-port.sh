@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Run by post-start.sh each time the codespace starts: makes the web app's
-# forwarded port public, so its URL opens without a GitHub sign-in and can
-# be shared for a demo.
+# Run by post-start.sh each time the codespace starts, and again each time
+# VS Code attaches (postAttachCommand), since a visibility set at start
+# does not always stick: makes the web app's forwarded port public, so its
+# URL opens without a GitHub sign-in and can be shared for a demo.
 #
 # devcontainer.json cannot declare a port public; Codespaces only accept it
 # through the API, so this asks `gh`, authenticated by the codespace's own
@@ -17,6 +18,7 @@ set -uo pipefail
 
 port="${FLUTTER_WEB_PORT:-8880}"
 log=/tmp/public-port.log
+pidfile=/tmp/public-port.pid
 
 if [[ -z "${CODESPACE_NAME:-}" ]]; then
   exit 0 # not a codespace: nothing to make public
@@ -27,8 +29,13 @@ if ! command -v gh >/dev/null; then
 fi
 
 if [[ "${1:-}" != --wait ]]; then
+  if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+    echo "public-port: already making port $port public (log: $log)"
+    exit 0
+  fi
   # Detached, so it outlives postStartCommand.
   setsid nohup bash "$0" --wait >"$log" 2>&1 </dev/null &
+  echo $! >"$pidfile"
   echo "public-port: making port $port public in the background (log: $log)"
   exit 0
 fi
