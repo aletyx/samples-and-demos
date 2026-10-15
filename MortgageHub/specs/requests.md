@@ -206,3 +206,35 @@ spec.
     with a softer tint, and *Show aityx request and response* now shows
     aityx's response first, then the request. See
     [Regulatory check](regulatory-check.md).
+27. **Check whether the store-path pre-fetch is still needed.** It isn't:
+    in a clean Linux container, `devbox install` alone finished in about
+    1.5 minutes and copied every path it uses from cache.nixos.org. The
+    pre-fetch also downloaded debug, dev and doc outputs nothing uses.
+    `post-create.sh` no longer pre-fetches.
+
+28. **Make the port public by default and forwarded correctly, so users
+    can start the codespace and open the app right away.** A new
+    `post-start.sh`, run on every start, starts the services in the
+    background and runs `public-port.sh`. Port 8880 is forwarded as HTTP
+    and opens in the browser once. The site root now redirects to
+    `/app/`: the dev server proxies `/` to the API, which answers with a
+    302. See [Development environment](dev-environment.md).
+
+29. **The port is still private; tell users to check its visibility.**
+    `public-port.sh` now also runs when VS Code attaches, and skips if a
+    run is still retrying. Both READMEs' codespace steps now say to check
+    that port 8880 is Public in the Ports panel, and how to set it by hand.
+30. **Show the Docker Compose instructions first, then devbox.** In this
+    folder's README, *Run it with Docker Compose* now comes before *Run it
+    locally with devbox*, and says itself how to set the aityx key. The
+    repository README already listed Docker Compose first.
+31. **The app should start by itself in a codespace but doesn't; keep a
+    log about service initialization that can be sent.** Added
+    `MortgageHub/startup.log`: the post-create, post-start and
+    public-port scripts write every step to it with a UTC time and a
+    tag, along with the services' own output and a watcher that records when
+    the web app and the API answer, or their state after 15 minutes. It
+    replaces `/tmp/mortgagehub-services.log` and `/tmp/public-port.log`
+    and holds no secrets. Tested in a Linux container with a stub devbox;
+    the cause of the missed start in Codespaces is still to be found
+    from a real log. See [Development environment](dev-environment.md).

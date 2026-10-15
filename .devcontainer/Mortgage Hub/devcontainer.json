@@ -69,12 +69,25 @@
       ]
     }
   },
+  // Only the web app's port. The API (8881) stays inside the container:
+  // the app reaches it through the web server's /api/ proxy. The port's
+  // bare URL redirects to the app at /app/. Plain HTTP, which is what the
+  // dev server speaks; switching a public port to HTTPS makes it private.
+  // post-start.sh makes it public, which devcontainer.json cannot.
   "forwardPorts": [8880],
   "portsAttributes": {
-    "8880": { "label": "Mortgage Hub web app" }
+    "8880": {
+      "label": "Mortgage Hub web app",
+      "protocol": "http",
+      "onAutoForward": "openBrowserOnce"
+    }
   },
-  // Runs from the repository root; the script moves to MortgageHub/ itself.
+  // Both run from the repository root; the scripts move to MortgageHub/
+  // themselves. post-create.sh installs the toolchain once; post-start.sh
+  // starts the services and makes the port public on every start.
   "postCreateCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-create.sh\"'",
-  // Makes the web app's port public on each start; see public-port.sh.
-  "postStartCommand": "bash \".devcontainer/Mortgage Hub/public-port.sh\""
+  "postStartCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-start.sh\"'",
+  // Again each time VS Code attaches: a visibility set at start does not
+  // always stick, and users report it does from here.
+  "postAttachCommand": "bash \".devcontainer/Mortgage Hub/public-port.sh\""
 }

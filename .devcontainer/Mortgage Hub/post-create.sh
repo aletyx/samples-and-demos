@@ -15,6 +15,12 @@
 # the limit.
 set -euo pipefail
 
+# Everything below also goes to MortgageHub/startup.log (see startup-log.sh).
+# shellcheck source=startup-log.sh
+source "$(dirname "${BASH_SOURCE[0]}")/startup-log.sh"
+startup_capture post-create
+echo "===== post-create: $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
+
 line='[ -n "${GITHUB_TOKEN:-}" ] && export NIX_CONFIG="access-tokens = github.com=${GITHUB_TOKEN}"'
 # ~/.profile for login shells; the top of ~/.bashrc, before its guard for
 # non-interactive shells, for VS Code's terminals.
@@ -56,17 +62,13 @@ fail() {
   exit 1
 }
 
-# First the locked store paths, straight from cache.nixos.org (no GitHub
-# API), quietly: listing and copying ~800 paths would push everything else
-# out of the creation log. Then `devbox install` finds them cached.
-paths=$(jq -r --arg sys "$(uname -m)-linux" \
-  '.packages[].systems[$sys].outputs[]?.path // empty' devbox.lock)
-echo "post-create: fetching $(wc -l <<<"$paths") locked Nix store paths..."
-xargs -r nix-store --quiet --realise <<<"$paths" >/dev/null ||
-  fail "fetching the Nix store"
-
+# devbox.lock records each package's store path, so `devbox install`
+# copies them from cache.nixos.org itself; only nixpkgs comes from GitHub.
+startup_facts
 echo "post-create: devbox install..."
+started=$SECONDS
 devbox install || fail "devbox install"
+echo "post-create: devbox install took $((SECONDS - started)) s"
 
 echo "post-create: done"
 df -h /

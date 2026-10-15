@@ -82,12 +82,12 @@
   base, with Devbox 0.18.1 and Nix 2.35.0 pinned and checked against their
   published SHA-256.
   [post-create.sh](../../.devcontainer/Mortgage%20Hub/post-create.sh)
-  resolves this folder from its own location and moves there, fetches the
-  locked Nix store paths from cache.nixos.org, then runs `devbox install`,
-  and passes `GITHUB_TOKEN` to Nix so api.github.com doesn't rate-limit
-  it. It reports whether `AITYX_API_KEY` arrived, never its value. The
-  container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`, forwards port 8880 and
-  adds the Dart and Flutter extensions.
+  resolves this folder from its own location and moves there, then runs
+  `devbox install`, which copies the locked store paths from
+  cache.nixos.org, and passes `GITHUB_TOKEN` to Nix so api.github.com
+  doesn't rate-limit it. It reports whether `AITYX_API_KEY` arrived,
+  never its value. The container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`,
+  forwards port 8880 and adds the Dart and Flutter extensions.
 - **The editor's Flutter SDK**: the image carries Flutter 3.47.0, the
   version `devbox.lock` pins, in `/opt/flutter`: on x64 the release
   archive, checked against the SHA-256 in `releases_linux.json`; on arm64,
@@ -101,15 +101,44 @@
   Flutter comes first; the two must be kept on the same version. Nothing
   is copied into the image, so the build context is the dev container
   folder alone.
-- **Public web port**: `postStartCommand` runs
-  [public-port.sh](../../.devcontainer/Mortgage%20Hub/public-port.sh),
-  which in a codespace makes port 8880 public with
+- **Starts by itself**: `postStartCommand` runs
+  [post-start.sh](../../.devcontainer/Mortgage%20Hub/post-start.sh) on
+  every start (after `post-create.sh` on the first), which runs
+  `devbox services up -b` detached, then `public-port.sh`. Port 8880 is
+  forwarded as plain HTTP with `onAutoForward: openBrowserOnce`. The web
+  server proxies the bare `/` to the API, which redirects it to `/app/`
+  (the proxy turns that into `/app`, which serves the same page), so the
+  forwarded port's URL opens the app as it is, as nginx does under Docker
+  Compose.
+- **Start-up log**: `MortgageHub/startup.log` (git-ignored, as every
+  `*.log`), written through
+  [startup-log.sh](../../.devcontainer/Mortgage%20Hub/startup-log.sh),
+  which the three scripts source. Each line has a UTC time and a tag:
+  `post-create` (with `devbox install`'s output and duration),
+  `post-start`, `services` (`devbox services up -b`'s output),
+  `public-port`, and `watch`, a detached watcher started by
+  `post-start.sh --watch` that polls the web app's `/app/` and the API's
+  `/api/health` every 5 s and logs each change of state and the time to
+  ready; after 15 minutes without, it logs `devbox services ls` and the
+  tail of process-compose's log. `post-create.sh` and `post-start.sh`
+  first log the facts a failed start comes down to: user, architecture,
+  the codespace, whether `AITYX_API_KEY` and `GITHUB_TOKEN` are set
+  (never their values), `AITYX_URL`, devbox's and Nix's versions, whether
+  `.devbox` exists and the free disk. It's in the workspace so a user can
+  download it from the Explorer and send it; the README asks them to when
+  the app doesn't start.
+- **Public web port**:
+  [public-port.sh](../../.devcontainer/Mortgage%20Hub/public-port.sh)
+  in a codespace makes port 8880 public with
   `gh codespace ports visibility`, retrying in the background (every
-  10 s, for up to 20 minutes) until the port is forwarded, and logs to
-  `/tmp/public-port.log`. `devcontainer.json` has no setting for it. Only
+  10 s, for up to 20 minutes) until the port is forwarded. `devcontainer.json` has no setting for it. Only
   8880 is public: the API's 8881 is not forwarded, and the app reaches it
-  through the web server's `/api/` proxy. An organization policy can
-  forbid public ports, in which case the port stays private.
+  through the web server's `/api/` proxy. It runs again from
+  `postAttachCommand`, because a visibility set at start does not always
+  stick; a second run while one is still retrying does nothing. An
+  organization policy can forbid public ports, in which case the port
+  stays private. The READMEs tell the user to check the port's visibility
+  in the Ports panel and set it to Public by hand if needed.
 - **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`
   alone under `secrets`, so GitHub asks the person creating a codespace
   for their own key, keeps it against their account and passes it in as an
