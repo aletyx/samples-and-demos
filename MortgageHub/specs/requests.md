@@ -220,15 +220,15 @@ spec.
     `/app/`: the dev server proxies `/` to the API, which answers with a
     302. See [Development environment](dev-environment.md).
 
-27. **The port is still private; tell users to check its visibility.**
+29. **The port is still private; tell users to check its visibility.**
     `public-port.sh` now also runs when VS Code attaches, and skips if a
     run is still retrying. Both READMEs' codespace steps now say to check
     that port 8880 is Public in the Ports panel, and how to set it by hand.
-29. **Show the Docker Compose instructions first, then devbox.** In this
+30. **Show the Docker Compose instructions first, then devbox.** In this
     folder's README, *Run it with Docker Compose* now comes before *Run it
     locally with devbox*, and says itself how to set the aityx key. The
     repository README already listed Docker Compose first.
-30. **The app should start by itself in a codespace but doesn't; keep a
+31. **The app should start by itself in a codespace but doesn't; keep a
     log about service initialization that can be sent.** Added
     `MortgageHub/startup.log`: the post-create, post-start and
     public-port scripts write every step to it with a UTC time and a
