@@ -81,17 +81,31 @@ spec.
     GitHub only looks for dev containers at the repository root, so
     `MortgageHub/.devcontainer/` moved to
     [.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub) and
-    the configuration is now named **Mortgage Hub demo app**, which is
+    the configuration is now named **Mortgage Hub**, which is
     what the Codespaces configuration list shows in a repository holding
     several samples. The Containerfile no longer assumes the repository is
     the app (its `WORKDIR` named a path that only existed in a standalone
     repository), the build context is the dev container folder alone since
     nothing is copied in, and `post-create.sh` resolves `MortgageHub/`
-    from its own location. `devcontainer.json` declares `AITYX_API_KEY`,
-    `AITYX_URL` and `ASSUMED_RATE` as Codespaces `secrets`, so GitHub asks
-    each person for their own values and passes them in as environment
-    variables, which the scripts already prefer over `.env`; the
-    repository ships no key and nothing is written to disk in the
-    container. `post-create.sh` reports whether the key arrived, never its
+    from its own location. `devcontainer.json` declares `AITYX_API_KEY` as a
+    Codespaces `secret`, so GitHub asks each person for their own key and
+    passes it in as an environment variable, which the scripts already
+    prefer over `.env`; the repository ships no key and nothing is written
+    to disk in the container. `post-create.sh` reports whether the key arrived, never its
     value. See [Development environment](dev-environment.md) and
     [aityx.ai](aityx.md).
+
+13. **Add a link to launch a codespace with 4 cores, ask only for the API
+    key, default to aityx.ai, say before the launch button how to set the
+    key up and that it is required, and describe the project in the dev
+    container profile.** The [README](../README.md#run-it-in-a-codespace)
+    now opens with how to add the `AITYX_API_KEY` Codespaces secret and
+    why it is required, then an **Open in GitHub Codespaces** badge that
+    pins this configuration and a 4-core machine
+    (`machine=standardLinux32gb`). `devcontainer.json` asks for the key
+    alone: `AITYX_URL` already defaults to `https://api.aityx.ai` and
+    `ASSUMED_RATE` to 6.5 (the annual rate, in percent, behind the
+    summary's payment estimate), so neither needs setting, and both stay
+    overridable in `.env`. The configuration is named **Mortgage Hub** and
+    carries a header describing the project with links to the repository,
+    aityx.ai, aletyx.com and nu01.com.

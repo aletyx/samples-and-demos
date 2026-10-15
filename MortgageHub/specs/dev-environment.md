@@ -45,9 +45,11 @@
 - **Dev container**
   ([.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub)): at
   the root of the samples repository, not in this folder, because that is
-  the only place GitHub looks for one. It is named **Mortgage Hub demo
-  app**, so the configuration is identifiable when creating a codespace on
-  a repository that holds several samples. Microsoft's `ubuntu-24.04`
+  the only place GitHub looks for one. It is named **Mortgage Hub**, so the
+  configuration is identifiable when creating a codespace on a repository
+  that holds several samples, and opens with a header saying what the
+  project is and linking the repository, aityx.ai, aletyx.com and
+  nu01.com. Microsoft's `ubuntu-24.04`
   base, with Devbox 0.18.1 and Nix 2.35.0 pinned and checked against their
   published SHA-256.
   [post-create.sh](../../.devcontainer/Mortgage%20Hub/post-create.sh)
@@ -58,12 +60,21 @@
   container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`, forwards port 8880 and
   adds the Dart and Flutter extensions. Nothing is copied into the image,
   so the build context is the dev container folder alone.
-- **Codespaces secrets**: `devcontainer.json` declares `AITYX_API_KEY`,
-  `AITYX_URL` and `ASSUMED_RATE` under `secrets`, so GitHub asks the
-  person creating a codespace for their own values, keeps them against
-  their account and passes them in as environment variables. The
-  repository ships no key. A local dev container uses `.env` instead,
-  which the scripts already fall back to.
+- **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`
+  alone under `secrets`, so GitHub asks the person creating a codespace
+  for their own key, keeps it against their account and passes it in as an
+  environment variable. It is required: without it the app runs but the
+  regulatory check cannot. Nothing else is asked for, because `AITYX_URL`
+  defaults to `https://api.aityx.ai` and `ASSUMED_RATE` to 6.5; both are
+  overridden in `.env` when needed (a stage key, for instance, works only
+  against `https://console-stage.aityx.ai`). The repository ships no key.
+  A local dev container uses `.env`, which the scripts already fall back
+  to.
+- **Launch link**: the [README](../README.md#run-it-in-a-codespace) has an
+  **Open in GitHub Codespaces** badge pointing at
+  `codespaces.new/aletyx/samples-and-demos` with `devcontainer_path` set
+  to this configuration and `machine=standardLinux32gb`, the 4-core,
+  16 GB machine the Flutter and Nix builds want.
 
 ## Known limitations
 

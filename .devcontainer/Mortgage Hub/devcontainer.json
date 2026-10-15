@@ -1,9 +1,23 @@
 {
-  // This repository holds several samples. This dev container is the
-  // Mortgage Hub demo app, in MortgageHub/ — not Mortgage_Process or
-  // Payroll. The name is what GitHub shows in the "Dev container
-  // configuration" list when you create a codespace.
-  "name": "Mortgage Hub demo app",
+  // ---------------------------------------------------------------------
+  // Mortgage Hub
+  //
+  // A demo that brings a home buyer's mortgage, from application to
+  // closing, into one place: a Flutter app (web, Android, iOS, Linux), a
+  // Dart API, and a regulatory check that says whether a lender can
+  // process a proposal under current US rules.
+  //
+  // Source:  https://github.com/aletyx/samples-and-demos (MortgageHub/)
+  // Rules:   https://aityx.ai — runs the decision model behind the check
+  // Aletyx:  https://aletyx.com
+  //          https://nu01.com
+  //
+  // This repository holds several samples. This dev container is Mortgage
+  // Hub, in MortgageHub/ — not Mortgage_Process or Payroll. The name below
+  // is what GitHub shows in the "Dev container configuration" list when
+  // you create a codespace.
+  // ---------------------------------------------------------------------
+  "name": "Mortgage Hub",
   "build": {
     "dockerfile": "Containerfile",
     // Nothing is copied into the image, so the build context is just this
@@ -16,24 +30,20 @@
   "containerEnv": {
     "MORTGAGEHUB_BIND_HOST": "0.0.0.0"
   },
-  // Your own keys, never the repository's. GitHub asks for any of these it
-  // does not already hold when you create a codespace, stores them against
-  // your account, and passes them to the container as environment
-  // variables. The app's scripts read the environment first and fall back
-  // to MortgageHub/.env, so a local dev container can use that file
-  // instead. Existing values can be changed at
-  // https://github.com/settings/codespaces.
+  // Your own key, never the repository's. GitHub asks for it when you
+  // create a codespace unless you already hold it, stores it against your
+  // account, and passes it to the container as an environment variable,
+  // which the app's scripts read before falling back to MortgageHub/.env.
+  // Change it at https://github.com/settings/codespaces.
+  //
+  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai
+  // and ASSUMED_RATE to 6.5, so neither needs setting; override them in
+  // MortgageHub/.env if you need to (a stage key, for instance, works
+  // only against https://console-stage.aityx.ai).
   "secrets": {
     "AITYX_API_KEY": {
-      "description": "Your own aityx.ai API key. The regulatory check needs it; the rest of the app runs without it.",
+      "description": "Required. Your own aityx.ai API key, from the console's API keys page. The regulatory check does not work without it.",
       "documentationUrl": "https://stage.aityx.ai/docs"
-    },
-    "AITYX_URL": {
-      "description": "The aityx API base URL. Leave empty for https://api.aityx.ai. A stage key needs https://console-stage.aityx.ai.",
-      "documentationUrl": "https://stage.aityx.ai/docs"
-    },
-    "ASSUMED_RATE": {
-      "description": "The payment estimate's annual rate, in percent. Leave empty for 6.5."
     }
   },
   "customizations": {
