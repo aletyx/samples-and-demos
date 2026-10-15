@@ -2,6 +2,7 @@ import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mortgagehub_app/main.dart';
+import 'package:mortgagehub_app/proposal/proposal_check.dart';
 import 'package:mortgagehub_app/proposal/proposal_form_screen.dart';
 import 'package:mortgagehub_app/proposal/proposal_summary_screen.dart';
 
@@ -130,7 +131,7 @@ void main() {
     expect(find.text(r'$400,000'), findsOneWidget);
     expect(find.text('80.0%'), findsWidgets);
     expect(find.text('5.0%'), findsOneWidget);
-    expect(find.text('Needs review'), findsOneWidget);
+    expect(find.text('Requires review'), findsOneWidget);
 
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
@@ -181,5 +182,39 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('Fill random\'s menu fills a request for each verdict', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    for (final status in CheckStatus.values) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ProposalFormScreen(
+            faker: Faker(seed: status.index),
+            checker: FakeChecker(),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const Key('fillRandomMenu')));
+      await tester.pumpAndSettle();
+      expect(find.text('Processable'), findsOneWidget);
+      expect(find.text('Requires review'), findsOneWidget);
+      expect(find.text('Not processable'), findsOneWidget);
+
+      await tester.tap(find.text(status.label));
+      await tester.pumpAndSettle();
+      expect(find.text('Required'), findsNothing);
+      await submit(tester);
+      expect(
+        find.byType(ProposalSummaryScreen),
+        findsOneWidget,
+        reason: status.label,
+      );
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 }

@@ -6,10 +6,12 @@ import 'proposal_check.dart';
 import 'proposal_request.dart';
 import 'proposal_summary_screen.dart';
 import 'random_proposal.dart';
+import 'targeted_proposal.dart';
 
 /// The mortgage proposal request: one scrolling form in three sections
 /// (the loan, the property, the borrower). Submitting a valid form opens
-/// its summary. **Fill random** fills it with a random, valid request.
+/// its summary. **Fill random** fills it with a random, valid request; its
+/// menu fills one built for a chosen regulatory check verdict.
 class ProposalFormScreen extends StatefulWidget {
   const ProposalFormScreen({super.key, this.faker, this.checker});
 
@@ -102,9 +104,13 @@ class _ProposalFormScreenState extends State<ProposalFormScreen> {
   int? _optionalAmount(TextEditingController controller) =>
       controller.text.isEmpty ? null : int.tryParse(controller.text);
 
-  /// Fills every field with a random, valid request (see random_proposal.dart).
-  void _fillRandom() {
-    final r = randomProposal(widget.faker);
+  /// Fills every field with a random, valid request (random_proposal.dart),
+  /// or one built to get [target] from the regulatory check
+  /// (targeted_proposal.dart).
+  void _fillRandom([CheckStatus? target]) {
+    final r = target == null
+        ? randomProposal(widget.faker)
+        : targetedProposal(target, widget.faker);
     String optional(int? amount) => amount?.toString() ?? '';
     setState(() {
       _fills++;
@@ -269,11 +275,7 @@ class _ProposalFormScreenState extends State<ProposalFormScreen> {
       appBar: AppBar(
         title: const Text('Request a proposal'),
         actions: [
-          TextButton.icon(
-            onPressed: _fillRandom,
-            icon: const Icon(Icons.casino_outlined),
-            label: const Text('Fill random'),
-          ),
+          _FillRandomButton(onFill: _fillRandom),
           const SizedBox(width: 8),
         ],
       ),
@@ -661,6 +663,67 @@ class _ProposalFormScreenState extends State<ProposalFormScreen> {
     onChanged: onChanged,
     contentPadding: EdgeInsets.zero,
   );
+}
+
+/// A split button: **Fill random** fills any random request; the arrow
+/// opens a menu to fill one for a verdict (Processable, Requires review,
+/// Not processable).
+class _FillRandomButton extends StatelessWidget {
+  const _FillRandomButton({required this.onFill});
+
+  final void Function([CheckStatus? target]) onFill;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: scheme.outlineVariant),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextButton.icon(
+            onPressed: onFill,
+            icon: const Icon(Icons.casino_outlined),
+            label: const Text('Fill random'),
+            style: TextButton.styleFrom(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(20),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 24,
+            child: VerticalDivider(width: 1, color: scheme.outlineVariant),
+          ),
+          PopupMenuButton<CheckStatus>(
+            key: const Key('fillRandomMenu'),
+            tooltip: 'Fill random for a verdict',
+            icon: Icon(Icons.arrow_drop_down, color: scheme.primary),
+            onSelected: onFill,
+            itemBuilder: (context) => [
+              for (final status in CheckStatus.values)
+                PopupMenuItem(
+                  value: status,
+                  child: ListTile(
+                    leading: Icon(
+                      statusIcon(status),
+                      color: statusColor(context, status),
+                    ),
+                    title: Text(status.label),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// An info icon that explains a field: on hover, or on tap on touch screens.

@@ -72,10 +72,16 @@ spec.
     aityx and aityx's answer with the check, and the
     [regulatory check](regulatory-check.md) ends with **Show / Hide aityx
     request and response**, showing both as JSON.
+12. **Make Fill random a split button: click it, or pick the data to
+    generate: Processable, Requires review or Not processable.** Added
+    the menu and a generator that builds a request for each verdict
+    ([Fill random for a verdict](proposal-request.md#fill-random-for-a-verdict)),
+    checked live against aityx. The verdict label "Needs review" is now
+    "Requires review" everywhere.
 
 ## 2026-10-15
 
-12. **Move the Mortgage Hub dev container to the root of the repository,
+13. **Move the Mortgage Hub dev container to the root of the repository,
     under a folder called Mortgage Hub, so people can see which app they
     are launching on Codespaces; and pass the user's own API key in.**
     GitHub only looks for dev containers at the repository root, so
@@ -95,7 +101,7 @@ spec.
     value. See [Development environment](dev-environment.md) and
     [aityx.ai](aityx.md).
 
-13. **Add a link to launch a codespace with 4 cores, ask only for the API
+14. **Add a link to launch a codespace with 4 cores, ask only for the API
     key, default to aityx.ai, say before the launch button how to set the
     key up and that it is required, and describe the project in the dev
     container profile.** The [README](../README.md#run-it-in-a-codespace)
@@ -109,3 +115,18 @@ spec.
     overridable in `.env`. The configuration is named **Mortgage Hub** and
     carries a header describing the project with links to the repository,
     aityx.ai, aletyx.com and nu01.com.
+
+15. **Take a look at the Greptile suggestions and fix.** Both findings on
+    [Fill random for a verdict](proposal-request.md#fill-random-for-a-verdict)
+    were valid. The processable generator can build a VA loan of up to
+    $855,000, above the $832,750 conforming baseline, and that is correct:
+    VA has no loan limit with full entitlement, so the model passes any VA
+    amount. The test applied the baseline to every program, so a valid VA
+    sample failed it — reproduced at seed 27, which builds an $834,000 VA
+    loan. The assertion now skips VA, and the generator and this spec say
+    why. Nothing checked the ratio `fitIncome` works back from the payment
+    either, so four offline tests now recompute it at 6.5% from the
+    finished request: that processable drafts land in the 20 to 36% they
+    aim for and stay under 45%, that a targeted high ratio really does
+    breach Fannie Mae's 50%, and that a targeted review ratio lands
+    between the two maximums. Both were checked by mutation.

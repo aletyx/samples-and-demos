@@ -300,11 +300,8 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
   List<Widget> _result(BuildContext context, ProposalCheck check) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final (color, icon) = switch (check.status) {
-      CheckStatus.processable => (scheme.secondary, Icons.verified_outlined),
-      CheckStatus.needsReview => (scheme.primary, Icons.rule),
-      CheckStatus.notProcessable => (scheme.error, Icons.block),
-    };
+    final color = statusColor(context, check.status);
+    final icon = statusIcon(check.status);
     return [
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

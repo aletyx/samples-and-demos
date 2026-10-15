@@ -22,10 +22,11 @@ mortgage proposal.
   US lender needs to quote a loan (the loan, the property, the borrower),
   checked against the programs' rules, and its summary with the loan
   amount, LTV and DTI. No SSN, so it isn't a Regulation Z application.
-  **Fill random** fills it with fake, valid data (the `faker` package);
+  **Fill random** fills it with fake, valid data (the `faker` package),
+  or, from its menu, data built for a chosen verdict;
   the less common fields have ⓘ tooltips.
 - [Regulatory check](regulatory-check.md): the summary's verdict
-  (Processable / Needs review / Not processable) under current US rules
+  (Processable / Requires review / Not processable) under current US rules
   (Fannie Mae's matrix, 2026 FHFA and FHA limits, FHA, VA and USDA rules,
   DTI limits), executed by aityx.ai through the API.
 - [Theme](theme.md): the Gruvbox dark palette.
