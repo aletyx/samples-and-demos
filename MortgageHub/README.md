@@ -157,8 +157,15 @@ start, open port 8880 from the **Ports** panel (Codespaces may open it
 in a browser tab for you). Its bare URL redirects to the app at `/app/`.
 
 Watch the services with `devbox services attach`, restart them with
-`devbox services restart`, and stop them with `devbox services stop`;
-the start-up log is `/tmp/mortgagehub-services.log`.
+`devbox services restart`, and stop them with `devbox services stop`.
+
+**If the app doesn't start, send us `MortgageHub/startup.log`.** Every
+step of the codespace's start goes there, timestamped: the install, the
+services' own output, the port's visibility, and a line saying when the
+web app and the API first answered (or, after 15 minutes without, their
+state). Open it from the Explorer, or right-click it and choose
+**Download**. It holds no secrets: your key and token appear only as
+*set* or *not set*.
 
 **Check the port's visibility.** In the **Ports** panel, the
 *Visibility* column for 8880 should say **Public**. The codespace sets
@@ -167,7 +174,7 @@ always apply it, and an organization can forbid public ports. If it says
 **Private**, right-click the port, choose **Port Visibility → Public**
 and reload the app. The panel can also lag behind the real setting; from
 a terminal, `gh codespace ports -c "$CODESPACE_NAME"` shows it, and
-`/tmp/public-port.log` says whether the automatic change worked.
+`startup.log` says whether the automatic change worked.
 
 A public port opens for anyone you share the link with — and they run
 regulatory checks on your [aityx](https://aityx.ai) key. Set it back to

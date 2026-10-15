@@ -17,7 +17,13 @@
 set -uo pipefail
 
 port="${FLUTTER_WEB_PORT:-8880}"
-log=/tmp/public-port.log
+# Its progress goes to MortgageHub/startup.log (see startup-log.sh).
+# shellcheck source=startup-log.sh
+source "$(dirname "${BASH_SOURCE[0]}")/startup-log.sh"
+log=$startup_log
+# Run on its own (postAttachCommand), not from post-start.sh: log it too.
+[[ "${1:-}" == --wait || -n "${STARTUP_LOG_CAPTURED:-}" ]] ||
+  startup_capture public-port
 pidfile=/tmp/public-port.pid
 
 if [[ -z "${CODESPACE_NAME:-}" ]]; then
@@ -30,13 +36,15 @@ fi
 
 if [[ "${1:-}" != --wait ]]; then
   if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
-    echo "public-port: already making port $port public (log: $log)"
+    echo "public-port: already making port $port public (log: MortgageHub/startup.log)"
     exit 0
   fi
   # Detached, so it outlives postStartCommand.
-  setsid nohup bash "$0" --wait >"$log" 2>&1 </dev/null &
+  setsid nohup bash -c 'bash "$1" --wait 2>&1 | while IFS= read -r line; do
+    printf "%s [public-port] %s\n" "$(date -u "+%Y-%m-%d %H:%M:%S")" "$line"
+  done >>"$0"' "$log" "$0" </dev/null >/dev/null 2>&1 &
   echo $! >"$pidfile"
-  echo "public-port: making port $port public in the background (log: $log)"
+  echo "public-port: making port $port public in the background (log: MortgageHub/startup.log)"
   exit 0
 fi
 

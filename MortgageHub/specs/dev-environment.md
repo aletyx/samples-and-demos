@@ -104,19 +104,34 @@
 - **Starts by itself**: `postStartCommand` runs
   [post-start.sh](../../.devcontainer/Mortgage%20Hub/post-start.sh) on
   every start (after `post-create.sh` on the first), which runs
-  `devbox services up -b` detached, logging to
-  `/tmp/mortgagehub-services.log`, then `public-port.sh`. Port 8880 is
+  `devbox services up -b` detached, then `public-port.sh`. Port 8880 is
   forwarded as plain HTTP with `onAutoForward: openBrowserOnce`. The web
   server proxies the bare `/` to the API, which redirects it to `/app/`
   (the proxy turns that into `/app`, which serves the same page), so the
   forwarded port's URL opens the app as it is, as nginx does under Docker
   Compose.
+- **Start-up log**: `MortgageHub/startup.log` (git-ignored, as every
+  `*.log`), written through
+  [startup-log.sh](../../.devcontainer/Mortgage%20Hub/startup-log.sh),
+  which the three scripts source. Each line has a UTC time and a tag:
+  `post-create` (with `devbox install`'s output and duration),
+  `post-start`, `services` (`devbox services up -b`'s output),
+  `public-port`, and `watch`, a detached watcher started by
+  `post-start.sh --watch` that polls the web app's `/app/` and the API's
+  `/api/health` every 5 s and logs each change of state and the time to
+  ready; after 15 minutes without, it logs `devbox services ls` and the
+  tail of process-compose's log. `post-create.sh` and `post-start.sh`
+  first log the facts a failed start comes down to: user, architecture,
+  the codespace, whether `AITYX_API_KEY` and `GITHUB_TOKEN` are set
+  (never their values), `AITYX_URL`, devbox's and Nix's versions, whether
+  `.devbox` exists and the free disk. It's in the workspace so a user can
+  download it from the Explorer and send it; the README asks them to when
+  the app doesn't start.
 - **Public web port**:
   [public-port.sh](../../.devcontainer/Mortgage%20Hub/public-port.sh)
   in a codespace makes port 8880 public with
   `gh codespace ports visibility`, retrying in the background (every
-  10 s, for up to 20 minutes) until the port is forwarded, and logs to
-  `/tmp/public-port.log`. `devcontainer.json` has no setting for it. Only
+  10 s, for up to 20 minutes) until the port is forwarded. `devcontainer.json` has no setting for it. Only
   8880 is public: the API's 8881 is not forwarded, and the app reaches it
   through the web server's `/api/` proxy. It runs again from
   `postAttachCommand`, because a visibility set at start does not always

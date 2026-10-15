@@ -228,3 +228,13 @@ spec.
     folder's README, *Run it with Docker Compose* now comes before *Run it
     locally with devbox*, and says itself how to set the aityx key. The
     repository README already listed Docker Compose first.
+30. **The app should start by itself in a codespace but doesn't; keep a
+    log about service initialization that can be sent.** Added
+    `MortgageHub/startup.log`: the post-create, post-start and
+    public-port scripts write every step to it with a UTC time and a
+    tag, along with the services' own output and a watcher that records when
+    the web app and the API answer, or their state after 15 minutes. It
+    replaces `/tmp/mortgagehub-services.log` and `/tmp/public-port.log`
+    and holds no secrets. Tested in a Linux container with a stub devbox;
+    the cause of the missed start in Codespaces is still to be found
+    from a real log. See [Development environment](dev-environment.md).
