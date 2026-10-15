@@ -119,7 +119,9 @@ void main() {
     final faker = Faker(seed: 5);
     final reviewed = <double>[];
     for (var i = 0; i < 300; i++) {
-      final dti = debtToIncome(targetedProposal(CheckStatus.needsReview, faker));
+      final dti = debtToIncome(
+        targetedProposal(CheckStatus.needsReview, faker),
+      );
       if (dti > 45) reviewed.add(dti);
     }
     // The review reason is a conventional DTI of 46.5 to 49%: over the 45%

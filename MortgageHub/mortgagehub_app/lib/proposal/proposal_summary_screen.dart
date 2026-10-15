@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
+import 'aityx_json_view.dart';
 import 'proposal_check.dart';
 import 'proposal_request.dart';
 
@@ -364,55 +363,17 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
             ),
           ),
         ),
+        // The response first: it holds the verdict and why.
         if (_showAityx) ...[
-          _JsonBlock(
+          AityxJsonView('Response', check.aityxResponse, notes: responseNotes),
+          AityxJsonView(
             'Request: POST /v1/systemone (the API key is not shown)',
             check.aityxRequest,
+            notes: requestNotes,
           ),
-          _JsonBlock('Response', check.aityxResponse),
         ],
       ],
     ];
-  }
-}
-
-/// [json], pretty-printed and selectable, under [title].
-class _JsonBlock extends StatelessWidget {
-  const _JsonBlock(this.title, this.json);
-
-  final String title;
-  final Object? json;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(title, style: theme.textTheme.titleSmall),
-          const SizedBox(height: 4),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 320),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(12),
-              child: SelectableText(
-                const JsonEncoder.withIndent('  ').convert(json),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
