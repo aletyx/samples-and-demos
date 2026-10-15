@@ -10,7 +10,7 @@ process it under current US rules, run by [aityx.ai](https://aityx.ai).
 | Part | Technology |
 |---|---|
 | App ([mortgagehub_app/](mortgagehub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
-| API ([mortgagehub_api/](mortgagehub_api)) | Dart (`dart:io`): holds the aityx key and runs the regulatory check |
+| API ([mortgagehub_api/](mortgagehub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key and runs the regulatory check |
 | Rules | An [aityx.ai](https://aityx.ai) decision model ([proposal-check.json](mortgagehub_api/models/proposal-check.json)) |
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
@@ -20,7 +20,7 @@ The toolchain is pinned in [devbox.json](devbox.json) and locked in
 ## Run it locally with devbox
 
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
-2. For the regulatory check, put your own aityx settings in `.env` (see
+2. For the regulatory check, put your own [aityx](https://aityx.ai) settings in `.env` (see
    [.env.example](.env.example)): `AITYX_API_KEY`, and
    `AITYX_URL=https://console-stage.aityx.ai` for a stage key. In a
    codespace GitHub asks for the key instead; see
@@ -42,7 +42,7 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 A `health-check` monitor logs one line every 15 s (set
 `HEALTH_CHECK_INTERVAL` to change it): the time, then each check as its
-emoji, a short label and ✅ ok / ❌ failed (🤖 aityx is ⚪ when the API
+emoji, a short label and ✅ ok / ❌ failed (🤖 [aityx](https://aityx.ai) is ⚪ when the API
 has no key):
 
 ```
@@ -90,17 +90,19 @@ and starts two services:
 | `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
 | `api` | The API compiled to a native executable ([mortgagehub_api/Dockerfile](mortgagehub_api/Dockerfile)); not published, reached only through `web` |
 
-The aityx settings come from your environment, else `.env`, as with
+The [aityx](https://aityx.ai) settings come from your environment, else `.env`, as with
 devbox, and go to the API only. The first build takes a few minutes
 (it downloads Flutter); later ones reuse Docker's cache. Set
 `FLUTTER_WEB_PORT` to change the port; the app is bound to 127.0.0.1
 unless you set `MORTGAGEHUB_BIND_HOST=0.0.0.0`. Stop it with
-`docker compose down`. Unlike `devbox services up`, there is no hot
+`docker compose down`. Both services have health checks, so
+`docker compose ps` shows them `healthy`, and `docker compose up --wait`
+returns once they are. Unlike `devbox services up`, there is no hot
 reload: rebuild after a change.
 
 ## Run it in a codespace
 
-### 1. Set your aityx key — required
+### 1. Set your [aityx](https://aityx.ai) key — required
 
 The regulatory check runs on [aityx.ai](https://aityx.ai), and it needs an
 API key. The key is always **yours**: none ships with this repository and
@@ -110,7 +112,7 @@ show — cannot run.
 
 Set it once, before launching:
 
-1. Open your aityx console's **API keys** page and copy a key.
+1. Open your [aityx](https://aityx.ai) console's **API keys** page and copy a key.
 2. Go to
    [github.com/settings/codespaces](https://github.com/settings/codespaces).
 3. Under **Codespaces secrets**, choose **New secret**.

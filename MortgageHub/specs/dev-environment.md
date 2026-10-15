@@ -64,8 +64,13 @@
     and is not published. Compose passes it `AITYX_API_KEY`, `AITYX_URL`
     and `ASSUMED_RATE` (6.5 when empty) from the environment, else `.env`;
     `web` gets none of them.
-  There is no hot reload and no health monitor; both restart
-  `unless-stopped`.
+  Both have Docker health checks, every 15 s: `api` runs
+  `/app/bin/server healthcheck`, which asks its own `/api/health` on
+  127.0.0.1 and exits 0 when it answers `ok` (the `scratch` image has no
+  shell or curl); `web` fetches `/app/` and, through its proxy,
+  `/api/health` with busybox `wget`. `web` starts once `api` is healthy,
+  and `docker compose up --wait` returns once both are. There is no hot
+  reload; both restart `unless-stopped`.
 - **Dev container**
   ([.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub)): at
   the root of the samples repository, not in this folder, because that is

@@ -22,8 +22,8 @@ model on [aityx.ai](https://aityx.ai).
 | Part | Technology |
 |---|---|
 | App | [Flutter](https://flutter.dev): web, Android, iOS and Linux from one codebase |
-| API | Dart (`dart:io`); holds the aityx key and runs the check |
-| Rules | An aityx.ai decision model |
+| API | Dart (`dart:io`); holds the [aityx](https://aityx.ai) key and runs the check |
+| Rules | An [aityx.ai](https://aityx.ai) decision model |
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [dev container](https://containers.dev/) |
 
 ### Launching it

@@ -15,6 +15,10 @@
 ///   ALLOWED_ORIGINS comma-separated origins allowed by CORS
 ///                   (default http://localhost:8880)
 ///   ASSUMED_RATE    the annual rate in % for payment estimates (default 6.5)
+///
+/// `server healthcheck` instead asks a running server's /api/health on
+/// 127.0.0.1:API_PORT and exits 0 when it answers ok: the Docker health
+/// check, since the image has no shell or curl.
 library;
 
 import 'dart:async';
@@ -25,7 +29,8 @@ import 'package:mortgagehub_api/proposal_check.dart';
 
 const _maxBody = 64 * 1024;
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  if (args.firstOrNull == 'healthcheck') exit(await _healthcheck());
   final env = Platform.environment;
   final key = env['AITYX_API_KEY'] ?? '';
   final aityx = Uri.parse(
@@ -61,6 +66,28 @@ Future<void> main() async {
     unawaited(
       _handle(request, key, aityx, origins, assumedRate, model, client),
     );
+  }
+}
+
+/// 0 when the server on this machine answers /api/health with ok, else 1.
+Future<int> _healthcheck() async {
+  final port = int.parse(Platform.environment['API_PORT'] ?? '8881');
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
+  try {
+    final request = await client.getUrl(
+      Uri.parse('http://127.0.0.1:$port/api/health'),
+    );
+    final response = await request.close().timeout(const Duration(seconds: 3));
+    final body = await response.transform(utf8.decoder).join();
+    final json = jsonDecode(body);
+    return response.statusCode == 200 && json is Map && json['ok'] == true
+        ? 0
+        : 1;
+  } catch (error) {
+    stderr.writeln('healthcheck: $error');
+    return 1;
+  } finally {
+    client.close(force: true);
   }
 }
 

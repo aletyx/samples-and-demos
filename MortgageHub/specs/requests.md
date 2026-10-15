@@ -155,3 +155,11 @@ spec.
     `docker compose -f MortgageHub/compose.yaml up --build` and
     `devbox services up -c MortgageHub`, with their stop commands. Both
     were run from the root.
+19. **Add a health check** to the Docker Compose services. `api` checks
+    its own `/api/health` with a new `server healthcheck` mode, `web`
+    checks `/app/` and the proxied `/api/health`, and `web` waits for a
+    healthy `api`. See [Development environment](dev-environment.md).
+20. **Link aityx to aityx.ai wherever the READMEs mention it.** The
+    plain mentions of aityx and aityx.ai in the repository README and
+    this folder's README now link to https://aityx.ai; code, commands and
+    existing links are left as they were.
