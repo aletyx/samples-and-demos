@@ -1,0 +1,66 @@
+{
+  // ---------------------------------------------------------------------
+  // Mortgage Hub
+  //
+  // A demo that brings a home buyer's mortgage, from application to
+  // closing, into one place: a Flutter app (web, Android, iOS, Linux), a
+  // Dart API, and a regulatory check that says whether a lender can
+  // process a proposal under current US rules.
+  //
+  // Source:  https://github.com/aletyx/samples-and-demos (MortgageHub/)
+  // Rules:   https://aityx.ai — runs the decision model behind the check
+  // Aletyx:  https://aletyx.com
+  //          https://nu01.com
+  //
+  // This repository holds several samples. This dev container is Mortgage
+  // Hub, in MortgageHub/ — not Mortgage_Process or Payroll. The name below
+  // is what GitHub shows in the "Dev container configuration" list when
+  // you create a codespace.
+  // ---------------------------------------------------------------------
+  "name": "Mortgage Hub",
+  "build": {
+    "dockerfile": "Containerfile",
+    // Nothing is copied into the image, so the build context is just this
+    // folder rather than the whole repository.
+    "context": "."
+  },
+  "remoteUser": "vscode",
+  // The dev servers must listen on every interface for the forwarded
+  // ports to reach them (only the container sees them).
+  "containerEnv": {
+    "MORTGAGEHUB_BIND_HOST": "0.0.0.0"
+  },
+  // Your own key, never the repository's. GitHub asks for it when you
+  // create a codespace unless you already hold it, stores it against your
+  // account, and passes it to the container as an environment variable,
+  // which the app's scripts read before falling back to MortgageHub/.env.
+  // Change it at https://github.com/settings/codespaces.
+  //
+  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai
+  // and ASSUMED_RATE to 6.5, so neither needs setting; override them in
+  // MortgageHub/.env if you need to (a stage key, for instance, works
+  // only against https://console-stage.aityx.ai).
+  "secrets": {
+    "AITYX_API_KEY": {
+      "description": "Required. Your own aityx.ai API key, from the console's API keys page. The regulatory check does not work without it.",
+      "documentationUrl": "https://stage.aityx.ai/docs"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ]
+    }
+  },
+  "forwardPorts": [8880],
+  "portsAttributes": {
+    "8880": { "label": "Mortgage Hub web app" }
+  },
+  // Runs from the repository root; the script moves to MortgageHub/ itself.
+  "postCreateCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-create.sh\"'"
+}
