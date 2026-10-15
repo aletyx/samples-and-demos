@@ -1,6 +1,6 @@
 # Development environment
 
-- [devbox.json](../devbox.json) manages the toolchain: Flutter, Python,
+- [devbox.json](../devbox.json) manages the toolchain: Flutter,
   GNU Make and curl. [devbox.lock](../devbox.lock) is committed.
 - The app requires Dart SDK `^3.13.0`, which covers the Nix Flutter
   (Dart 3.13.0).
@@ -88,18 +88,28 @@
   it. It reports whether `AITYX_API_KEY` arrived, never its value. The
   container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`, forwards port 8880 and
   adds the Dart and Flutter extensions.
-- **The editor's Flutter SDK**: devbox keeps the toolchain in the
-  workspace, not on the PATH, so the Dart extension reported "Could not
-  find a Flutter SDK". After `devbox install`, `post-create.sh` links
-  devbox's profile — a complete SDK, with `bin/flutter`,
-  `bin/cache/dart-sdk` and `packages/flutter_tools` — to `~/flutter`, a
-  fixed path that does not depend on the repository name.
-  `devcontainer.json` points `dart.flutterSdkPath` there and puts
-  `~/flutter/bin` on the PATH of every terminal, so `flutter` and `dart`
-  work outside `devbox shell` too. It is the same Flutter that
-  `devbox.lock` pins, linked rather than copied, so the editor and the
-  builds can never be on different versions. Nothing is copied into the image,
-  so the build context is the dev container folder alone.
+- **The editor's Flutter SDK**: the image carries Flutter 3.47.0, the
+  version `devbox.lock` pins, in `/opt/flutter`: on x64 the release
+  archive, checked against the SHA-256 in `releases_linux.json`; on arm64,
+  where Flutter publishes no Linux archive, the release tag from git. Its
+  web artifacts are precached and analytics are off. `devcontainer.json`
+  points `dart.flutterSdkPath` there and puts `/opt/flutter/bin` on the
+  PATH of every terminal. It is in the image because devbox's own Flutter
+  appears only after `post-create.sh` has run `devbox install`, and the
+  Dart extension, finding no SDK when VS Code attached, offered to
+  download one. Inside `devbox shell` and `devbox services up` devbox's
+  Flutter comes first; the two must be kept on the same version. Nothing
+  is copied into the image, so the build context is the dev container
+  folder alone.
+- **Public web port**: `postStartCommand` runs
+  [public-port.sh](../../.devcontainer/Mortgage%20Hub/public-port.sh),
+  which in a codespace makes port 8880 public with
+  `gh codespace ports visibility`, retrying in the background (every
+  10 s, for up to 20 minutes) until the port is forwarded, and logs to
+  `/tmp/public-port.log`. `devcontainer.json` has no setting for it. Only
+  8880 is public: the API's 8881 is not forwarded, and the app reaches it
+  through the web server's `/api/` proxy. An organization policy can
+  forbid public ports, in which case the port stays private.
 - **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`
   alone under `secrets`, so GitHub asks the person creating a codespace
   for their own key, keeps it against their account and passes it in as an

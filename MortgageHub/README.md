@@ -15,7 +15,7 @@ process it under current US rules, run by [aityx.ai](https://aityx.ai).
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
-[devbox.lock](devbox.lock): Flutter, Python, GNU Make and curl.
+[devbox.lock](devbox.lock): Flutter, GNU Make and curl.
 
 ## Run it locally with devbox
 
@@ -152,7 +152,10 @@ install`; it also says whether your key arrived. Then:
 devbox services up --pcflags "--tui=false"
 ```
 
-and open the forwarded port **8880** at `/app/`. Export `GITHUB_TOKEN` (for
+and open the forwarded port **8880** at `/app/`. The codespace makes
+that port public when it starts, so the link opens for anyone you share
+it with — and they run regulatory checks on your [aityx](https://aityx.ai) key. Set it back
+to private in the **Ports** panel if you don't want that. Export `GITHUB_TOKEN` (for
 example `export GITHUB_TOKEN=$(gh auth token)`) before `devbox install` if
 it fails with HTTP 403.
 

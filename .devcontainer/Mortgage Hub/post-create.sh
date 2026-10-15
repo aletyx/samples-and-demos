@@ -68,19 +68,5 @@ xargs -r nix-store --quiet --realise <<<"$paths" >/dev/null ||
 echo "post-create: devbox install..."
 devbox install || fail "devbox install"
 
-# The Dart and Flutter extensions need an SDK path, and devbox's profile
-# sits under the workspace, whose path carries the repository name. Link it
-# somewhere fixed so devcontainer.json can name it without guessing, and so
-# flutter and dart work in a plain terminal as well as inside devbox shell.
-# This is devbox's own Flutter, the one devbox.lock pins, not a second copy.
-sdk="$PWD/.devbox/nix/profile/default"
-if [[ -x "$sdk/bin/flutter" ]]; then
-  ln -sfn "$sdk" "$HOME/flutter"
-  echo "post-create: Flutter $(cat "$sdk/version" 2>/dev/null || echo '?') linked at $HOME/flutter"
-else
-  echo "post-create: warning, no flutter in $sdk; the Dart extension will" >&2
-  echo "post-create: ask for an SDK until devbox install succeeds." >&2
-fi
-
 echo "post-create: done"
 df -h /
