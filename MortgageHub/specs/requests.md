@@ -67,9 +67,66 @@ spec.
     rules, so `scripts/model-test.sh` runs them on aityx with expected
     verdicts at each boundary. The app's name on Android and iOS is now
     Mortgage Hub.
-11. **Make Fill random a split button: click it, or pick the data to
+11. **Add a button to show or hide the aityx request and response at the
+    end of the regulatory check.** The API now returns the body it sent to
+    aityx and aityx's answer with the check, and the
+    [regulatory check](regulatory-check.md) ends with **Show / Hide aityx
+    request and response**, showing both as JSON.
+12. **Make Fill random a split button: click it, or pick the data to
     generate: Processable, Requires review or Not processable.** Added
     the menu and a generator that builds a request for each verdict
     ([Fill random for a verdict](proposal-request.md#fill-random-for-a-verdict)),
     checked live against aityx. The verdict label "Needs review" is now
     "Requires review" everywhere.
+
+## 2026-10-15
+
+13. **Move the Mortgage Hub dev container to the root of the repository,
+    under a folder called Mortgage Hub, so people can see which app they
+    are launching on Codespaces; and pass the user's own API key in.**
+    GitHub only looks for dev containers at the repository root, so
+    `MortgageHub/.devcontainer/` moved to
+    [.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub) and
+    the configuration is now named **Mortgage Hub**, which is
+    what the Codespaces configuration list shows in a repository holding
+    several samples. The Containerfile no longer assumes the repository is
+    the app (its `WORKDIR` named a path that only existed in a standalone
+    repository), the build context is the dev container folder alone since
+    nothing is copied in, and `post-create.sh` resolves `MortgageHub/`
+    from its own location. `devcontainer.json` declares `AITYX_API_KEY` as a
+    Codespaces `secret`, so GitHub asks each person for their own key and
+    passes it in as an environment variable, which the scripts already
+    prefer over `.env`; the repository ships no key and nothing is written
+    to disk in the container. `post-create.sh` reports whether the key arrived, never its
+    value. See [Development environment](dev-environment.md) and
+    [aityx.ai](aityx.md).
+
+14. **Add a link to launch a codespace with 4 cores, ask only for the API
+    key, default to aityx.ai, say before the launch button how to set the
+    key up and that it is required, and describe the project in the dev
+    container profile.** The [README](../README.md#run-it-in-a-codespace)
+    now opens with how to add the `AITYX_API_KEY` Codespaces secret and
+    why it is required, then an **Open in GitHub Codespaces** badge that
+    pins this configuration and a 4-core machine
+    (`machine=standardLinux32gb`). `devcontainer.json` asks for the key
+    alone: `AITYX_URL` already defaults to `https://api.aityx.ai` and
+    `ASSUMED_RATE` to 6.5 (the annual rate, in percent, behind the
+    summary's payment estimate), so neither needs setting, and both stay
+    overridable in `.env`. The configuration is named **Mortgage Hub** and
+    carries a header describing the project with links to the repository,
+    aityx.ai, aletyx.com and nu01.com.
+
+15. **Take a look at the Greptile suggestions and fix.** Both findings on
+    [Fill random for a verdict](proposal-request.md#fill-random-for-a-verdict)
+    were valid. The processable generator can build a VA loan of up to
+    $855,000, above the $832,750 conforming baseline, and that is correct:
+    VA has no loan limit with full entitlement, so the model passes any VA
+    amount. The test applied the baseline to every program, so a valid VA
+    sample failed it — reproduced at seed 27, which builds an $834,000 VA
+    loan. The assertion now skips VA, and the generator and this spec say
+    why. Nothing checked the ratio `fitIncome` works back from the payment
+    either, so four offline tests now recompute it at 6.5% from the
+    finished request: that processable drafts land in the 20 to 36% they
+    aim for and stay under 45%, that a targeted high ratio really does
+    breach Fannie Mae's 50%, and that a targeted review ratio lands
+    between the two maximums. Both were checked by mutation.

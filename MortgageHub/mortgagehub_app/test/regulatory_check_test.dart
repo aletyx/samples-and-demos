@@ -55,6 +55,46 @@ void main() {
     expect(find.text('Too high.'), findsOneWidget);
   });
 
+  testWidgets('shows and hides the aityx request and response', (tester) async {
+    final checker = FakeChecker(
+      result: ProposalCheck(
+        status: sampleCheck.status,
+        checks: sampleCheck.checks,
+        ltv: sampleCheck.ltv,
+        maxLtv: sampleCheck.maxLtv,
+        dti: sampleCheck.dti,
+        housingPayment: sampleCheck.housingPayment,
+        assumedRate: sampleCheck.assumedRate,
+        aityxRequest: const {
+          'state': {'loan_program': 'fha'},
+        },
+        aityxResponse: const {
+          'answers': {'status': 'needs_review'},
+        },
+      ),
+    );
+    await showSummary(tester, checker);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('"loan_program": "fha"'), findsNothing);
+
+    await tester.tap(find.text('Show aityx request and response'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('"loan_program": "fha"'), findsOneWidget);
+    expect(find.textContaining('"status": "needs_review"'), findsOneWidget);
+
+    await tester.tap(find.text('Hide aityx request and response'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('"loan_program": "fha"'), findsNothing);
+  });
+
+  testWidgets('has no aityx button without the request and response', (
+    tester,
+  ) async {
+    await showSummary(tester, FakeChecker());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('aityxToggle')), findsNothing);
+  });
+
   testWidgets('shows an error with a retry', (tester) async {
     final checker = FakeChecker(error: ProposalCheckException('aityx is down'));
     await showSummary(tester, checker);
@@ -87,6 +127,10 @@ void main() {
           'checks': [
             {'id': 'program', 'result': 'fail', 'reason': 'Not eligible.'},
           ],
+          'aityx': {
+            'request': {'state': {}},
+            'response': {'answers': {}},
+          },
         }),
         200,
       );
@@ -101,6 +145,8 @@ void main() {
     expect(check.status, CheckStatus.notProcessable);
     expect(check.checks.single.result, CheckResult.fail);
     expect(check.maxLtv, 0);
+    expect(check.aityxRequest, {'state': {}});
+    expect(check.aityxResponse, {'answers': {}});
   });
 
   test('the API client reports the API\'s error', () async {

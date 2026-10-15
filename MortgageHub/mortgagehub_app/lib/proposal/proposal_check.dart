@@ -17,11 +17,14 @@ class ProposalCheck {
     required this.dti,
     required this.housingPayment,
     required this.assumedRate,
+    this.aityxRequest,
+    this.aityxResponse,
   });
 
   factory ProposalCheck.fromJson(Map<String, Object?> json) {
     final figures = json['figures'] as Map<String, Object?>;
     num figure(String key) => figures[key] as num;
+    final aityx = json['aityx'] as Map<String, Object?>?;
     return ProposalCheck(
       status: CheckStatus.parse(json['status'] as String),
       checks: [
@@ -33,6 +36,8 @@ class ProposalCheck {
       dti: figure('dti').toDouble(),
       housingPayment: figure('housingPayment').toDouble(),
       assumedRate: figure('assumedRate').toDouble(),
+      aityxRequest: aityx?['request'],
+      aityxResponse: aityx?['response'],
     );
   }
 
@@ -47,6 +52,12 @@ class ProposalCheck {
 
   /// The annual rate, in percent, the payment is estimated with.
   final double assumedRate;
+
+  /// The body the API sent to aityx (the model and its inputs; the key is a
+  /// header, so not in it), and aityx's answer, as JSON. Null when the API
+  /// didn't include them.
+  final Object? aityxRequest;
+  final Object? aityxResponse;
 }
 
 enum CheckStatus {

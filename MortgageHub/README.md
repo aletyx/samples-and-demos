@@ -20,9 +20,11 @@ The toolchain is pinned in [devbox.json](devbox.json) and locked in
 ## Run it locally with devbox
 
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
-2. For the regulatory check, put the aityx settings in `.env` (see
+2. For the regulatory check, put your own aityx settings in `.env` (see
    [.env.example](.env.example)): `AITYX_API_KEY`, and
-   `AITYX_URL=https://console-stage.aityx.ai` for a stage key. Check them
+   `AITYX_URL=https://console-stage.aityx.ai` for a stage key. In a
+   codespace GitHub asks for the key instead; see
+   [Run it in a codespace](#run-it-in-a-codespace). Check them
    with `bash scripts/aityx-check.sh`, and the mortgage rules with
    `bash scripts/model-test.sh`.
 3. From this folder:
@@ -71,18 +73,77 @@ The version is `X.Y.Z`: X and Y from [version.X.txt](version.X.txt) and
 [version.Y.txt](version.Y.txt), Z the build time (see
 [scripts/version.sh](scripts/version.sh)).
 
-## Run it in a dev container
+## Run it in a codespace
 
-Open this folder in VS Code and choose **Reopen in Container**. The
-[Containerfile](.devcontainer/Containerfile) starts from Microsoft's
-`ubuntu-24.04` devcontainer base image and installs pinned, checksum-verified
-releases of Devbox and Nix. On first start,
-[post-create.sh](.devcontainer/post-create.sh) downloads the locked Nix
-store paths and runs `devbox install`. Then run
-`devbox services up --pcflags "--tui=false"` and open the forwarded port
-**8880** at `/app/`. Export `GITHUB_TOKEN` (for example
-`export GITHUB_TOKEN=$(gh auth token)`) before opening it if
-`devbox install` fails with HTTP 403.
+### 1. Set your aityx key — required
+
+The regulatory check runs on [aityx.ai](https://aityx.ai), and it needs an
+API key. The key is always **yours**: none ships with this repository and
+none is built into the container. Without it the codespace still starts and
+the app still opens, but the regulatory check — what this demo exists to
+show — cannot run.
+
+Set it once, before launching:
+
+1. Open your aityx console's **API keys** page and copy a key.
+2. Go to
+   [github.com/settings/codespaces](https://github.com/settings/codespaces).
+3. Under **Codespaces secrets**, choose **New secret**.
+4. Name it exactly `AITYX_API_KEY`, paste the key as the value, and give
+   it access to the `aletyx/samples-and-demos` repository.
+
+If you skip this, GitHub asks for the key on the codespace creation page,
+because [devcontainer.json](../.devcontainer/Mortgage%20Hub/devcontainer.json)
+lists it as a required secret. Either way GitHub keeps it against your
+account and passes it to the container as an environment variable: it is
+never written to disk there, never committed, and never reaches the Flutter
+app.
+
+Nothing else needs setting. The API URL defaults to `https://api.aityx.ai`
+and the payment estimate's rate to 6.5%. To change either, put `AITYX_URL`
+or `ASSUMED_RATE` in `.env` (see [.env.example](.env.example)) — a stage
+key, for instance, works only against `https://console-stage.aityx.ai`.
+
+### 2. Launch it
+
+[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgage%20Hub%2Fdevcontainer.json&machine=standardLinux32gb)
+
+That link opens this repository's **Mortgage Hub** dev container on a
+4-core machine (16 GB RAM), which is what the Flutter and Nix builds want.
+To choose for yourself instead, use *Code → Codespaces → New with
+options* and pick **Mortgage Hub** as the dev container configuration —
+the repository holds several samples, so the configuration matters.
+
+### 3. Run the app
+
+On first start,
+[post-create.sh](../.devcontainer/Mortgage%20Hub/post-create.sh) moves to
+this folder, downloads the locked Nix store paths and runs `devbox
+install`; it also says whether your key arrived. Then:
+
+```bash
+devbox services up --pcflags "--tui=false"
+```
+
+and open the forwarded port **8880** at `/app/`. Export `GITHUB_TOKEN` (for
+example `export GITHUB_TOKEN=$(gh auth token)`) before `devbox install` if
+it fails with HTTP 403.
+
+## Run it in a dev container locally
+
+Open the repository root in VS Code and choose **Reopen in Container**,
+then **Mortgage Hub**. The dev container lives at the root of the
+repository, in [.devcontainer/Mortgage Hub/](../.devcontainer/Mortgage%20Hub),
+because that is where GitHub looks for one.
+
+The [Containerfile](../.devcontainer/Mortgage%20Hub/Containerfile) starts
+from Microsoft's `ubuntu-24.04` devcontainer base image and installs
+pinned, checksum-verified releases of Devbox and Nix.
+
+Codespaces secrets are a GitHub feature, so set the key here by copying
+[.env.example](.env.example) to `.env` and filling in `AITYX_API_KEY`. The
+scripts read the environment first and fall back to `.env`, so the same
+commands work either way.
 
 ## Contributing
 
