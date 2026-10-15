@@ -224,3 +224,7 @@ spec.
     `public-port.sh` now also runs when VS Code attaches, and skips if a
     run is still retrying. Both READMEs' codespace steps now say to check
     that port 8880 is Public in the Ports panel, and how to set it by hand.
+29. **Show the Docker Compose instructions first, then devbox.** In this
+    folder's README, *Run it with Docker Compose* now comes before *Run it
+    locally with devbox*, and says itself how to set the aityx key. The
+    repository README already listed Docker Compose first.

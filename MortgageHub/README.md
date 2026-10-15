@@ -17,6 +17,35 @@ process it under current US rules, run by [aityx.ai](https://aityx.ai).
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
 [devbox.lock](devbox.lock): Flutter, GNU Make and curl.
 
+## Run it with Docker Compose
+
+With only [Docker](https://docs.docker.com/get-docker/) installed (no
+devbox, no Flutter), from this folder:
+
+```bash
+docker compose up --build
+```
+
+and open http://localhost:8880/app/. [compose.yaml](compose.yaml) builds
+and starts two services:
+
+| Service | What |
+|---|---|
+| `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
+| `api` | The API compiled to a native executable ([mortgagehub_api/Dockerfile](mortgagehub_api/Dockerfile)); not published, reached only through `web` |
+
+For the regulatory check, copy [.env.example](.env.example) to `.env`
+and fill in your [aityx](https://aityx.ai) key, `AITYX_API_KEY` (or
+export it). The settings come from your environment, else `.env`, and go
+to the API only. The first build takes a few minutes
+(it downloads Flutter); later ones reuse Docker's cache. Set
+`FLUTTER_WEB_PORT` to change the port; the app is bound to 127.0.0.1
+unless you set `MORTGAGEHUB_BIND_HOST=0.0.0.0`. Stop it with
+`docker compose down`. Both services have health checks, so
+`docker compose ps` shows them `healthy`, and `docker compose up --wait`
+returns once they are. Unlike [devbox](#run-it-locally-with-devbox), there is no hot
+reload: rebuild after a change.
+
 ## Run it locally with devbox
 
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
@@ -72,33 +101,6 @@ Pass `MODE=profile` or `MODE=debug` for other build modes, and
 The version is `X.Y.Z`: X and Y from [version.X.txt](version.X.txt) and
 [version.Y.txt](version.Y.txt), Z the build time (see
 [scripts/version.sh](scripts/version.sh)).
-
-## Run it with Docker Compose
-
-With only [Docker](https://docs.docker.com/get-docker/) installed (no
-devbox, no Flutter), from this folder:
-
-```bash
-docker compose up --build
-```
-
-and open http://localhost:8880/app/. [compose.yaml](compose.yaml) builds
-and starts two services:
-
-| Service | What |
-|---|---|
-| `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
-| `api` | The API compiled to a native executable ([mortgagehub_api/Dockerfile](mortgagehub_api/Dockerfile)); not published, reached only through `web` |
-
-The [aityx](https://aityx.ai) settings come from your environment, else `.env`, as with
-devbox, and go to the API only. The first build takes a few minutes
-(it downloads Flutter); later ones reuse Docker's cache. Set
-`FLUTTER_WEB_PORT` to change the port; the app is bound to 127.0.0.1
-unless you set `MORTGAGEHUB_BIND_HOST=0.0.0.0`. Stop it with
-`docker compose down`. Both services have health checks, so
-`docker compose ps` shows them `healthy`, and `docker compose up --wait`
-returns once they are. Unlike `devbox services up`, there is no hot
-reload: rebuild after a change.
 
 ## Run it in a codespace
 
