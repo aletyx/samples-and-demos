@@ -58,7 +58,18 @@
   and passes `GITHUB_TOKEN` to Nix so api.github.com doesn't rate-limit
   it. It reports whether `AITYX_API_KEY` arrived, never its value. The
   container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`, forwards port 8880 and
-  adds the Dart and Flutter extensions. Nothing is copied into the image,
+  adds the Dart and Flutter extensions.
+- **The editor's Flutter SDK**: devbox keeps the toolchain in the
+  workspace, not on the PATH, so the Dart extension reported "Could not
+  find a Flutter SDK". After `devbox install`, `post-create.sh` links
+  devbox's profile — a complete SDK, with `bin/flutter`,
+  `bin/cache/dart-sdk` and `packages/flutter_tools` — to `~/flutter`, a
+  fixed path that does not depend on the repository name.
+  `devcontainer.json` points `dart.flutterSdkPath` there and puts
+  `~/flutter/bin` on the PATH of every terminal, so `flutter` and `dart`
+  work outside `devbox shell` too. It is the same Flutter that
+  `devbox.lock` pins, linked rather than copied, so the editor and the
+  builds can never be on different versions. Nothing is copied into the image,
   so the build context is the dev container folder alone.
 - **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`
   alone under `secrets`, so GitHub asks the person creating a codespace

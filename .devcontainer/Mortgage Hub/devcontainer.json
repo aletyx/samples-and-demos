@@ -46,10 +46,21 @@
       "documentationUrl": "https://stage.aityx.ai/docs"
     }
   },
+  // flutter and dart on the PATH of every terminal, from the same devbox
+  // profile. ${containerEnv:PATH} is the image's own PATH.
+  "remoteEnv": {
+    "PATH": "/home/vscode/flutter/bin:${containerEnv:PATH}"
+  },
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // post-create.sh links this to devbox's profile, which is a
+        // complete Flutter SDK (bin/flutter, bin/cache/dart-sdk,
+        // packages/flutter_tools). Without it the Dart extension reports
+        // "Could not find a Flutter SDK", because devbox keeps the
+        // toolchain in the workspace rather than on the PATH.
+        "dart.flutterSdkPath": "/home/vscode/flutter"
       },
       "extensions": [
         "Dart-Code.dart-code",
