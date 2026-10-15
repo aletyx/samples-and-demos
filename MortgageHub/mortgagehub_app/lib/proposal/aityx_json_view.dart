@@ -32,6 +32,11 @@ class JsonNote {
       this.path.hasMatch(path) && (when?.call(value) ?? true);
 }
 
+/// The red of the [JsonNote.alarm] highlights: the theme's error color,
+/// lightened so it reads clearly without shouting.
+Color _alarmColor(ColorScheme scheme) =>
+    Color.lerp(scheme.error, Colors.white, 0.35)!;
+
 bool _failed(Object? check) => check is Map && check['result'] == 'fail';
 
 /// The parts of the body the API sends to aityx worth pointing out.
@@ -360,9 +365,11 @@ class _AityxJsonViewState extends State<AityxJsonView> {
                     avatar: Icon(
                       note.alarm ? Icons.error_outline : Icons.my_location,
                       size: 14,
-                      color: note.alarm ? scheme.error : scheme.primary,
+                      color: note.alarm ? _alarmColor(scheme) : scheme.primary,
                     ),
-                    side: note.alarm ? BorderSide(color: scheme.error) : null,
+                    side: note.alarm
+                        ? BorderSide(color: _alarmColor(scheme))
+                        : null,
                     label: Text(note.label),
                     tooltip: note.why,
                     onPressed: () => _jumpTo(note),
@@ -420,11 +427,11 @@ class _JsonLine extends StatelessWidget {
       );
     }
     final scheme = Theme.of(context).colorScheme;
-    final accent = note.alarm ? scheme.error : scheme.primary;
+    final accent = note.alarm ? _alarmColor(scheme) : scheme.primary;
     final onAccent = note.alarm ? scheme.onError : scheme.onPrimary;
     return Container(
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: note.alarm ? 0.22 : 0.12),
+        color: accent.withValues(alpha: note.alarm ? 0.18 : 0.12),
         border: Border(left: BorderSide(color: accent, width: 3)),
       ),
       padding: const EdgeInsets.only(left: 9, right: 12),

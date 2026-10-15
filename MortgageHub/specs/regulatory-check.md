@@ -18,9 +18,10 @@ app (summary)  ──POST /api/proposals/check──▶  mortgagehub_api  ──
   posts the request's JSON to `API_BASE_URL` (a dart-define) or, when it's
   empty, to `/api/` on its own origin, and shows a spinner, then the
   result, or the error with **Try again**. Under the result, **Show aityx
-  request and response** reveals, pretty-printed and selectable, the exact
-  body the API sent to aityx (the model and its inputs) and aityx's answer
-  (answers, receipt, usage), so it's visible that the verdict and every
+  request and response** reveals, pretty-printed and selectable, aityx's
+  answer (answers, receipt, usage) first, since it holds the verdict, then
+  the exact body the API sent to aityx (the model and its inputs), so it's
+  visible that the verdict and every
   reason come from aityx; the button then reads **Hide aityx request and
   response**. Without them in the API's answer, there's no button.
   The parts that matter are highlighted
@@ -34,8 +35,8 @@ app (summary)  ──POST /api/proposals/check──▶  mortgagehub_api  ──
   check with its reason, the figures shown, the receipt (computed values,
   provenance), the token usage and any `decision_error`. When the
   verdict is Not processable, the places aityx asserts it are
-  highlighted in red (the theme's error color, a stronger tint, an error
-  icon on their chips), each with its own tooltip: *Not processable* on
+  highlighted in light red (the theme's error color lightened by a
+  third, a stronger tint, an error icon on their chips), each with its own tooltip: *Not processable* on
   `answers.status.choice`, *Failed check* on every check whose value has
   `"result": "fail"`, and *Verdict computed* on
   `receipt.decisions.status.value`. These notes apply only to those
