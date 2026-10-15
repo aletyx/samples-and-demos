@@ -1,7 +1,7 @@
 # App icon
 
-A house with a dollar sign, in the Gruvbox palette: a yellow (`#FABD2F`)
-house with a chimney on the dark background (`#32302F`), and a bold dollar
+A house with a dollar sign, in the aityx palette: an orange (`#E36742`)
+house with a chimney on the dark background (`#17161A`), and a bold dollar
 sign cut out of it in the background color. Solid shapes, so it still reads
 as a 16 px favicon.
 
@@ -15,9 +15,9 @@ as a 16 px favicon.
 - **Generated** by `flutter_launcher_icons` (configured in `pubspec.yaml`;
   rerun with `dart run flutter_launcher_icons` after editing the masters):
   - **Web:** `favicon.png`, `Icon-192/512` and their maskable variants, and
-    the manifest's background and theme colors (`#32302F`).
+    the manifest's background and theme colors (`#17161A`).
   - **Android:** `mipmap-*/launcher_icon.png`, plus an adaptive icon
-    (background `#32302F`). Flutter's default `ic_launcher.png` icons were
+    (background `#17161A`). Flutter's default `ic_launcher.png` icons were
     removed.
   - **iOS:** the whole `AppIcon.appiconset`, with alpha removed.
 

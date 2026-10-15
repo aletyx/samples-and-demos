@@ -252,6 +252,8 @@ spec.
     Gruvbox theme with the aityx dark palette: near-black violet
     backgrounds, light gray text and the orange accent as primary. "Needs
     review" moved from primary to an amber tertiary so it stays distinct
-    from the accent and from red. The web manifest colors follow; the app
-    icon still uses Gruvbox colors. The palette is in
-    [theme-colors.txt](theme-colors.txt). See [Theme](theme.md).
+    from the accent and from red. The web manifest colors and the app
+    icon follow: an orange house on the page background, regenerated for
+    every platform. The palette is in
+    [theme-colors.txt](theme-colors.txt). See [Theme](theme.md) and
+    [App icon](app-icon.md).
