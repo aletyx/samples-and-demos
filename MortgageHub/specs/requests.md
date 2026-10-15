@@ -241,3 +241,9 @@ spec.
 32. **Add the logs to .gitignore, all of them.** `startup.log` was
     already ignored by `*.log`; it's now named too, and the repository's
     root `.gitignore` ignores `*.log` and `logs/` in every sample.
+33. **Add screenshots of the codespace setup to the instructions.** The
+    README's *Run it in a codespace* steps now show the *New secret* form
+    (with a placeholder key) and the *Create a new codespace* page, with
+    a note to check that `AITYX_API_KEY` is ticked as associated with the
+    repository. The repository README points to them. See
+    [Development environment](dev-environment.md).

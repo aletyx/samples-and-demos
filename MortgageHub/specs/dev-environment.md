@@ -154,6 +154,10 @@
   `codespaces.new/aletyx/samples-and-demos` with `devcontainer_path` set
   to this configuration and `machine=standardLinux32gb`, the 4-core,
   16 GB machine the Flutter and Nix builds want.
+- **Setup screenshots**: the README's codespace steps show the
+  *New secret* form and the *Create a new codespace* page
+  ([docs/images/](../docs/images/)), so a reader can check that the key is
+  associated with the repository before creating the codespace.
 
 ## Known limitations
 

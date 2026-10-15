@@ -121,6 +121,8 @@ Set it once, before launching:
 4. Name it exactly `AITYX_API_KEY`, paste the key as the value, and give
    it access to the `aletyx/samples-and-demos` repository.
 
+![The New secret form: name AITYX_API_KEY, the key as the value, and access to aletyx/samples-and-demos](docs/images/codespaces-new-secret.png)
+
 If you skip this, GitHub asks for the key on the codespace creation page,
 because [devcontainer.json](../.devcontainer/Mortgage%20Hub/devcontainer.json)
 lists it as a required secret. Either way GitHub keeps it against your
@@ -142,6 +144,13 @@ That link opens this repository's **Mortgage Hub** dev container on a
 To choose for yourself instead, use *Code → Codespaces → New with
 options* and pick **Mortgage Hub** as the dev container configuration —
 the repository holds several samples, so the configuration matters.
+
+The creation page should look like this: **Mortgage Hub** as the dev
+container configuration, a 4-core machine, and `AITYX_API_KEY` under
+*Recommended secrets*, ticked as associated with the repository. If it is
+not ticked, the secret does not reach this repository; go back to step 1.
+
+![The Create a new codespace page, with Mortgage Hub, 4-core and AITYX_API_KEY associated with the repository](docs/images/create-codespace.png)
 
 ### 3. Run the app
 
