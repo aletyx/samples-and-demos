@@ -7,7 +7,7 @@ sample with its own documentation.
 | Sample | What it shows | Launch |
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgage%20Hub%2Fdevcontainer.json&machine=standardLinux32gb) |
-| [Payroll](Payroll/) | A complex written policy turned into a DMN 1.5 decision model, one file per rule group | Open the `.dmn` files in your editor |
+| [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
 ## Mortgage Hub
@@ -75,15 +75,19 @@ Both serve the app at http://localhost:8880/app/. Stop them with
 
 ## Payroll
 
-[Payroll/](Payroll/) takes a written compensation policy and turns it into
-a decision model you can execute.
+[Payroll/](Payroll/) is built to show what a decision model looks like when
+there are many rules and some of them are complicated, as is usual in
+payroll and HR systems. It takes a written compensation policy, with
+hundreds of rows of reference data, modifiers applied group by group,
+and guardrails that floor, cap or hold the result, and turns it into a
+decision model you can execute.
 
 - [spec/candidate_offer.md](Payroll/spec/candidate_offer.md): how much to
   offer a candidate, in plain language — salary ranges for 138 roles,
   seniority bands, 68 market indices, and the modifier rules for
   certifications, relocation, experience, competing offers and deductions.
   Every rule has an identifier.
-- [decisions/](Payroll/decisions/): the same policy as 13 DMN 1.5 models,
+- [decisions/](Payroll/decisions/): the same policy as 13 DMN models,
   one per rule group, imported by `candidate-offer.dmn`. It returns the
   amount to offer together with every rule that fired and a
   plain-language rationale.
