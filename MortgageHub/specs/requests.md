@@ -130,3 +130,14 @@ spec.
     aim for and stay under 45%, that a targeted high ratio really does
     breach Fannie Mae's 50%, and that a targeted review ratio lands
     between the two maximums. Both were checked by mutation.
+
+16. **The Dart extension says it cannot find a Flutter SDK in the dev
+    container; add the SDK.** Devbox installs Flutter into
+    `.devbox/nix/profile/default` inside the workspace, which is a
+    complete SDK but is not on the PATH, so the extension saw nothing.
+    Rather than bake a second Flutter into the image, which could drift
+    from the one `devbox.lock` pins, `post-create.sh` now links that
+    profile to `~/flutter` once `devbox install` finishes, and
+    `devcontainer.json` sets `dart.flutterSdkPath` to it and adds
+    `~/flutter/bin` to the PATH of every terminal. See
+    [Development environment](dev-environment.md).
