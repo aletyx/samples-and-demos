@@ -22,8 +22,8 @@ model on [aityx.ai](https://aityx.ai).
 | Part | Technology |
 |---|---|
 | App | [Flutter](https://flutter.dev): web, Android, iOS and Linux from one codebase |
-| API | Dart (`dart:io`); holds the aityx key and runs the check |
-| Rules | An aityx.ai decision model |
+| API | Dart (`dart:io`); holds the [aityx](https://aityx.ai) key and runs the check |
+| Rules | An [aityx.ai](https://aityx.ai) decision model |
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [dev container](https://containers.dev/) |
 
 ### Launching it
@@ -47,10 +47,31 @@ several samples, so if you create the codespace yourself through *Code →
 Codespaces → New with options*, pick **Mortgage Hub** as the dev container
 configuration.
 
-Once it starts, run `devbox services up --pcflags "--tui=false"` from
-`MortgageHub/` and open the forwarded port **8880** at `/app/`. The full
+Once it starts, the app starts too: when it has compiled, a minute or
+two on the first start, open port **8880** from the **Ports** panel.
+Check that its visibility says **Public**, so the link can be shared; if
+it says Private, right-click it and choose **Port Visibility → Public**.
+The full
 instructions, including running it without a codespace, are in the
 [Mortgage Hub README](MortgageHub/README.md).
+
+### Running it locally
+
+Put your key in `MortgageHub/.env` (copy
+[MortgageHub/.env.example](MortgageHub/.env.example)) or export
+`AITYX_API_KEY`. Then, from the root of this repository, either:
+
+```bash
+# With Docker alone: builds the web app and the API, then starts both
+docker compose -f MortgageHub/compose.yaml up --build
+
+# Or with Devbox: the Flutter dev server (hot reload), the API and a health monitor
+devbox services up -c MortgageHub --pcflags "--tui=false"
+```
+
+Both serve the app at http://localhost:8880/app/. Stop them with
+`docker compose -f MortgageHub/compose.yaml down` or
+`devbox services stop -c MortgageHub`.
 
 ## Payroll
 

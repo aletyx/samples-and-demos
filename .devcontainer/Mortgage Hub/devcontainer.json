@@ -46,21 +46,22 @@
       "documentationUrl": "https://stage.aityx.ai/docs"
     }
   },
-  // flutter and dart on the PATH of every terminal, from the same devbox
-  // profile. ${containerEnv:PATH} is the image's own PATH.
+  // The image's flutter and dart on the PATH of every terminal.
+  // ${containerEnv:PATH} is the image's own PATH. Inside `devbox shell`
+  // and `devbox services up`, devbox's Flutter, the same version, comes
+  // first.
   "remoteEnv": {
-    "PATH": "/home/vscode/flutter/bin:${containerEnv:PATH}"
+    "PATH": "/opt/flutter/bin:${containerEnv:PATH}"
   },
   "customizations": {
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        // post-create.sh links this to devbox's profile, which is a
-        // complete Flutter SDK (bin/flutter, bin/cache/dart-sdk,
-        // packages/flutter_tools). Without it the Dart extension reports
-        // "Could not find a Flutter SDK", because devbox keeps the
-        // toolchain in the workspace rather than on the PATH.
-        "dart.flutterSdkPath": "/home/vscode/flutter"
+        // The Flutter SDK baked into the image (see Containerfile), there
+        // from the moment VS Code attaches. Devbox's own Flutter only
+        // appears once post-create.sh has run `devbox install`, too late
+        // for the Dart extension, which then offers to download one.
+        "dart.flutterSdkPath": "/opt/flutter"
       },
       "extensions": [
         "Dart-Code.dart-code",
@@ -68,10 +69,25 @@
       ]
     }
   },
+  // Only the web app's port. The API (8881) stays inside the container:
+  // the app reaches it through the web server's /api/ proxy. The port's
+  // bare URL redirects to the app at /app/. Plain HTTP, which is what the
+  // dev server speaks; switching a public port to HTTPS makes it private.
+  // post-start.sh makes it public, which devcontainer.json cannot.
   "forwardPorts": [8880],
   "portsAttributes": {
-    "8880": { "label": "Mortgage Hub web app" }
+    "8880": {
+      "label": "Mortgage Hub web app",
+      "protocol": "http",
+      "onAutoForward": "openBrowserOnce"
+    }
   },
-  // Runs from the repository root; the script moves to MortgageHub/ itself.
-  "postCreateCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-create.sh\"'"
+  // Both run from the repository root; the scripts move to MortgageHub/
+  // themselves. post-create.sh installs the toolchain once; post-start.sh
+  // starts the services and makes the port public on every start.
+  "postCreateCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-create.sh\"'",
+  "postStartCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-start.sh\"'",
+  // Again each time VS Code attaches: a visibility set at start does not
+  // always stick, and users report it does from here.
+  "postAttachCommand": "bash \".devcontainer/Mortgage Hub/public-port.sh\""
 }

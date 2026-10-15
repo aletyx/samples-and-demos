@@ -10,17 +10,46 @@ process it under current US rules, run by [aityx.ai](https://aityx.ai).
 | Part | Technology |
 |---|---|
 | App ([mortgagehub_app/](mortgagehub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
-| API ([mortgagehub_api/](mortgagehub_api)) | Dart (`dart:io`): holds the aityx key and runs the regulatory check |
+| API ([mortgagehub_api/](mortgagehub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key and runs the regulatory check |
 | Rules | An [aityx.ai](https://aityx.ai) decision model ([proposal-check.json](mortgagehub_api/models/proposal-check.json)) |
-| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services |
+| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
-[devbox.lock](devbox.lock): Flutter, Python, GNU Make and curl.
+[devbox.lock](devbox.lock): Flutter, GNU Make and curl.
+
+## Run it with Docker Compose
+
+With only [Docker](https://docs.docker.com/get-docker/) installed (no
+devbox, no Flutter), from this folder:
+
+```bash
+docker compose up --build
+```
+
+and open http://localhost:8880/app/. [compose.yaml](compose.yaml) builds
+and starts two services:
+
+| Service | What |
+|---|---|
+| `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
+| `api` | The API compiled to a native executable ([mortgagehub_api/Dockerfile](mortgagehub_api/Dockerfile)); not published, reached only through `web` |
+
+For the regulatory check, copy [.env.example](.env.example) to `.env`
+and fill in your [aityx](https://aityx.ai) key, `AITYX_API_KEY` (or
+export it). The settings come from your environment, else `.env`, and go
+to the API only. The first build takes a few minutes
+(it downloads Flutter); later ones reuse Docker's cache. Set
+`FLUTTER_WEB_PORT` to change the port; the app is bound to 127.0.0.1
+unless you set `MORTGAGEHUB_BIND_HOST=0.0.0.0`. Stop it with
+`docker compose down`. Both services have health checks, so
+`docker compose ps` shows them `healthy`, and `docker compose up --wait`
+returns once they are. Unlike [devbox](#run-it-locally-with-devbox), there is no hot
+reload: rebuild after a change.
 
 ## Run it locally with devbox
 
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
-2. For the regulatory check, put your own aityx settings in `.env` (see
+2. For the regulatory check, put your own [aityx](https://aityx.ai) settings in `.env` (see
    [.env.example](.env.example)): `AITYX_API_KEY`, and
    `AITYX_URL=https://console-stage.aityx.ai` for a stage key. In a
    codespace GitHub asks for the key instead; see
@@ -42,7 +71,7 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 A `health-check` monitor logs one line every 15 s (set
 `HEALTH_CHECK_INTERVAL` to change it): the time, then each check as its
-emoji, a short label and ✅ ok / ❌ failed (🤖 aityx is ⚪ when the API
+emoji, a short label and ✅ ok / ❌ failed (🤖 [aityx](https://aityx.ai) is ⚪ when the API
 has no key):
 
 ```
@@ -75,7 +104,7 @@ The version is `X.Y.Z`: X and Y from [version.X.txt](version.X.txt) and
 
 ## Run it in a codespace
 
-### 1. Set your aityx key — required
+### 1. Set your [aityx](https://aityx.ai) key — required
 
 The regulatory check runs on [aityx.ai](https://aityx.ai), and it needs an
 API key. The key is always **yours**: none ships with this repository and
@@ -85,7 +114,7 @@ show — cannot run.
 
 Set it once, before launching:
 
-1. Open your aityx console's **API keys** page and copy a key.
+1. Open your [aityx](https://aityx.ai) console's **API keys** page and copy a key.
 2. Go to
    [github.com/settings/codespaces](https://github.com/settings/codespaces).
 3. Under **Codespaces secrets**, choose **New secret**.
@@ -119,15 +148,39 @@ the repository holds several samples, so the configuration matters.
 On first start,
 [post-create.sh](../.devcontainer/Mortgage%20Hub/post-create.sh) moves to
 this folder, downloads the locked Nix store paths and runs `devbox
-install`; it also says whether your key arrived. Then:
+install`; it also says whether your key arrived. Then, on that and every
+later start,
+[post-start.sh](../.devcontainer/Mortgage%20Hub/post-start.sh) starts the
+services in the background and makes port **8880** public. There is
+nothing to run: once the app has compiled, a minute or two on the first
+start, open port 8880 from the **Ports** panel (Codespaces may open it
+in a browser tab for you). Its bare URL redirects to the app at `/app/`.
 
-```bash
-devbox services up --pcflags "--tui=false"
-```
+Watch the services with `devbox services attach`, restart them with
+`devbox services restart`, and stop them with `devbox services stop`.
 
-and open the forwarded port **8880** at `/app/`. Export `GITHUB_TOKEN` (for
-example `export GITHUB_TOKEN=$(gh auth token)`) before `devbox install` if
-it fails with HTTP 403.
+**If the app doesn't start, send us `MortgageHub/startup.log`.** Every
+step of the codespace's start goes there, timestamped: the install, the
+services' own output, the port's visibility, and a line saying when the
+web app and the API first answered (or, after 15 minutes without, their
+state). Open it from the Explorer, or right-click it and choose
+**Download**. It holds no secrets: your key and token appear only as
+*set* or *not set*.
+
+**Check the port's visibility.** In the **Ports** panel, the
+*Visibility* column for 8880 should say **Public**. The codespace sets
+it when it starts and again when VS Code attaches, but GitHub does not
+always apply it, and an organization can forbid public ports. If it says
+**Private**, right-click the port, choose **Port Visibility → Public**
+and reload the app. The panel can also lag behind the real setting; from
+a terminal, `gh codespace ports -c "$CODESPACE_NAME"` shows it, and
+`startup.log` says whether the automatic change worked.
+
+A public port opens for anyone you share the link with — and they run
+regulatory checks on your [aityx](https://aityx.ai) key. Set it back to
+private in the **Ports** panel if you don't want that. If
+`devbox install` fails with HTTP 403, export `GITHUB_TOKEN` (for example
+`export GITHUB_TOKEN=$(gh auth token)`) and run it again.
 
 ## Run it in a dev container locally
 
