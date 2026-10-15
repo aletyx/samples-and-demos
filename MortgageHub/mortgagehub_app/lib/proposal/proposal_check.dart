@@ -75,12 +75,12 @@ enum CheckStatus {
       values.firstWhere((status) => status.wireName == name);
 }
 
-/// The theme color of a verdict: aqua, yellow or red.
+/// The theme color of a verdict: green, amber or red.
 Color statusColor(BuildContext context, CheckStatus status) {
   final scheme = Theme.of(context).colorScheme;
   return switch (status) {
     CheckStatus.processable => scheme.secondary,
-    CheckStatus.needsReview => scheme.primary,
+    CheckStatus.needsReview => scheme.tertiary,
     CheckStatus.notProcessable => scheme.error,
   };
 }
