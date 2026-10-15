@@ -29,7 +29,7 @@ mortgage proposal.
   (Processable / Requires review / Not processable) under current US rules
   (Fannie Mae's matrix, 2026 FHFA and FHA limits, FHA, VA and USDA rules,
   DTI limits), executed by aityx.ai through the API.
-- [Theme](theme.md): the Gruvbox dark palette.
+- [Theme](theme.md): the aityx dark palette ([colors](theme-colors.txt)).
 - [App icon](app-icon.md): a yellow house with a dollar sign, the favicon
   and every platform's icon, generated from SVG masters.
 
