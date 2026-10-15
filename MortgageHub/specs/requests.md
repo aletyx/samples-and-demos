@@ -241,15 +241,13 @@ spec.
 32. **Add the logs to .gitignore, all of them.** `startup.log` was
     already ignored by `*.log`; it's now named too, and the repository's
     root `.gitignore` ignores `*.log` and `logs/` in every sample.
-<<<<<<< Updated upstream
 33. **Add screenshots of the codespace setup to the instructions.** The
     README's *Run it in a codespace* steps now show the *New secret* form
     (with a placeholder key) and the *Create a new codespace* page, with
     a note to check that `AITYX_API_KEY` is ticked as associated with the
     repository. The repository README points to them. See
     [Development environment](dev-environment.md).
-=======
-33. **Change the colors to use the same palette as the aityx website (from
+34. **Change the colors to use the same palette as the aityx website (from
     a screenshot); also save the color theme to a text file.** Replaced the
     Gruvbox theme with the aityx dark palette: near-black violet
     backgrounds, light gray text and the orange accent as primary. "Needs
@@ -257,4 +255,3 @@ spec.
     from the accent and from red. The web manifest colors follow; the app
     icon still uses Gruvbox colors. The palette is in
     [theme-colors.txt](theme-colors.txt). See [Theme](theme.md).
->>>>>>> Stashed changes
