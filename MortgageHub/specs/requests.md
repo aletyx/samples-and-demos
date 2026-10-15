@@ -238,3 +238,6 @@ spec.
     and holds no secrets. Tested in a Linux container with a stub devbox;
     the cause of the missed start in Codespaces is still to be found
     from a real log. See [Development environment](dev-environment.md).
+32. **Add the logs to .gitignore, all of them.** `startup.log` was
+    already ignored by `*.log`; it's now named too, and the repository's
+    root `.gitignore` ignores `*.log` and `logs/` in every sample.
