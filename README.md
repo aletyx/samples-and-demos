@@ -52,6 +52,24 @@ Once it starts, run `devbox services up --pcflags "--tui=false"` from
 instructions, including running it without a codespace, are in the
 [Mortgage Hub README](MortgageHub/README.md).
 
+### Running it locally
+
+Put your key in `MortgageHub/.env` (copy
+[MortgageHub/.env.example](MortgageHub/.env.example)) or export
+`AITYX_API_KEY`. Then, from the root of this repository, either:
+
+```bash
+# With Docker alone: builds the web app and the API, then starts both
+docker compose -f MortgageHub/compose.yaml up --build
+
+# Or with Devbox: the Flutter dev server (hot reload), the API and a health monitor
+devbox services up -c MortgageHub --pcflags "--tui=false"
+```
+
+Both serve the app at http://localhost:8880/app/. Stop them with
+`docker compose -f MortgageHub/compose.yaml down` or
+`devbox services stop -c MortgageHub`.
+
 ## Payroll
 
 [Payroll/](Payroll/) takes a written compensation policy and turns it into

@@ -12,7 +12,7 @@ process it under current US rules, run by [aityx.ai](https://aityx.ai).
 | App ([mortgagehub_app/](mortgagehub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
 | API ([mortgagehub_api/](mortgagehub_api)) | Dart (`dart:io`): holds the aityx key and runs the regulatory check |
 | Rules | An [aityx.ai](https://aityx.ai) decision model ([proposal-check.json](mortgagehub_api/models/proposal-check.json)) |
-| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services |
+| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
 [devbox.lock](devbox.lock): Flutter, Python, GNU Make and curl.
@@ -72,6 +72,31 @@ Pass `MODE=profile` or `MODE=debug` for other build modes, and
 The version is `X.Y.Z`: X and Y from [version.X.txt](version.X.txt) and
 [version.Y.txt](version.Y.txt), Z the build time (see
 [scripts/version.sh](scripts/version.sh)).
+
+## Run it with Docker Compose
+
+With only [Docker](https://docs.docker.com/get-docker/) installed (no
+devbox, no Flutter), from this folder:
+
+```bash
+docker compose up --build
+```
+
+and open http://localhost:8880/app/. [compose.yaml](compose.yaml) builds
+and starts two services:
+
+| Service | What |
+|---|---|
+| `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
+| `api` | The API compiled to a native executable ([mortgagehub_api/Dockerfile](mortgagehub_api/Dockerfile)); not published, reached only through `web` |
+
+The aityx settings come from your environment, else `.env`, as with
+devbox, and go to the API only. The first build takes a few minutes
+(it downloads Flutter); later ones reuse Docker's cache. Set
+`FLUTTER_WEB_PORT` to change the port; the app is bound to 127.0.0.1
+unless you set `MORTGAGEHUB_BIND_HOST=0.0.0.0`. Stop it with
+`docker compose down`. Unlike `devbox services up`, there is no hot
+reload: rebuild after a change.
 
 ## Run it in a codespace
 

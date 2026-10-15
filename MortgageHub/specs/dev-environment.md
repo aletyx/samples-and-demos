@@ -42,6 +42,30 @@
   [scripts/make.sh](../scripts/make.sh): `web`, `android`, `ios` (macOS),
   `linux` (Linux), `all` (what the host can build) and `clean`, with
   `MODE` (release, profile, debug), `IOS_CODESIGN` and `WEB_BASE_HREF`.
+- **Docker Compose** ([compose.yaml](../compose.yaml)): `docker compose up`
+  runs the app with Docker alone, on http://localhost:8880/app/
+  (`FLUTTER_WEB_PORT`), published on 127.0.0.1 unless
+  `MORTGAGEHUB_BIND_HOST` says otherwise. Two services:
+  - `web` ([docker/web.Dockerfile](../docker/web.Dockerfile)): installs
+    the Flutter devbox.lock pins (3.47.0; on x64 the release archive
+    checked against its SHA-256, on arm64 the git tag, as in the dev
+    container), runs `scripts/make.sh web` with `WEB_BASE_HREF=/app/` and
+    an empty `API_BASE_URL`, and serves the build with nginx 1.29, which
+    redirects `/` to `/app/`, falls back to `index.html` for the app's
+    routes and proxies `/api/` to `api`
+    ([docker/nginx.conf](../docker/nginx.conf)). Its build context is this
+    folder, narrowed by `web.Dockerfile.dockerignore` to the app, the two
+    scripts and the version files; the folder's own `.dockerignore` is
+    left as it was;
+  - `api` ([mortgagehub_api/Dockerfile](../mortgagehub_api/Dockerfile)):
+    `dart compile exe` with Dart 3.13.0, run from `scratch` with the Dart
+    image's `/runtime/` (libc, CA certificates) as user 65534, the model
+    beside it in `/app/models`. It binds 0.0.0.0:8881 inside the network
+    and is not published. Compose passes it `AITYX_API_KEY`, `AITYX_URL`
+    and `ASSUMED_RATE` (6.5 when empty) from the environment, else `.env`;
+    `web` gets none of them.
+  There is no hot reload and no health monitor; both restart
+  `unless-stopped`.
 - **Dev container**
   ([.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub)): at
   the root of the samples repository, not in this folder, because that is
@@ -91,4 +115,5 @@
 
 - The dev container hasn't been built yet, so neither the image nor the
   Codespaces secrets prompt has been exercised on GitHub.
-- No release, deploy or CI workflows: the API runs only locally.
+- No release, deploy or CI workflows: the API runs only locally, under
+  devbox or Docker Compose.

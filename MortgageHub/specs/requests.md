@@ -141,3 +141,17 @@ spec.
     `devcontainer.json` sets `dart.flutterSdkPath` to it and adds
     `~/flutter/bin` to the PATH of every terminal. See
     [Development environment](dev-environment.md).
+
+17. **Create a Docker Compose file so the app starts with `docker compose
+    up`.** Added [compose.yaml](../compose.yaml) with a `web` service (the
+    Flutter release web build behind nginx, which proxies `/api/`) and an
+    `api` service (the API as a native executable on `scratch`), their
+    Dockerfiles and the nginx config. Only the web port, 8880, is
+    published, on 127.0.0.1; the aityx key reaches the API alone. See
+    [Development environment](dev-environment.md).
+18. **Add to the README the commands to start it with Docker Compose or
+    devbox services from the root of the repository.** The repository's
+    README has a *Running it locally* section:
+    `docker compose -f MortgageHub/compose.yaml up --build` and
+    `devbox services up -c MortgageHub`, with their stop commands. Both
+    were run from the root.
