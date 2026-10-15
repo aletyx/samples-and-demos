@@ -142,24 +142,99 @@ spec.
     `~/flutter/bin` to the PATH of every terminal. See
     [Development environment](dev-environment.md).
 
-17. **Create a Docker Compose file so the app starts with `docker compose
+17. **VS Code still offers to download a Flutter SDK; put the SDK in the
+    image.** The link to devbox's Flutter came only after `devbox install`,
+    long after the Dart extension had looked. The Containerfile now
+    installs Flutter 3.47.0, devbox.lock's version, in `/opt/flutter`,
+    and `devcontainer.json` points the extension and the PATH there;
+    `post-create.sh` no longer links anything.
+18. **Make the web app's port public by default.** `public-port.sh`, run
+    on each start, makes port 8880 public through `gh`. It is the only
+    port forwarded; the API stays behind the web server's proxy. See
+    [Development environment](dev-environment.md).
+
+19. **devbox hangs at "Computing the Devbox environment" in a codespace.**
+    On Linux, devbox patches Python's glibc, which builds devbox itself
+    from Go source and fetches Python's build-time closure, inside the
+    codespace. Nothing in the project uses Python, so it is gone from
+    `devbox.json` and `devbox.lock`, and with it the patch step.
+
+20. **In the Show aityx request and response view, highlight the most
+    important parts of the long JSON, with a tooltip or overlay saying why
+    each matters.** The two JSON blocks are now an annotated view
+    (`aityx_json_view.dart`): the parts that explain the verdict (the
+    model and its cited rules, the facts, the verdict, each check and
+    reason, the figures, the receipt, the usage) are tinted, labelled, and
+    explained in a tooltip on hover or tap, with **Jump to** chips that
+    scroll to them in the long request and a copy button. The response
+    notes follow aityx's documented shape (`answers`, `receipt` with
+    `read`, `provenance`, `decisions`, `functions`, `usage`,
+    `decision_error`); they were not checked against a live answer, since
+    stage was behind Cloudflare WARP. See
+    [Regulatory check](regulatory-check.md).
+
+21. **Create a Docker Compose file so the app starts with `docker compose
     up`.** Added [compose.yaml](../compose.yaml) with a `web` service (the
     Flutter release web build behind nginx, which proxies `/api/`) and an
     `api` service (the API as a native executable on `scratch`), their
     Dockerfiles and the nginx config. Only the web port, 8880, is
     published, on 127.0.0.1; the aityx key reaches the API alone. See
     [Development environment](dev-environment.md).
-18. **Add to the README the commands to start it with Docker Compose or
+22. **Add to the README the commands to start it with Docker Compose or
     devbox services from the root of the repository.** The repository's
     README has a *Running it locally* section:
     `docker compose -f MortgageHub/compose.yaml up --build` and
     `devbox services up -c MortgageHub`, with their stop commands. Both
     were run from the root.
-19. **Add a health check** to the Docker Compose services. `api` checks
+23. **Add a health check** to the Docker Compose services. `api` checks
     its own `/api/health` with a new `server healthcheck` mode, `web`
     checks `/app/` and the proxied `/api/health`, and `web` waits for a
     healthy `api`. See [Development environment](dev-environment.md).
-20. **Link aityx to aityx.ai wherever the READMEs mention it.** The
+24. **Link aityx to aityx.ai wherever the READMEs mention it.** The
     plain mentions of aityx and aityx.ai in the repository README and
     this folder's README now link to https://aityx.ai; code, commands and
     existing links are left as they were.
+25. **When a proposal is Not processable, mark in red, with a tooltip like
+    the other highlights, where the response asserts it.** Notes can now
+    apply only to some values (`when`) and be drawn in the error color
+    (`alarm`). Three red notes mark `answers.status.choice`
+    (`not_processable`), each failed check's value, and
+    `receipt.decisions.status.value`. See
+    [Regulatory check](regulatory-check.md).
+26. **A lighter shade of red, and the response before the request.** The
+    Not processable highlights use the theme's red lightened by a third,
+    with a softer tint, and *Show aityx request and response* now shows
+    aityx's response first, then the request. See
+    [Regulatory check](regulatory-check.md).
+27. **Check whether the store-path pre-fetch is still needed.** It isn't:
+    in a clean Linux container, `devbox install` alone finished in about
+    1.5 minutes and copied every path it uses from cache.nixos.org. The
+    pre-fetch also downloaded debug, dev and doc outputs nothing uses.
+    `post-create.sh` no longer pre-fetches.
+
+28. **Make the port public by default and forwarded correctly, so users
+    can start the codespace and open the app right away.** A new
+    `post-start.sh`, run on every start, starts the services in the
+    background and runs `public-port.sh`. Port 8880 is forwarded as HTTP
+    and opens in the browser once. The site root now redirects to
+    `/app/`: the dev server proxies `/` to the API, which answers with a
+    302. See [Development environment](dev-environment.md).
+
+29. **The port is still private; tell users to check its visibility.**
+    `public-port.sh` now also runs when VS Code attaches, and skips if a
+    run is still retrying. Both READMEs' codespace steps now say to check
+    that port 8880 is Public in the Ports panel, and how to set it by hand.
+30. **Show the Docker Compose instructions first, then devbox.** In this
+    folder's README, *Run it with Docker Compose* now comes before *Run it
+    locally with devbox*, and says itself how to set the aityx key. The
+    repository README already listed Docker Compose first.
+31. **The app should start by itself in a codespace but doesn't; keep a
+    log about service initialization that can be sent.** Added
+    `MortgageHub/startup.log`: the post-create, post-start and
+    public-port scripts write every step to it with a UTC time and a
+    tag, along with the services' own output and a watcher that records when
+    the web app and the API answer, or their state after 15 minutes. It
+    replaces `/tmp/mortgagehub-services.log` and `/tmp/public-port.log`
+    and holds no secrets. Tested in a Linux container with a stub devbox;
+    the cause of the missed start in Codespaces is still to be found
+    from a real log. See [Development environment](dev-environment.md).

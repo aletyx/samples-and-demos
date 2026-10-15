@@ -113,6 +113,13 @@ Future<void> _handle(
     final path = request.uri.path;
     if (request.method == 'OPTIONS') {
       response.statusCode = HttpStatus.noContent;
+    } else if (path == '/' && request.method == 'GET') {
+      // The site root, which the dev server proxies here
+      // (scripts/flutter-web.sh), so a forwarded port's bare URL opens the
+      // app. Relative, so it keeps the forwarded host and port.
+      response
+        ..statusCode = HttpStatus.found
+        ..headers.set(HttpHeaders.locationHeader, '/app/');
     } else if (path == '/api/health' && request.method == 'GET') {
       _json(response, 200, {'ok': true, 'aityx': key.isNotEmpty});
     } else if (path == '/api/proposals/check' && request.method == 'POST') {
