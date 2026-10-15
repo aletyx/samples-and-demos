@@ -201,3 +201,8 @@ spec.
     (`not_processable`), each failed check's value, and
     `receipt.decisions.status.value`. See
     [Regulatory check](regulatory-check.md).
+26. **A lighter shade of red, and the response before the request.** The
+    Not processable highlights use the theme's red lightened by a third,
+    with a softer tint, and *Show aityx request and response* now shows
+    aityx's response first, then the request. See
+    [Regulatory check](regulatory-check.md).

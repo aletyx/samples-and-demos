@@ -363,13 +363,14 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
             ),
           ),
         ),
+        // The response first: it holds the verdict and why.
         if (_showAityx) ...[
+          AityxJsonView('Response', check.aityxResponse, notes: responseNotes),
           AityxJsonView(
             'Request: POST /v1/systemone (the API key is not shown)',
             check.aityxRequest,
             notes: requestNotes,
           ),
-          AityxJsonView('Response', check.aityxResponse, notes: responseNotes),
         ],
       ],
     ];
