@@ -1,0 +1,56 @@
+{
+  // This repository holds several samples. This dev container is the
+  // Mortgage Hub demo app, in MortgageHub/ — not Mortgage_Process or
+  // Payroll. The name is what GitHub shows in the "Dev container
+  // configuration" list when you create a codespace.
+  "name": "Mortgage Hub demo app",
+  "build": {
+    "dockerfile": "Containerfile",
+    // Nothing is copied into the image, so the build context is just this
+    // folder rather than the whole repository.
+    "context": "."
+  },
+  "remoteUser": "vscode",
+  // The dev servers must listen on every interface for the forwarded
+  // ports to reach them (only the container sees them).
+  "containerEnv": {
+    "MORTGAGEHUB_BIND_HOST": "0.0.0.0"
+  },
+  // Your own keys, never the repository's. GitHub asks for any of these it
+  // does not already hold when you create a codespace, stores them against
+  // your account, and passes them to the container as environment
+  // variables. The app's scripts read the environment first and fall back
+  // to MortgageHub/.env, so a local dev container can use that file
+  // instead. Existing values can be changed at
+  // https://github.com/settings/codespaces.
+  "secrets": {
+    "AITYX_API_KEY": {
+      "description": "Your own aityx.ai API key. The regulatory check needs it; the rest of the app runs without it.",
+      "documentationUrl": "https://stage.aityx.ai/docs"
+    },
+    "AITYX_URL": {
+      "description": "The aityx API base URL. Leave empty for https://api.aityx.ai. A stage key needs https://console-stage.aityx.ai.",
+      "documentationUrl": "https://stage.aityx.ai/docs"
+    },
+    "ASSUMED_RATE": {
+      "description": "The payment estimate's annual rate, in percent. Leave empty for 6.5."
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ]
+    }
+  },
+  "forwardPorts": [8880],
+  "portsAttributes": {
+    "8880": { "label": "Mortgage Hub web app" }
+  },
+  // Runs from the repository root; the script moves to MortgageHub/ itself.
+  "postCreateCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-create.sh\"'"
+}

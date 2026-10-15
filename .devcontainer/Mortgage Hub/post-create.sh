@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Runs once when the dev container is created (postCreateCommand).
 #
+# This repository holds several samples. This container is for the Mortgage
+# Hub demo app, so everything below runs in MortgageHub/, where devbox.json
+# and devbox.lock live.
+#
 # Devbox has Nix resolve flakes through api.github.com: its own on
 # `devbox install`, and nixpkgs when `devbox services up` first installs
 # process-compose. Unauthenticated, that API allows 60 requests an hour per
@@ -25,6 +29,24 @@ if [[ -n "${GITHUB_TOKEN:-}" ]]; then
   export NIX_CONFIG="access-tokens = github.com=${GITHUB_TOKEN}"
 fi
 export PATH="$HOME/.nix-profile/bin:$PATH"
+
+# The app, two levels up from .devcontainer/Mortgage Hub/ and then into
+# MortgageHub/. Resolved from this script rather than the caller's
+# directory, so it does not matter where it is run from.
+app="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/MortgageHub"
+cd "$app" || { echo "post-create: cannot find $app" >&2; exit 1; }
+
+# The aityx key is the user's own, passed in as a Codespaces secret (see
+# devcontainer.json) or put in .env. Report only whether it arrived: the
+# value must never be printed.
+if [[ -n "${AITYX_API_KEY:-}" ]]; then
+  echo "post-create: AITYX_API_KEY is set, the regulatory check can run"
+else
+  echo "post-create: AITYX_API_KEY is not set. Everything but the regulatory"
+  echo "post-create: check works without it. To set it, add a Codespaces"
+  echo "post-create: secret at https://github.com/settings/codespaces, or"
+  echo "post-create: copy MortgageHub/.env.example to .env and fill it in."
+fi
 
 # A failure says which step failed and how much disk is left, the likeliest
 # cause on a small machine.

@@ -10,11 +10,16 @@
 The [regulatory check](regulatory-check.md) uses it, through the API
 ([mortgagehub_api/](../mortgagehub_api)), which holds the key.
 
-- **Key:** `AITYX_API_KEY` in `.env` (git-ignored, mode 600). It's a
-  secret: it's never passed to Flutter (no `--dart-define`), since
-  anything compiled in is readable in the web bundle. When the app needs
-  aityx, the calls go through the API (`scripts/api.sh` exports it to the
-  server's own environment only).
+- **Key:** `AITYX_API_KEY`, always the user's own; none ships with the
+  repository. It arrives either from the environment or from `.env`
+  (git-ignored, mode 600), and the scripts prefer the environment. In a
+  codespace it comes from the environment: `devcontainer.json` declares it
+  under `secrets`, so GitHub asks the person creating the codespace for
+  it, keeps it against their account, and passes it in without writing it
+  to disk. It's a secret: it's never passed to Flutter (no
+  `--dart-define`), since anything compiled in is readable in the web
+  bundle. When the app needs aityx, the calls go through the API
+  (`scripts/api.sh` exports it to the server's own environment only).
 - **Base URL:** `AITYX_URL`, by default `https://api.aityx.ai`, the one
   the docs name. The stage key works only on stage: `.env` sets
   `AITYX_URL=https://console-stage.aityx.ai`, the origin the stage

@@ -42,16 +42,31 @@
   [scripts/make.sh](../scripts/make.sh): `web`, `android`, `ios` (macOS),
   `linux` (Linux), `all` (what the host can build) and `clean`, with
   `MODE` (release, profile, debug), `IOS_CODESIGN` and `WEB_BASE_HREF`.
-- **Dev container** ([.devcontainer/](../.devcontainer)): Microsoft's
-  `ubuntu-24.04` base, with Devbox 0.18.1 and Nix 2.35.0 pinned and checked
-  against their published SHA-256.
-  [post-create.sh](../.devcontainer/post-create.sh) fetches the locked Nix
-  store paths from cache.nixos.org, then runs `devbox install`, and passes
-  `GITHUB_TOKEN` to Nix so api.github.com doesn't rate-limit it. It sets
-  `MORTGAGEHUB_BIND_HOST=0.0.0.0`, forwards port 8880 and adds the Dart and
-  Flutter extensions.
+- **Dev container**
+  ([.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub)): at
+  the root of the samples repository, not in this folder, because that is
+  the only place GitHub looks for one. It is named **Mortgage Hub demo
+  app**, so the configuration is identifiable when creating a codespace on
+  a repository that holds several samples. Microsoft's `ubuntu-24.04`
+  base, with Devbox 0.18.1 and Nix 2.35.0 pinned and checked against their
+  published SHA-256.
+  [post-create.sh](../../.devcontainer/Mortgage%20Hub/post-create.sh)
+  resolves this folder from its own location and moves there, fetches the
+  locked Nix store paths from cache.nixos.org, then runs `devbox install`,
+  and passes `GITHUB_TOKEN` to Nix so api.github.com doesn't rate-limit
+  it. It reports whether `AITYX_API_KEY` arrived, never its value. The
+  container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`, forwards port 8880 and
+  adds the Dart and Flutter extensions. Nothing is copied into the image,
+  so the build context is the dev container folder alone.
+- **Codespaces secrets**: `devcontainer.json` declares `AITYX_API_KEY`,
+  `AITYX_URL` and `ASSUMED_RATE` under `secrets`, so GitHub asks the
+  person creating a codespace for their own values, keeps them against
+  their account and passes them in as environment variables. The
+  repository ships no key. A local dev container uses `.env` instead,
+  which the scripts already fall back to.
 
 ## Known limitations
 
-- The dev container hasn't been built yet.
+- The dev container hasn't been built yet, so neither the image nor the
+  Codespaces secrets prompt has been exercised on GitHub.
 - No release, deploy or CI workflows: the API runs only locally.
