@@ -36,7 +36,7 @@ if [[ -n "${GITHUB_TOKEN:-}" ]]; then
 fi
 export PATH="$HOME/.nix-profile/bin:$PATH"
 
-# The app, two levels up from .devcontainer/Mortgage Hub/ and then into
+# The app, two levels up from .devcontainer/MortgageHub/ and then into
 # MortgageHub/. Resolved from this script rather than the caller's
 # directory, so it does not matter where it is run from.
 app="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/MortgageHub"

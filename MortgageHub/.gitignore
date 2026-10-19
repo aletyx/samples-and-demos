@@ -14,7 +14,7 @@ build/
 
 # --- Logs & OS noise ---
 *.log
-# The codespace's start-up log (see .devcontainer/Mortgage Hub/startup-log.sh)
+# The codespace's start-up log (see .devcontainer/MortgageHub/startup-log.sh)
 startup.log
 .DS_Store
 Thumbs.db

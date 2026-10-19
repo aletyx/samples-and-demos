@@ -86,7 +86,7 @@ spec.
     are launching on Codespaces; and pass the user's own API key in.**
     GitHub only looks for dev containers at the repository root, so
     `MortgageHub/.devcontainer/` moved to
-    [.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub) and
+    [.devcontainer/MortgageHub/](../../.devcontainer/Mortgage%20Hub) and
     the configuration is now named **Mortgage Hub**, which is
     what the Codespaces configuration list shows in a repository holding
     several samples. The Containerfile no longer assumes the repository is

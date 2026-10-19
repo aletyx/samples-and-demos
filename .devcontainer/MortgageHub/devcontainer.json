@@ -42,8 +42,8 @@
   // only against https://console-stage.aityx.ai).
   "secrets": {
     "AITYX_API_KEY": {
-      "description": "Required. Your own aityx.ai API key, from the console's API keys page. The regulatory check does not work without it.",
-      "documentationUrl": "https://stage.aityx.ai/docs"
+      "description": "Required. Your own aityx.ai API key, from the console's API keys page.",
+      "documentationUrl": "https://aityx.ai/docs"
     }
   },
   // The image's flutter and dart on the PATH of every terminal.
@@ -85,9 +85,9 @@
   // Both run from the repository root; the scripts move to MortgageHub/
   // themselves. post-create.sh installs the toolchain once; post-start.sh
   // starts the services and makes the port public on every start.
-  "postCreateCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-create.sh\"'",
-  "postStartCommand": "bash -lc 'bash \".devcontainer/Mortgage Hub/post-start.sh\"'",
+  "postCreateCommand": "bash -lc 'bash \".devcontainer/MortgageHub/post-create.sh\"'",
+  "postStartCommand": "bash -lc 'bash \".devcontainer/MortgageHub/post-start.sh\"'",
   // Again each time VS Code attaches: a visibility set at start does not
   // always stick, and users report it does from here.
-  "postAttachCommand": "bash \".devcontainer/Mortgage Hub/public-port.sh\""
+  "postAttachCommand": "bash \".devcontainer/MortgageHub/public-port.sh\""
 }

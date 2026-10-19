@@ -195,7 +195,7 @@ private in the **Ports** panel if you don't want that. If
 
 Open the repository root in VS Code and choose **Reopen in Container**,
 then **Mortgage Hub**. The dev container lives at the root of the
-repository, in [.devcontainer/Mortgage Hub/](../.devcontainer/Mortgage%20Hub),
+repository, in [.devcontainer/MortgageHub/](../.devcontainer/Mortgage%20Hub),
 because that is where GitHub looks for one.
 
 The [Containerfile](../.devcontainer/Mortgage%20Hub/Containerfile) starts

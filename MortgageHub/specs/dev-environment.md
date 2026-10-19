@@ -72,7 +72,7 @@
   and `docker compose up --wait` returns once both are. There is no hot
   reload; both restart `unless-stopped`.
 - **Dev container**
-  ([.devcontainer/Mortgage Hub/](../../.devcontainer/Mortgage%20Hub)): at
+  ([.devcontainer/MortgageHub/](../../.devcontainer/Mortgage%20Hub)): at
   the root of the samples repository, not in this folder, because that is
   the only place GitHub looks for one. It is named **Mortgage Hub**, so the
   configuration is identifiable when creating a codespace on a repository
