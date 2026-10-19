@@ -72,7 +72,7 @@
   and `docker compose up --wait` returns once both are. There is no hot
   reload; both restart `unless-stopped`.
 - **Dev container**
-  ([.devcontainer/MortgageHub/](../../.devcontainer/Mortgage%20Hub)): at
+  ([.devcontainer/MortgageHub/](../../.devcontainer/MortgageHub)): at
   the root of the samples repository, not in this folder, because that is
   the only place GitHub looks for one. It is named **Mortgage Hub**, so the
   configuration is identifiable when creating a codespace on a repository
@@ -81,7 +81,7 @@
   nu01.com. Microsoft's `ubuntu-24.04`
   base, with Devbox 0.18.1 and Nix 2.35.0 pinned and checked against their
   published SHA-256.
-  [post-create.sh](../../.devcontainer/Mortgage%20Hub/post-create.sh)
+  [post-create.sh](../../.devcontainer/MortgageHub/post-create.sh)
   resolves this folder from its own location and moves there, then runs
   `devbox install`, which copies the locked store paths from
   cache.nixos.org, and passes `GITHUB_TOKEN` to Nix so api.github.com
@@ -102,7 +102,7 @@
   is copied into the image, so the build context is the dev container
   folder alone.
 - **Starts by itself**: `postStartCommand` runs
-  [post-start.sh](../../.devcontainer/Mortgage%20Hub/post-start.sh) on
+  [post-start.sh](../../.devcontainer/MortgageHub/post-start.sh) on
   every start (after `post-create.sh` on the first), which runs
   `devbox services up -b` detached, then `public-port.sh`. Port 8880 is
   forwarded as plain HTTP with `onAutoForward: openBrowserOnce`. The web
@@ -112,7 +112,7 @@
   Compose.
 - **Start-up log**: `MortgageHub/startup.log` (git-ignored, as every
   `*.log`), written through
-  [startup-log.sh](../../.devcontainer/Mortgage%20Hub/startup-log.sh),
+  [startup-log.sh](../../.devcontainer/MortgageHub/startup-log.sh),
   which the three scripts source. Each line has a UTC time and a tag:
   `post-create` (with `devbox install`'s output and duration),
   `post-start`, `services` (`devbox services up -b`'s output),
@@ -128,7 +128,7 @@
   download it from the Explorer and send it; the README asks them to when
   the app doesn't start.
 - **Public web port**:
-  [public-port.sh](../../.devcontainer/Mortgage%20Hub/public-port.sh)
+  [public-port.sh](../../.devcontainer/MortgageHub/public-port.sh)
   in a codespace makes port 8880 public with
   `gh codespace ports visibility`, retrying in the background (every
   10 s, for up to 20 minutes) until the port is forwarded. `devcontainer.json` has no setting for it. Only

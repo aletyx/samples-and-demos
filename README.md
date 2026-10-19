@@ -41,7 +41,7 @@ GitHub asks for it on the codespace creation page. The
 [Mortgage Hub README](MortgageHub/README.md#run-it-in-a-codespace) shows
 both screens, the secret form and the creation page.
 
-[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgage%20Hub%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb)
 
 That opens the **Mortgage Hub** dev container on a 4-core machine (16 GB
 RAM), which is what the Flutter and Nix builds want. This repository holds

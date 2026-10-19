@@ -124,7 +124,7 @@ Set it once, before launching:
 ![The New secret form: name AITYX_API_KEY, the key as the value, and access to aletyx/samples-and-demos](docs/images/codespaces-new-secret.png)
 
 If you skip this, GitHub asks for the key on the codespace creation page,
-because [devcontainer.json](../.devcontainer/Mortgage%20Hub/devcontainer.json)
+because [devcontainer.json](../.devcontainer/MortgageHub/devcontainer.json)
 lists it as a required secret. Either way GitHub keeps it against your
 account and passes it to the container as an environment variable: it is
 never written to disk there, never committed, and never reaches the Flutter
@@ -137,7 +137,7 @@ key, for instance, works only against `https://console-stage.aityx.ai`.
 
 ### 2. Launch it
 
-[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgage%20Hub%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb)
 
 That link opens this repository's **Mortgage Hub** dev container on a
 4-core machine (16 GB RAM), which is what the Flutter and Nix builds want.
@@ -155,11 +155,11 @@ not ticked, the secret does not reach this repository; go back to step 1.
 ### 3. Run the app
 
 On first start,
-[post-create.sh](../.devcontainer/Mortgage%20Hub/post-create.sh) moves to
+[post-create.sh](../.devcontainer/MortgageHub/post-create.sh) moves to
 this folder, downloads the locked Nix store paths and runs `devbox
 install`; it also says whether your key arrived. Then, on that and every
 later start,
-[post-start.sh](../.devcontainer/Mortgage%20Hub/post-start.sh) starts the
+[post-start.sh](../.devcontainer/MortgageHub/post-start.sh) starts the
 services in the background and makes port **8880** public. There is
 nothing to run: once the app has compiled, a minute or two on the first
 start, open port 8880 from the **Ports** panel (Codespaces may open it
@@ -195,10 +195,10 @@ private in the **Ports** panel if you don't want that. If
 
 Open the repository root in VS Code and choose **Reopen in Container**,
 then **Mortgage Hub**. The dev container lives at the root of the
-repository, in [.devcontainer/MortgageHub/](../.devcontainer/Mortgage%20Hub),
+repository, in [.devcontainer/MortgageHub/](../.devcontainer/MortgageHub),
 because that is where GitHub looks for one.
 
-The [Containerfile](../.devcontainer/Mortgage%20Hub/Containerfile) starts
+The [Containerfile](../.devcontainer/MortgageHub/Containerfile) starts
 from Microsoft's `ubuntu-24.04` devcontainer base image and installs
 pinned, checksum-verified releases of Devbox and Nix.
 
