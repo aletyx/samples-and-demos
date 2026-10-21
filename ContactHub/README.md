@@ -3,16 +3,15 @@
 Contact Hub lets someone ask anything and gets the question to the right
 department or person, with the checks it needs run on the way. For now the
 welcome page takes the request, typed or dictated, with speech recognized
-in the browser so no audio leaves the device, and a Hello page checks the
-app reaches its API. Routing, run by [aityx.ai](https://aityx.ai), comes
-next.
+in the browser so no audio leaves the device. Routing, run by
+[aityx.ai](https://aityx.ai), comes next.
 
 ## Technology
 
 | Part | Technology |
 |---|---|
 | App ([contacthub_app/](contacthub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
-| API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key; for now `/api/health` and `/api/hello` |
+| API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key; for now only `/api/health` |
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
@@ -43,10 +42,7 @@ The ports are 8890 and 8891, so Contact Hub runs alongside Mortgage Hub
 or so. Type a request, or press the microphone beside the field and say
 it: the browser asks for the microphone the first time, and Chrome or
 Edge install their on-device English pack, while other browsers download
-a small speech model (see [Request box](specs/request.md)). The
-**Say hello** link opens the Hello page, which shows "Hello, world!" and
-the API's greeting, proving the whole path, from the app through the
-proxy to the API, works.
+a small speech model (see [Request box](specs/request.md)).
 
 Once both are ready, the `health-check` monitor prints where to open the
 app (in a codespace, its forwarded URL too), waits 5 s

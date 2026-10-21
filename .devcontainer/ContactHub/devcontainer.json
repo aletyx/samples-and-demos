@@ -4,8 +4,8 @@
   //
   // A demo where someone can ask anything and the question is routed to
   // the right department or person, with its checks run on the way. For
-  // now it is the scaffolding: a Flutter app (web, Android, iOS, Linux)
-  // with a welcome page and a Hello page, and a Dart API.
+  // now a Flutter app (web, Android, iOS, Linux) whose welcome page takes
+  // the request, typed or dictated, and a Dart API.
   //
   // Source:  https://github.com/aletyx/samples-and-demos (ContactHub/)
   // Rules:   https://aityx.ai — will run the routing decisions

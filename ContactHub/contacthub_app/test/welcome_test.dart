@@ -7,7 +7,7 @@ void main() {
 
     expect(find.byType(WelcomeScreen), findsOneWidget);
     expect(find.text('Welcome to Contact Hub'), findsOneWidget);
-    expect(find.text('Say hello'), findsOneWidget);
+    expect(find.byType(RequestBox), findsOneWidget);
   });
 
   testWidgets('shows no version when the build sets none', (tester) async {

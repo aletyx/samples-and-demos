@@ -9,7 +9,6 @@ app's home. Centered, at most 560 px wide:
 - "Ask anything, and we get it to the right person.", muted;
 - the [request box](request.md): a field for the request, typed or
   dictated with the microphone beside it, and **Send**;
-- a **Say hello** link, which opens the [Hello page](hello.md);
 - the build's version, `X.Y.Z` (see
   [Development environment](dev-environment.md)), small and faint, only
   when the build sets `CONTACTHUB_VERSION`.

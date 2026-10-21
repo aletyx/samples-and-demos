@@ -59,3 +59,8 @@ The feature files hold the current specification; see the
    WebGPU or WASM, transcribing when you stop. The server-based Web Speech
    mode is never used. **Say hello** became a link under the box. No voice
    input in the Android, iOS and Linux apps yet.
+6. **Remove the Hello feature, which was only there to get started.**
+   Removed the Hello page and its greeter from the app, with the **Say
+   hello** link and the `http` package only it used, and `GET /api/hello`
+   from the API. The API stays, with `/` and `/api/health` and the aityx
+   key, for routing; its spec moved from `hello.md` to [API](api.md).

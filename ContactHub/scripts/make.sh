@@ -7,7 +7,7 @@
 #   MODE          release (default), profile or debug
 #   IOS_CODESIGN  1 to sign the iOS build (needs a signing team in Xcode);
 #                 unsigned by default
-#   API_BASE_URL  the API the app calls (the Hello page's greeting)
+#   API_BASE_URL  the API the app will call for routing
 #                 (default http://localhost:8891; empty: the app's origin)
 #   WEB_BASE_HREF the web build's base href, e.g. /app/ to serve it where the
 #                 dev server does; / by default

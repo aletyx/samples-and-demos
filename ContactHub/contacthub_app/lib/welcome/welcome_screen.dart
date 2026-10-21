@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../app_version.dart';
-import '../hello/greeting.dart';
-import '../hello/hello_screen.dart';
 import '../request/request_box.dart';
 import '../request/voice_input.dart';
 
 /// The app's home: the name, a one-line welcome, the request box (typed
-/// or dictated), a link to the Hello page and, when the build sets it, the
-/// version.
+/// or dictated) and, when the build sets it, the version.
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key, this.greeter, this.voice});
-
-  /// Passed on to the Hello page.
-  final Greeter? greeter;
+  const WelcomeScreen({super.key, this.voice});
 
   /// Passed on to the request box.
   final VoiceInput? voice;
@@ -67,16 +61,6 @@ class WelcomeScreen extends StatelessWidget {
                   RequestBox(
                     voice: voice,
                     onSubmit: (request) => _received(context, request),
-                  ),
-                  const SizedBox(height: 24),
-                  TextButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => HelloScreen(greeter: greeter),
-                      ),
-                    ),
-                    icon: const Icon(Icons.waving_hand_outlined),
-                    label: const Text('Say hello'),
                   ),
                   if (AppVersion.version.isNotEmpty) ...[
                     const SizedBox(height: 32),
