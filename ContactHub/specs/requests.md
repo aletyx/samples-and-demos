@@ -43,3 +43,19 @@ The feature files hold the current specification; see the
    prints `http://localhost:8890/app/` and, in a codespace, the forwarded
    URL, then waits `HEALTH_CHECK_DELAY` (5 s) before its first check. See
    [Development environment](dev-environment.md).
+
+## 2026-10-21 (later)
+
+5. **Add a text box where the user types their request, with a recording
+   icon beside it to dictate it; run efficient voice recognition in the
+   browser, client-side if possible, and process the request later.**
+   The welcome page now has the [request box](request.md): **Your
+   request**, a microphone button beside it, a status line and **Send**,
+   which for now only confirms the request was received. Speech is
+   recognized on the device only: the Web Speech API with
+   `processLocally = true` where the browser has it (Chrome, Edge),
+   installing the language pack on first use, with words appearing live;
+   else Moonshine tiny, run by transformers.js 4.3.1 in a Web Worker on
+   WebGPU or WASM, transcribing when you stop. The server-based Web Speech
+   mode is never used. **Say hello** became a link under the box. No voice
+   input in the Android, iOS and Linux apps yet.

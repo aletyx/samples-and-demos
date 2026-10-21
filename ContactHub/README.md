@@ -1,9 +1,11 @@
 # Contact Hub
 
 Contact Hub lets someone ask anything and gets the question to the right
-department or person, with the checks it needs run on the way. For now it
-is the scaffolding: a welcome page and a Hello page that checks the app
-reaches its API. Routing, run by [aityx.ai](https://aityx.ai), comes next.
+department or person, with the checks it needs run on the way. For now the
+welcome page takes the request, typed or dictated, with speech recognized
+in the browser so no audio leaves the device, and a Hello page checks the
+app reaches its API. Routing, run by [aityx.ai](https://aityx.ai), comes
+next.
 
 ## Technology
 
@@ -38,9 +40,13 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 The ports are 8890 and 8891, so Contact Hub runs alongside Mortgage Hub
 (8880 and 8881). The first start compiles the app, which takes a minute
-or so. Open the app and choose **Say hello**: the Hello page shows
-"Hello, world!" and the API's greeting, which proves the whole path, from
-the app through the proxy to the API, works.
+or so. Type a request, or press the microphone beside the field and say
+it: the browser asks for the microphone the first time, and Chrome or
+Edge install their on-device English pack, while other browsers download
+a small speech model (see [Request box](specs/request.md)). The
+**Say hello** link opens the Hello page, which shows "Hello, world!" and
+the API's greeting, proving the whole path, from the app through the
+proxy to the API, works.
 
 Once both are ready, the `health-check` monitor prints where to open the
 app (in a codespace, its forwarded URL too), waits 5 s
