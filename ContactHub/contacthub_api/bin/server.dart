@@ -1,11 +1,9 @@
 /// Contact Hub's API. Holds the aityx.ai key, which must never reach the
-/// app; routing will use it. For now it only proves the app reaches it, and
-/// answers:
+/// app; routing will use it. For now it answers:
 ///
 ///   GET  /             302 to /app/, so a forwarded port's bare URL opens
 ///                      the app (the dev server proxies the root here)
 ///   GET  /api/health   {"ok": true, "aityx": true when the key is set}
-///   GET  /api/hello    {"message": "Hello from Contact Hub's API"}
 ///
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY         the key (secret)

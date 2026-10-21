@@ -17,18 +17,13 @@ void main() {
     expect(withKey.body, {'ok': true, 'aityx': true});
   });
 
-  test('hello answers the greeting', () {
-    final answer = route('GET', '/api/hello');
-    expect(answer.status, 200);
-    expect(answer.body, {'message': helloMessage});
-  });
-
   test('a preflight answers 204', () {
-    expect(route('OPTIONS', '/api/hello').status, 204);
+    expect(route('OPTIONS', '/api/health').status, 204);
   });
 
   test('anything else is not found', () {
     expect(route('GET', '/api/nothing').status, 404);
-    expect(route('POST', '/api/hello').status, 404);
+    expect(route('POST', '/api/health').status, 404);
+    expect(route('GET', '/api/hello').status, 404);
   });
 }

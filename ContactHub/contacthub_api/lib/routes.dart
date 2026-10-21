@@ -2,9 +2,6 @@
 /// bin/server.dart, so it can be tested without a server.
 library;
 
-/// The greeting the Hello page shows.
-const helloMessage = "Hello from Contact Hub's API";
-
 /// An answer: a status, and a JSON body or a redirect.
 class Answer {
   const Answer(this.status, {this.body, this.location});
@@ -28,8 +25,6 @@ Answer route(String method, String path, {bool aityx = false}) {
         return const Answer(302, location: '/app/');
       case '/api/health':
         return Answer(200, body: {'ok': true, 'aityx': aityx});
-      case '/api/hello':
-        return const Answer(200, body: {'message': helloMessage});
     }
   }
   return const Answer(404, body: {'error': 'not found'});
