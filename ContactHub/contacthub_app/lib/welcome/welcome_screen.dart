@@ -3,25 +3,19 @@ import 'package:flutter/material.dart';
 import '../app_version.dart';
 import '../request/request_box.dart';
 import '../request/voice_input.dart';
+import '../routing/routing.dart';
+import '../routing/routing_screen.dart';
 
 /// The app's home: the name, a one-line welcome, the request box (typed
-/// or dictated) and, when the build sets it, the version.
+/// or dictated, then routed) and, when the build sets it, the version.
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key, this.voice});
+  const WelcomeScreen({super.key, this.voice, this.router});
 
   /// Passed on to the request box.
   final VoiceInput? voice;
 
-  /// Nothing processes a request yet: say it was received.
-  void _received(BuildContext context, String request) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Got your request. Routing it comes next.'),
-        ),
-      );
-  }
+  /// Passed on to the routing screen.
+  final RequestRouter? router;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +54,12 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   RequestBox(
                     voice: voice,
-                    onSubmit: (request) => _received(context, request),
+                    onSubmit: (request) => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            RoutingScreen(message: request, router: router),
+                      ),
+                    ),
                   ),
                   if (AppVersion.version.isNotEmpty) ...[
                     const SizedBox(height: 32),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'samples.dart';
 import 'voice_input.dart';
 
-/// Where someone types their request, or dictates it with the microphone
-/// button beside the field, and sends it.
+/// Where someone types their request, dictates it with the microphone
+/// button beside the field, or picks a sample, and sends it.
 class RequestBox extends StatefulWidget {
   const RequestBox({super.key, required this.onSubmit, this.voice});
 
@@ -31,6 +32,10 @@ class _RequestBoxState extends State<RequestBox> {
 
   bool get _dictating => _state != VoiceState.idle;
 
+  /// Which dictation the callbacks belong to: one that was abandoned (for
+  /// a sample) may still send text, which is then ignored.
+  int _session = 0;
+
   @override
   void initState() {
     super.initState();
@@ -54,20 +59,22 @@ class _RequestBoxState extends State<RequestBox> {
     }
     if (_dictating) return;
     _before = _controller.text.trim();
+    final session = ++_session;
+    bool current() => mounted && session == _session;
     setState(() {
       _error = null;
       _state = VoiceState.listening;
     });
     _voice.start(
       onState: (state, progress) {
-        if (!mounted) return;
+        if (!current()) return;
         setState(() {
           _state = state;
           _progress = progress;
         });
       },
       onText: (text, isFinal) {
-        if (!mounted) return;
+        if (!current()) return;
         final joined = [_before, text.trim()].where((s) => s.isNotEmpty);
         _controller.value = TextEditingValue(
           text: joined.join(' '),
@@ -75,8 +82,25 @@ class _RequestBoxState extends State<RequestBox> {
         );
       },
       onError: (message) {
-        if (mounted) setState(() => _error = message);
+        if (current()) setState(() => _error = message);
       },
+    );
+  }
+
+  /// Puts [sample] in the field, in place of what was there.
+  void _useSample(SampleRequest sample) {
+    if (_dictating) {
+      _session++; // what that dictation still sends is ignored
+      _voice.stop();
+    }
+    setState(() {
+      _error = null;
+      _state = VoiceState.idle;
+      _progress = null;
+    });
+    _controller.value = TextEditingValue(
+      text: sample.text,
+      selection: TextSelection.collapsed(offset: sample.text.length),
     );
   }
 
@@ -102,7 +126,7 @@ class _RequestBoxState extends State<RequestBox> {
                 controller: _controller,
                 minLines: 3,
                 maxLines: 6,
-                readOnly: _state == VoiceState.transcribing,
+                readOnly: _dictating,
                 textInputAction: TextInputAction.newline,
                 decoration: InputDecoration(
                   labelText: 'Your request',
@@ -136,16 +160,22 @@ class _RequestBoxState extends State<RequestBox> {
           ),
         ],
         const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerRight,
-          child: FilledButton.icon(
-            onPressed: canSend ? _submit : null,
-            icon: const Icon(Icons.send_outlined),
-            label: const Text('Send'),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        Row(
+          children: [
+            _SampleMenu(onSelected: _useSample),
+            const Spacer(),
+            FilledButton.icon(
+              onPressed: canSend ? _submit : null,
+              icon: const Icon(Icons.send_outlined),
+              label: const Text('Send'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -221,5 +251,67 @@ class _MicButton extends StatelessWidget {
         ),
       ),
     };
+  }
+}
+
+/// "Try a sample": a menu of ready-made requests, one per department and a
+/// few for the checks; picking one fills the field.
+class _SampleMenu extends StatelessWidget {
+  const _SampleMenu({required this.onSelected});
+
+  final ValueChanged<SampleRequest> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Widget item(SampleRequest sample) => MenuItemButton(
+      onPressed: () => onSelected(sample),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(sample.title, style: theme.textTheme.bodyLarge),
+              Text(
+                sample.department,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    Widget heading(String text) => Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      child: Text(
+        text,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+    return MenuAnchor(
+      style: const MenuStyle(
+        maximumSize: WidgetStatePropertyAll(Size(380, 480)),
+      ),
+      menuChildren: [
+        heading('ONE FOR EACH DEPARTMENT'),
+        for (final s in departmentSamples) item(s),
+        const Divider(),
+        heading('THE CHECKS'),
+        for (final s in checkSamples) item(s),
+      ],
+      builder: (context, controller, _) => OutlinedButton.icon(
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+        icon: const Icon(Icons.list_alt),
+        label: const Text('Try a sample'),
+      ),
+    );
   }
 }

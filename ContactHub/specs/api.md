@@ -1,29 +1,44 @@
 # API
 
 [contacthub_api](../contacthub_api/bin/server.dart), a Dart server that
-holds the aityx key, which must never reach the app; routing will run
-through it. Routes in [lib/routes.dart](../contacthub_api/lib/routes.dart):
+holds the aityx key, which must never reach the app, and routes requests
+on aityx ([Routing](routing.md)). Routes in
+[lib/routes.dart](../contacthub_api/lib/routes.dart) and
+[bin/server.dart](../contacthub_api/bin/server.dart):
 
 | Request | Answer |
 |---|---|
 | `GET /` | 302 to `/app/`, so a forwarded port's bare URL opens the app |
 | `GET /api/health` | `{"ok": true, "aityx": <whether the API has its key>}` |
+| `POST /api/route` | `{"message": "..."}` → `{"routing": {...}, "aityx": {"request", "response"}}` |
 | `OPTIONS` anything | 204 |
 | anything else | 404 `{"error": "not found"}` |
 
 The API reads `AITYX_API_KEY` and `AITYX_URL` (default
 `https://api.aityx.ai`, which must be https) from its environment;
-`scripts/api.sh` falls back to `.env`. Nothing calls aityx yet.
+`scripts/api.sh` falls back to `.env`.
+
+`POST /api/route` refuses, with 400 and `{"error": ...}`, a body over
+16 KB, invalid JSON, or a `message` that's missing, empty or over 2000
+characters; without a key it answers 503. It calls aityx with a 90 s
+timeout (504 when it runs out) and answers 502 when aityx answers an
+error, a `decision_error` or no routing. `routing` holds the department
+(`id`, `name`, `person`, `role`, `email`), `reason` and `department_rule`,
+`priority`, `priority_reason` and `priority_rule`, `response_hours`,
+`needs_review`, `topic` (`choice`, `confidence`, `probabilities`) and
+`checks` (`id`, `label`, `flagged`, `probability`). `aityx` is left out
+if aityx's answer contains the key. The Docker image carries the model
+in `/app/models`.
 
 CORS allows `ALLOWED_ORIGINS` (by default the dev server's,
 `http://localhost:8890` and `http://127.0.0.1:8890`). `server
 healthcheck` asks a running server's `/api/health` and exits 0 when it
 answers ok; it's the Docker health check.
 
-The app doesn't call the API yet. When it does, it will reach it at
-`API_BASE_URL` (a dart-define; empty means the app's own origin, through
-the dev server's or nginx's `/api/` proxy).
+The app reaches the API at `API_BASE_URL` (a dart-define; empty means
+the app's own origin, through the dev server's or nginx's `/api/`
+proxy).
 
 ## Known limitations
 
-- Only the health check: nothing is routed yet.
+- One call per request; nothing is cached or stored.

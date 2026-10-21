@@ -13,7 +13,7 @@ The feature files hold the current specification; see the
    a dev container and a devbox configuration, so the scaffolding can be
    launched and tested in a codespace and on a local machine.** Added
    `ContactHub/`: the Flutter app (`contacthub_app`, web, Android, iOS and
-   Linux) with a [welcome page](welcome.md) and a [Hello page](hello.md)
+   Linux) with a [welcome page](welcome.md) and a Hello page
    that shows the API's greeting; a Dart API (`contacthub_api`) with
    `/api/hello` and `/api/health`; devbox, process-compose and the health
    monitor, the Makefile, Docker Compose, and the dev container in
@@ -64,3 +64,41 @@ The feature files hold the current specification; see the
    hello** link and the `http` package only it used, and `GET /api/hello`
    from the API. The API stays, with `/` and `/api/health` and the aityx
    key, for routing; its spec moved from `hello.md` to [API](api.md).
+7. **Add routing: with aityx and Jev, classify the text and route it to
+   the appropriate person (orders to Customer Service, product questions
+   to Marketing, job applications to HR, and so on), with all the usual
+   departments of a large online store. Show the request to aityx and its
+   response, as Mortgage Hub does but better: larger, with navigation
+   buttons that go exactly to the part of the JSON for each item.**
+   **Send** now opens the [routing](routing.md): the API's new
+   `POST /api/route` makes one System One call, where Jev answers four
+   questions about the message (the topic, as a choice among 13
+   departments' topics, and urgency, sensitive data and abuse) and
+   `models/routing.json` picks the department, the priority, the hours to
+   answer and whether a person reviews it first. Each department has a
+   (made-up) person. The screen shows the result, each item with links to
+   exactly its JSON (down to the table row that fired), and the aityx
+   call in a new viewer: request and response, 14 px Roboto Mono with line
+   numbers and colors, three quarters of the window high, full screen on
+   demand, and a **Jump to** bar; every jump lands the value's first line
+   at the top and marks and explains the value. The key was copied into
+   `ContactHub/.env` from Mortgage Hub's (git-ignored), to test against
+   the live API.
+8. **Add a drop-down of sample complaints to send instead of saying or
+   typing them, one for each department.** **Try a sample**, beside
+   **Send**, lists one request for each of the 13 departments and two
+   for the checks (a card number, an abusive message); picking one fills
+   the field. All 15 were routed where expected through the live API. See
+   [Request box](request.md#samples).
+9. **Fix what the code review found, and never say "Jev" in the app,
+   always "aityx".** The app's text, and the routing model's own
+   descriptions shown in its JSON, now say aityx; only aityx's own
+   identifiers keep the name (`"model": "jev-latest"`, the
+   `jev:/answers/...` binding, and `"source": "jev"` in aityx's receipt).
+   Fixed: the field is read-only while dictating, and a dictation stopped
+   for a sample can no longer overwrite it; a speech model that fails to
+   load ends the dictation with an error instead of a spinner that never
+   stops; Android release builds get the internet permission; full screen
+   opens where the view was scrolled and keeps room for the code on short
+   windows; the API's 90 s deadline covers aityx's whole answer and aborts
+   the call, and nginx waits 100 s.

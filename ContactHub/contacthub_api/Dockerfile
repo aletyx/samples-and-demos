@@ -7,9 +7,12 @@ RUN dart pub get
 COPY . .
 RUN dart pub get --offline \
     && mkdir -p /out/bin \
-    && dart compile exe bin/server.dart -o /out/bin/server
+    && dart compile exe bin/server.dart -o /out/bin/server \
+    && cp -r models /out/models
 
-# /runtime/ holds what an AOT executable needs (libc, CA certificates).
+# /runtime/ holds what an AOT executable needs (libc, CA certificates for
+# aityx's https). The server reads ../models/routing.json relative to
+# itself, hence /app/bin and /app/models.
 FROM scratch
 COPY --from=build /runtime/ /
 COPY --from=build /out/ /app/

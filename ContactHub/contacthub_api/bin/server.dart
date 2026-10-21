@@ -1,9 +1,15 @@
 /// Contact Hub's API. Holds the aityx.ai key, which must never reach the
-/// app; routing will use it. For now it answers:
+/// app, and answers:
 ///
 ///   GET  /             302 to /app/, so a forwarded port's bare URL opens
 ///                      the app (the dev server proxies the root here)
 ///   GET  /api/health   {"ok": true, "aityx": true when the key is set}
+///   POST /api/route    {"message": "..."} → the routing (see
+///                      lib/routing.dart): Jev classifies the message and
+///                      the routing model picks the department, on aityx's
+///                      /v1/systemone; with the body sent to aityx and its
+///                      answer under "aityx" (the key, a header, is in
+///                      neither); 504 after 90 s
 ///
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY         the key (secret)
@@ -23,17 +29,35 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:contacthub_api/routes.dart';
+import 'package:contacthub_api/routing.dart';
+
+const _maxBody = 16 * 1024;
+
+/// How long a routing waits for aityx; docker/nginx.conf's proxy waits
+/// longer.
+const _aityxDeadline = Duration(seconds: 90);
+
+/// What a routing call needs: the key, where aityx is, the model and a
+/// client.
+class _Aityx {
+  _Aityx(this.key, this.url, this.model);
+
+  final String key;
+  final Uri url;
+  final Map<String, Object?> model;
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
+}
 
 Future<void> main(List<String> args) async {
   if (args.firstOrNull == 'healthcheck') exit(await _healthcheck());
   final env = Platform.environment;
   final key = env['AITYX_API_KEY'] ?? '';
-  final aityx = Uri.parse(
+  final url = Uri.parse(
     (env['AITYX_URL'] ?? '').isEmpty
         ? 'https://api.aityx.ai'
         : env['AITYX_URL']!,
   );
-  if (aityx.scheme != 'https') {
+  if (url.scheme != 'https') {
     stderr.writeln('error: AITYX_URL must be https');
     exit(1);
   }
@@ -44,13 +68,19 @@ Future<void> main(List<String> args) async {
       .map((origin) => origin.trim())
       .where((origin) => origin.isNotEmpty)
       .toSet();
+  final modelFile = File.fromUri(
+    Platform.script.resolve('../models/routing.json'),
+  );
+  final model =
+      jsonDecode(await modelFile.readAsString()) as Map<String, Object?>;
   if (key.isEmpty) stderr.writeln('warning: AITYX_API_KEY is not set');
 
+  final aityx = _Aityx(key, url, model);
   final server = await HttpServer.bind(host, port);
-  stdout.writeln('contacthub_api on http://$host:$port (aityx: ${aityx.host})');
+  stdout.writeln('contacthub_api on http://$host:$port (aityx: ${url.host})');
 
   await for (final request in server) {
-    unawaited(_handle(request, origins, hasKey: key.isNotEmpty));
+    unawaited(_handle(request, origins, aityx));
   }
 }
 
@@ -78,36 +108,107 @@ Future<int> _healthcheck() async {
 
 Future<void> _handle(
   HttpRequest request,
-  Set<String> origins, {
-  required bool hasKey,
-}) async {
+  Set<String> origins,
+  _Aityx aityx,
+) async {
   final response = request.response;
   final origin = request.headers.value('origin');
   if (origin != null && origins.contains(origin)) {
     response.headers
       ..set('Access-Control-Allow-Origin', origin)
       ..set('Vary', 'Origin')
-      ..set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+      ..set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
       ..set('Access-Control-Allow-Headers', 'Content-Type');
   }
   try {
-    final answer = route(request.method, request.uri.path, aityx: hasKey);
-    response.statusCode = answer.status;
-    if (answer.location case final location?) {
-      response.headers.set(HttpHeaders.locationHeader, location);
-    }
-    if (answer.body case final body?) {
-      response
-        ..headers.contentType = ContentType.json
-        ..write(jsonEncode(body));
+    if (request.method == 'POST' && request.uri.path == '/api/route') {
+      await _route(request, aityx);
+    } else {
+      final answer = route(
+        request.method,
+        request.uri.path,
+        aityx: aityx.key.isNotEmpty,
+      );
+      response.statusCode = answer.status;
+      if (answer.location case final location?) {
+        response.headers.set(HttpHeaders.locationHeader, location);
+      }
+      if (answer.body case final body?) _json(response, answer.status, body);
     }
   } catch (error) {
     stderr.writeln('error: ${request.method} ${request.uri.path}: $error');
-    response
-      ..statusCode = HttpStatus.internalServerError
-      ..headers.contentType = ContentType.json
-      ..write(jsonEncode({'error': 'internal error'}));
+    _json(response, 500, {'error': 'internal error'});
   } finally {
     await response.close();
   }
+}
+
+/// POST /api/route: the message → aityx → the routing.
+Future<void> _route(HttpRequest request, _Aityx aityx) async {
+  final response = request.response;
+  if (aityx.key.isEmpty) {
+    return _json(response, 503, {'error': 'aityx is not set up'});
+  }
+  final String message;
+  try {
+    message = messageFrom(jsonDecode(await _readBody(request)));
+  } on InvalidRequest catch (error) {
+    return _json(response, 400, {'error': error.message});
+  } on FormatException {
+    return _json(response, 400, {'error': 'invalid JSON'});
+  }
+
+  final sent = routingRequest(aityx.model, message);
+  final call = await aityx.client.postUrl(aityx.url.resolve('/v1/systemone'));
+  call.headers
+    ..set('Authorization', 'Bearer ${aityx.key}')
+    ..contentType = ContentType.json;
+  call.write(jsonEncode(sent));
+  // One deadline for the whole answer, body included; when it runs out
+  // the call to aityx is aborted, not left running.
+  final HttpClientResponse answer;
+  final String text;
+  try {
+    (answer, text) = await () async {
+      final answer = await call.close();
+      return (answer, await answer.transform(utf8.decoder).join());
+    }().timeout(_aityxDeadline);
+  } on TimeoutException {
+    call.abort(TimeoutException('aityx did not answer in time'));
+    return _json(response, 504, {'error': 'aityx did not answer in time'});
+  }
+  if (answer.statusCode != 200) {
+    // aityx's problem details never include the key.
+    stderr.writeln('aityx: HTTP ${answer.statusCode}: $text');
+    return _json(response, 502, {
+      'error': 'aityx answered HTTP ${answer.statusCode}',
+    });
+  }
+  try {
+    final json = jsonDecode(text) as Map<String, Object?>;
+    final routing = toRouting(sent, json);
+    _json(response, 200, withAityx(routing, sent, json, text, aityx.key));
+  } on FormatException catch (error) {
+    stderr.writeln('aityx: $error');
+    _json(response, 502, {'error': 'unexpected answer from aityx'});
+  } on RoutingFailed catch (error) {
+    stderr.writeln('aityx: $error');
+    _json(response, 502, {'error': 'aityx could not route it: $error'});
+  }
+}
+
+Future<String> _readBody(HttpRequest request) async {
+  final bytes = <int>[];
+  await for (final chunk in request) {
+    bytes.addAll(chunk);
+    if (bytes.length > _maxBody) throw InvalidRequest('request too large');
+  }
+  return utf8.decode(bytes);
+}
+
+void _json(HttpResponse response, int status, Object body) {
+  response
+    ..statusCode = status
+    ..headers.contentType = ContentType.json
+    ..write(jsonEncode(body));
 }

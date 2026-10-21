@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Send calls the API, which routes the request. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Contact Hub"
         android:name="${applicationName}"
