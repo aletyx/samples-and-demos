@@ -124,3 +124,14 @@ The feature files hold the current specification; see the
     `scripts/model-test.sh` now runs the rules themselves on aityx, with
     fixed facts at each limit of the policy, so a changed window or fee
     fails a test (see [Order policy](order-policy.md#verified)).
+12. **Make the aityx call a single pane showing the request and the
+    response with labels, as Mortgage Hub does, highlighting the key
+    parts; show just the routing decision of the response for now.** The
+    Request/Response toggle became one pane: the request, then the
+    response's routing decision only (the department answer and the rule
+    that fired), each under its header. Every key part is tinted and
+    labeled; a jump marks one strongly and explains it. Links to response
+    parts no longer shown are left out; **Copy full response** still
+    copies all of it. The sample menu is wider, so its second lines fit.
+    A marked part stays selected when the page rebuilds (the review found
+    it lost its color on a resize). See [Routing](routing.md#the-aityx-call).

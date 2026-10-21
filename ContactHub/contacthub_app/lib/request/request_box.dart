@@ -268,7 +268,7 @@ class _SampleMenu extends StatelessWidget {
     Widget item(SampleRequest sample) => MenuItemButton(
       onPressed: () => onSelected(sample),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 340),
+        constraints: const BoxConstraints(maxWidth: 420),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
@@ -298,7 +298,7 @@ class _SampleMenu extends StatelessWidget {
     );
     return MenuAnchor(
       style: const MenuStyle(
-        maximumSize: WidgetStatePropertyAll(Size(380, 480)),
+        maximumSize: WidgetStatePropertyAll(Size(460, 480)),
       ),
       menuChildren: [
         heading("ORDERS: THE STORE'S POLICY"),

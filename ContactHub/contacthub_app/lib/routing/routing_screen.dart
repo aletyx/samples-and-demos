@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'aityx_call_view.dart';
+import 'json_layout.dart';
 import 'routing.dart';
 
 /// Topic and department ids as people read them.
@@ -183,8 +184,23 @@ class _Outcome extends StatelessWidget {
     final theme = Theme.of(context);
     final r = outcome.routing;
     final hasCall = outcome.aityxRequest != null;
-    Widget links(List<_JsonLink> links) =>
-        hasCall ? _Links(links, call) : const SizedBox.shrink();
+    final decision = routingDecision(outcome.aityxResponse);
+    // Only links to parts the pane shows: the response shows just the
+    // routing decision.
+    final shown = {
+      CallSide.request: layoutJson(outcome.aityxRequest).ranges.keys.toSet(),
+      CallSide.response: layoutJson(decision).ranges.keys.toSet(),
+    };
+    Widget links(List<_JsonLink> links) {
+      final kept = [
+        for (final l in links)
+          if (shown[l.side]!.contains(l.path)) l,
+      ];
+      return hasCall && kept.isNotEmpty
+          ? _Links(kept, call)
+          : const SizedBox.shrink();
+    }
+
     const req = CallSide.request;
     const res = CallSide.response;
     final deptRule = r.departmentRule;
@@ -312,7 +328,11 @@ class _Outcome extends StatelessWidget {
         if (hasCall)
           AityxCallView(
             request: outcome.aityxRequest,
-            response: outcome.aityxResponse,
+            response: decision,
+            fullResponse: outcome.aityxResponse,
+            responseSubtitle:
+                'the routing decision: the department, and '
+                'the rule that chose it',
             targets: callTargets(r),
             controller: call,
             height: (MediaQuery.sizeOf(context).height * 0.75).clamp(
@@ -330,7 +350,26 @@ class _Outcome extends StatelessWidget {
 String _capitalize(String s) =>
     s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 
-/// The "Jump to" bar's parts, for [r]: the rows that fired are exact.
+/// What the pane shows of aityx's [response]: just the routing decision,
+/// the department answer and its receipt (the rule that fired).
+Map<String, Object?> routingDecision(Object? response) {
+  final r = response is Map ? response : const {};
+  final answers = r['answers'] is Map ? r['answers'] as Map : const {};
+  final receipt = r['receipt'] is Map ? r['receipt'] as Map : const {};
+  final decisions = receipt['decisions'] is Map
+      ? receipt['decisions'] as Map
+      : const {};
+  return {
+    'answers': {'department': answers['department']},
+    'receipt': {
+      'decisions': {'department': decisions['department']},
+    },
+    if (r['decision_error'] != null) 'decision_error': r['decision_error'],
+  };
+}
+
+/// The key parts of the call, for [r]: highlighted in the pane, and in its
+/// "Jump to" bar; the rows that fired are exact.
 List<JsonTarget> callTargets(Routing r) {
   const req = CallSide.request;
   const res = CallSide.response;
@@ -503,115 +542,16 @@ List<JsonTarget> callTargets(Routing r) {
     ),
     const JsonTarget(
       res,
-      'answers.topic',
-      'The topic',
-      "aityx's choice, its confidence, and the probability of every topic.",
-    ),
-    const JsonTarget(
-      res,
-      'answers.urgent_probability',
-      'Urgency',
-      "aityx's probability that the message is urgent; the model treats 0.8 "
-          'or more as urgent.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.sensitive_data_probability',
-      'Sensitive data',
-      "aityx's probability that the message holds a card number, password or "
-          'ID.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.abusive_probability',
-      'Abuse',
-      "aityx's probability that the message is abusive.",
-    ),
-    const JsonTarget(
-      res,
-      'answers.request_kind',
-      'Request kind',
-      "aityx's choice of what the customer wants done with the order.",
-    ),
-    const JsonTarget(
-      res,
-      'answers.resolution',
-      'Resolution',
-      'What the store\'s policy offers.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.refund_amount',
-      'Refund amount',
-      'The money refunded or credited, in USD.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.refund_by',
-      'Refund by',
-      'The date the refund or credit is paid by: today plus 5 days.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.days_since_delivery',
-      'Days since delivery',
-      'Computed from the delivery date and today; -1 when not delivered.',
-    ),
-    const JsonTarget(
-      res,
-      'receipt.decisions.resolution',
-      'Policy receipt',
-      "The policy table's trace: the row that fired.",
-    ),
-    const JsonTarget(
-      res,
       'answers.department',
-      'Department',
-      'The routing: the department the model chose.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.priority',
-      'Priority',
-      'The priority, as a level (low, normal, high).',
-    ),
-    const JsonTarget(
-      res,
-      'answers.response_hours',
-      'Response hours',
-      'Hours the department has to answer, from the priority.',
-    ),
-    const JsonTarget(
-      res,
-      'answers.needs_review',
-      'Needs review',
-      'Whether a person checks the message first (1 yes, 0 no).',
-    ),
-    const JsonTarget(
-      res,
-      'receipt.read',
-      'Inputs read',
-      'Every input the model read, its value and its source: here, all '
-          'from the questions (aityx names that source "jev").',
+      'The routing decision',
+      'The department aityx chose, with its confidence: the routing.',
     ),
     const JsonTarget(
       res,
       'receipt.decisions.department',
-      'Department receipt',
-      'The department table\'s trace: "rule" is the row that fired, '
-          '"rows" and "cells" how each row matched.',
-    ),
-    const JsonTarget(
-      res,
-      'receipt.decisions.priority',
-      'Priority receipt',
-      "The priority table's trace: the row that fired.",
-    ),
-    const JsonTarget(
-      res,
-      'usage',
-      'Cost',
-      "The call's tokens: one System One charge covers the questions and the model.",
+      'Rule that fired',
+      'The department table\'s trace: "rule" is the row that fired, "rows" '
+          'and "cells" how each row matched.',
     ),
     const JsonTarget(
       res,

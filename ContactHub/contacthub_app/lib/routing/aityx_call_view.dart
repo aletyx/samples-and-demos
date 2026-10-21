@@ -17,8 +17,8 @@ enum CallSide {
   final String description;
 }
 
-/// A part of the call worth jumping to: exactly the value at [path] on
-/// [side], with a short [label] and [why] it matters.
+/// A key part of the call: exactly the value at [path] on [side], always
+/// highlighted with its [label], and explained by [why] when jumped to.
 class JsonTarget {
   const JsonTarget(this.side, this.path, this.label, this.why);
 
@@ -26,11 +26,16 @@ class JsonTarget {
   final String path;
   final String label;
   final String why;
+
+  /// The same part of the call: the page rebuilds its targets, so they are
+  /// compared by where they point, not by identity.
+  bool sameAs(JsonTarget? other) =>
+      other != null && other.side == side && other.path == path;
 }
 
 /// Lets the page around an [AityxCallView] show a part of the call: the
-/// view switches to [side], scrolls [path]'s first line to the top and
-/// marks the whole value.
+/// view scrolls [path]'s first line on [side] to the top and marks the
+/// whole value.
 class AityxCallController extends ChangeNotifier {
   CallSide side = CallSide.request;
   String? path;
@@ -42,71 +47,82 @@ class AityxCallController extends ChangeNotifier {
   }
 }
 
-/// The aityx call behind a routing, large: the request and the response,
-/// pretty-printed with line numbers and colors, a "Jump to" bar of
-/// [targets] that each scroll to exactly their value, and a full-screen
-/// mode.
+/// The aityx call behind a routing, in one pane: the request, then the
+/// response, each under its header, pretty-printed with line numbers and
+/// colors. Every one of [targets] is highlighted with its label, as Mortgage
+/// Hub's view does; the "Jump to" bar and the page's links scroll to exactly
+/// one and mark it. [response] is what the pane shows of aityx's answer;
+/// [fullResponse], when given, is what "Copy full response" copies.
 class AityxCallView extends StatefulWidget {
   const AityxCallView({
     super.key,
     required this.request,
     required this.response,
     required this.targets,
+    this.fullResponse,
+    this.responseSubtitle = '',
     this.controller,
     this.height = 600,
     this.fullScreen = false,
-    this.initialOffsets = const {},
-    this.initialMarks = const {},
+    this.initialOffset = 0,
+    this.initialMark,
   });
 
   final Object? request;
   final Object? response;
+  final Object? fullResponse;
+  final String responseSubtitle;
   final List<JsonTarget> targets;
   final AityxCallController? controller;
 
-  /// The code panel's height; ignored in [fullScreen], which fills.
+  /// The pane's height; ignored in [fullScreen], which fills.
   final double height;
   final bool fullScreen;
 
-  /// Where each side starts scrolled, and which part it starts with
-  /// marked: full screen opens where the page's view was.
-  final Map<CallSide, double> initialOffsets;
-  final Map<CallSide, String> initialMarks;
+  /// Where the pane starts scrolled, and the part it starts with marked:
+  /// full screen opens where the page's view was.
+  final double initialOffset;
+  final JsonTarget? initialMark;
 
   @override
   State<AityxCallView> createState() => _AityxCallViewState();
 }
 
-/// Each line's height: fixed, so a line's offset is exactly
-/// `index * _lineHeight` and a jump lands on it.
+/// Each row's height: fixed, so a row's offset is exactly
+/// `8 + index * _lineHeight` and a jump lands on it.
 const _lineHeight = 22.0;
 const _fontSize = 14.0;
 const _gutterWidth = 52.0;
 
+/// Values printed on more rows than this are highlighted on their first
+/// row only, so a large one doesn't tint the whole pane.
+const _maxHighlightRows = 12;
+
+String _sideName(CallSide side) =>
+    side == CallSide.request ? 'request' : 'response';
+
 class _AityxCallViewState extends State<AityxCallView> {
   late final AityxCallController _controller =
       widget.controller ?? AityxCallController();
-  final _panelKey = GlobalKey();
-  late final _vertical = {
-    for (final side in CallSide.values)
-      side: ScrollController(
-        initialScrollOffset: widget.initialOffsets[side] ?? 0,
-      ),
-  };
-  final _horizontal = {
-    for (final side in CallSide.values) side: ScrollController(),
-  };
-  late Map<CallSide, JsonLayout> _layouts;
+  late final _vertical = ScrollController(
+    initialScrollOffset: widget.initialOffset,
+  );
+  final _horizontal = ScrollController();
+  final _paneKey = GlobalKey();
+  late CallLayout _layout;
 
-  /// The part marked on each side: the last one jumped to.
-  late final _active = <CallSide, String>{...widget.initialMarks};
+  /// The key parts present in this call, and the one last jumped to.
+  late List<JsonTarget> _targets;
+  late JsonTarget? _active = widget.initialMark;
 
-  CallSide get _side => _controller.side;
+  /// For each row, the innermost key part it's in, and whether it's that
+  /// part's first row.
+  late List<(JsonTarget, bool)?> _highlight;
 
   @override
   void initState() {
     super.initState();
-    _layout();
+    _build();
     _controller.addListener(_onReveal);
     if (_controller.path != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _onReveal());
@@ -116,8 +132,10 @@ class _AityxCallViewState extends State<AityxCallView> {
   @override
   void didUpdateWidget(AityxCallView old) {
     super.didUpdateWidget(old);
-    if (old.request != widget.request || old.response != widget.response) {
-      _layout();
+    if (old.request != widget.request ||
+        old.response != widget.response ||
+        old.targets != widget.targets) {
+      _build();
     }
   }
 
@@ -125,52 +143,80 @@ class _AityxCallViewState extends State<AityxCallView> {
   void dispose() {
     _controller.removeListener(_onReveal);
     if (widget.controller == null) _controller.dispose();
-    for (final c in [..._vertical.values, ..._horizontal.values]) {
-      c.dispose();
-    }
+    _vertical.dispose();
+    _horizontal.dispose();
     super.dispose();
   }
 
-  void _layout() {
-    _layouts = {
-      CallSide.request: layoutJson(widget.request),
-      CallSide.response: layoutJson(widget.response),
-    };
+  void _build() {
+    _layout = layoutCall(
+      widget.request,
+      widget.response,
+      requestTitle: 'REQUEST',
+      requestSubtitle: 'POST /v1/systemone, as the API sent it',
+      responseTitle: 'RESPONSE',
+      responseSubtitle: widget.responseSubtitle,
+    );
+    _targets = [
+      for (final t in widget.targets)
+        if (_range(t) != null) t,
+    ];
+    // Keep the marked part, now as one of the rebuilt targets.
+    if (_active case final active?) {
+      _active = _targets.where(active.sameAs).firstOrNull ?? active;
+    }
+    // Outer parts first, so inner ones overwrite them: the innermost wins.
+    final sorted = [..._targets]
+      ..sort((a, b) {
+        final ra = _range(a)!, rb = _range(b)!;
+        return (rb.last - rb.first).compareTo(ra.last - ra.first);
+      });
+    _highlight = List.filled(_layout.rows.length, null);
+    for (final t in sorted) {
+      final r = _range(t)!;
+      final last = r.last - r.first < _maxHighlightRows ? r.last : r.first;
+      for (var i = r.first; i <= last; i++) {
+        _highlight[i] = (t, i == r.first);
+      }
+    }
   }
 
-  /// The controller asked for a part: switch to its side, bring the panel
-  /// into view on the page, then scroll the code to it.
+  ({int first, int last})? _range(JsonTarget t) =>
+      _layout.range(_sideName(t.side), t.path);
+
+  /// The controller asked for a part: bring the pane into view on the page,
+  /// then scroll to the part and mark it.
   void _onReveal() {
     final path = _controller.path;
     if (!mounted || path == null) return;
     final side = _controller.side;
     final found = _resolve(side, path);
+    if (found == null) return;
     setState(() {
-      if (found != null) _active[side] = found;
+      _active =
+          _targets
+              .where((t) => t.side == side && t.path == found)
+              .firstOrNull ??
+          JsonTarget(side, found, found.split('.').last, '');
     });
     if (!widget.fullScreen) {
-      final panel = _panelKey.currentContext;
-      if (panel != null) {
+      final pane = _paneKey.currentContext;
+      if (pane != null) {
         Scrollable.ensureVisible(
-          panel,
+          pane,
           alignment: 0.02,
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
       }
     }
-    if (found != null) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _scrollTo(side, found),
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollTo(side, found));
   }
 
-  /// [path] if the side has it, else its nearest parent that it has.
+  /// [path] if the side shows it, else its nearest parent that it shows.
   String? _resolve(CallSide side, String path) {
-    final ranges = _layouts[side]!.ranges;
     var p = path;
-    while (!ranges.containsKey(p)) {
+    while (_layout.range(_sideName(side), p) == null) {
       final dot = p.lastIndexOf('.');
       if (dot < 0) return null;
       p = p.substring(0, dot);
@@ -179,33 +225,22 @@ class _AityxCallViewState extends State<AityxCallView> {
   }
 
   void _scrollTo(CallSide side, String path) {
-    final controller = _vertical[side]!;
-    final range = _layouts[side]!.ranges[path];
-    if (range == null || !controller.hasClients) return;
-    // One line of context above the value's first line.
+    final range = _layout.range(_sideName(side), path);
+    if (range == null || !_vertical.hasClients) return;
+    // One row of context above the value's first row.
     final offset = math.max(0.0, 8 + (range.first - 1) * _lineHeight);
-    controller.animateTo(
-      math.min(offset, controller.position.maxScrollExtent),
+    _vertical.animateTo(
+      math.min(offset, _vertical.position.maxScrollExtent),
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeOutCubic,
     );
-    _horizontal[side]!.jumpTo(0);
-  }
-
-  void _select(CallSide side) {
-    if (side == _side) return;
-    setState(() => _controller.side = side);
+    if (_horizontal.hasClients) _horizontal.jumpTo(0);
   }
 
   void _jump(JsonTarget target) => _controller.reveal(target.side, target.path);
 
   Future<void> _openFullScreen() {
-    // The same side, scroll positions and marks: it opens where you were.
-    final controller = AityxCallController()..side = _side;
-    final offsets = {
-      for (final MapEntry(:key, :value) in _vertical.entries)
-        if (value.hasClients) key: value.offset,
-    };
+    final controller = AityxCallController();
     return showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
@@ -223,11 +258,13 @@ class _AityxCallViewState extends State<AityxCallView> {
             child: AityxCallView(
               request: widget.request,
               response: widget.response,
+              fullResponse: widget.fullResponse,
+              responseSubtitle: widget.responseSubtitle,
               targets: widget.targets,
               controller: controller,
               fullScreen: true,
-              initialOffsets: offsets,
-              initialMarks: Map.of(_active),
+              initialOffset: _vertical.hasClients ? _vertical.offset : 0,
+              initialMark: _active,
             ),
           ),
         ),
@@ -255,44 +292,56 @@ class _AityxCallViewState extends State<AityxCallView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final side = _side;
-    final targets = [
-      for (final t in widget.targets)
-        if (t.side == side && _layouts[side]!.ranges.containsKey(t.path)) t,
-    ];
-    final active = _active[side];
-    final activeTarget = targets.where((t) => t.path == active).firstOrNull;
-    final panel = Container(
-      key: _panelKey,
+    final active = _active;
+    final activeRange = active == null ? null : _range(active);
+    Widget chips(CallSide side) => Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final t in _targets)
+          if (t.side == side)
+            ChoiceChip(
+              label: Text(t.label),
+              tooltip: t.why,
+              selected: t.sameAs(active),
+              showCheckmark: false,
+              avatar: Icon(
+                Icons.my_location,
+                size: 16,
+                color: t.sameAs(active)
+                    ? scheme.onPrimaryContainer
+                    : scheme.primary,
+              ),
+              onSelected: (_) => _jump(t),
+            ),
+      ],
+    );
+    Widget heading(String text) => Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
+    );
+
+    final pane = Container(
+      key: _paneKey,
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: scheme.outline),
       ),
       clipBehavior: Clip.antiAlias,
-      // Both sides stay built, each with its own scroll position, so a
-      // jump to the hidden side can scroll before it shows.
-      child: IndexedStack(
-        index: side.index,
-        sizing: StackFit.expand,
-        children: [
-          for (final s in CallSide.values)
-            _CodePanel(
-              layout: _layouts[s]!,
-              vertical: _vertical[s]!,
-              horizontal: _horizontal[s]!,
-              active: _active[s] == null
-                  ? null
-                  : _layouts[s]!.ranges[_active[s]],
-              anchors: {
-                for (final t in widget.targets)
-                  if (t.side == s && _layouts[s]!.ranges.containsKey(t.path))
-                    _layouts[s]!.ranges[t.path]!.first: t,
-              },
-              activePath: _active[s],
-              onAnchor: _jump,
-            ),
-        ],
+      child: _CodePane(
+        layout: _layout,
+        vertical: _vertical,
+        horizontal: _horizontal,
+        highlight: _highlight,
+        active: activeRange,
+        activeTarget: active,
+        onAnchor: _jump,
       ),
     );
 
@@ -301,55 +350,38 @@ class _AityxCallViewState extends State<AityxCallView> {
       mainAxisSize: widget.fullScreen ? MainAxisSize.max : MainAxisSize.min,
       children: [
         Wrap(
-          spacing: 12,
-          runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
-          alignment: WrapAlignment.spaceBetween,
+          alignment: WrapAlignment.end,
           children: [
-            SegmentedButton<CallSide>(
-              segments: [
-                for (final s in CallSide.values)
-                  ButtonSegment(
-                    value: s,
-                    label: Text(s.label),
-                    tooltip: s.description,
-                    icon: Icon(
-                      s == CallSide.request
-                          ? Icons.north_east
-                          : Icons.south_west,
-                    ),
-                  ),
-              ],
-              selected: {side},
-              onSelectionChanged: (s) => _select(s.single),
+            if (active != null && active.why.isNotEmpty)
+              TextButton.icon(
+                onPressed: () => _copy(_valueAt(active.side, active.path)),
+                icon: const Icon(Icons.content_copy, size: 18),
+                label: const Text('Copy section'),
+              ),
+            TextButton.icon(
+              onPressed: () => _copy(widget.request),
+              icon: const Icon(Icons.copy_all, size: 18),
+              label: const Text('Copy request'),
             ),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (activeTarget != null)
-                  TextButton.icon(
-                    onPressed: () => _copy(_valueAt(side, activeTarget.path)),
-                    icon: const Icon(Icons.content_copy, size: 18),
-                    label: const Text('Copy section'),
-                  ),
-                TextButton.icon(
-                  onPressed: () => _copy(
-                    side == CallSide.request ? widget.request : widget.response,
-                  ),
-                  icon: const Icon(Icons.copy_all, size: 18),
-                  label: Text('Copy ${side.label.toLowerCase()}'),
-                ),
-                if (!widget.fullScreen)
-                  IconButton(
-                    tooltip: 'Full screen',
-                    onPressed: _openFullScreen,
-                    icon: const Icon(Icons.open_in_full),
-                  ),
-              ],
+            TextButton.icon(
+              onPressed: () => _copy(widget.fullResponse ?? widget.response),
+              icon: const Icon(Icons.copy_all, size: 18),
+              label: Text(
+                widget.fullResponse == null
+                    ? 'Copy response'
+                    : 'Copy full response',
+              ),
             ),
+            if (!widget.fullScreen)
+              IconButton(
+                tooltip: 'Full screen',
+                onPressed: _openFullScreen,
+                icon: const Icon(Icons.open_in_full),
+              ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         // The chips and the explanation; in full screen they get at most
         // 40% of the height, scrolling, so a short window keeps room for
         // the code.
@@ -358,44 +390,23 @@ class _AityxCallViewState extends State<AityxCallView> {
               ? MediaQuery.sizeOf(context).height * 0.4
               : null,
           children: [
-            if (targets.isNotEmpty) ...[
-              Text(
-                'Jump to',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final t in targets)
-                    ChoiceChip(
-                      label: Text(t.label),
-                      tooltip: t.why,
-                      selected: t.path == active,
-                      showCheckmark: false,
-                      avatar: Icon(
-                        Icons.my_location,
-                        size: 16,
-                        color: t.path == active
-                            ? scheme.onPrimaryContainer
-                            : scheme.primary,
-                      ),
-                      onSelected: (_) => _jump(t),
-                    ),
-                ],
-              ),
+            if (_targets.any((t) => t.side == CallSide.request)) ...[
+              heading('Jump to, in the request'),
+              chips(CallSide.request),
+              const SizedBox(height: 10),
+            ],
+            if (_targets.any((t) => t.side == CallSide.response)) ...[
+              heading('In the response'),
+              chips(CallSide.response),
               const SizedBox(height: 10),
             ],
             // What the marked part is, in words, above the code.
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: activeTarget == null
+              child: active == null || active.why.isEmpty
                   ? const SizedBox(width: double.infinity)
                   : Container(
-                      key: ValueKey(activeTarget.path),
+                      key: ValueKey('${active.side}:${active.path}'),
                       width: double.infinity,
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(12),
@@ -410,19 +421,21 @@ class _AityxCallViewState extends State<AityxCallView> {
                         TextSpan(
                           children: [
                             TextSpan(
-                              text: '${activeTarget.label}  ',
+                              text: '${active.label}  ',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             TextSpan(
-                              text: activeTarget.path,
+                              text:
+                                  '${active.side.label.toLowerCase()} · '
+                                  '${active.path}',
                               style: TextStyle(
                                 fontFamily: 'RobotoMono',
                                 color: scheme.onSurfaceVariant,
                               ),
                             ),
-                            TextSpan(text: '\n${activeTarget.why}'),
+                            TextSpan(text: '\n${active.why}'),
                           ],
                         ),
                         style: theme.textTheme.bodyMedium,
@@ -432,33 +445,58 @@ class _AityxCallViewState extends State<AityxCallView> {
           ],
         ),
         if (widget.fullScreen)
-          Expanded(child: panel)
+          Expanded(child: pane)
         else
-          SizedBox(height: widget.height, child: panel),
+          SizedBox(height: widget.height, child: pane),
       ],
     );
   }
 }
 
-/// The code: one fixed-height row per line, numbered and colored, with the
-/// active value marked and each target's first line labeled.
-class _CodePanel extends StatelessWidget {
-  const _CodePanel({
+/// The view's controls, in a column; with a [limit], at most that high and
+/// scrolling.
+class _Controls extends StatelessWidget {
+  const _Controls({required this.limit, required this.children});
+
+  final double? limit;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    );
+    final limit = this.limit;
+    if (limit == null) return column;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: limit),
+      child: SingleChildScrollView(child: column),
+    );
+  }
+}
+
+/// The code: one fixed-height row per line, numbered per section and
+/// colored; key parts tinted with their label on their first row, the
+/// active one marked strongly.
+class _CodePane extends StatelessWidget {
+  const _CodePane({
     required this.layout,
     required this.vertical,
     required this.horizontal,
+    required this.highlight,
     required this.active,
-    required this.anchors,
-    required this.activePath,
+    required this.activeTarget,
     required this.onAnchor,
   });
 
-  final JsonLayout layout;
+  final CallLayout layout;
   final ScrollController vertical;
   final ScrollController horizontal;
+  final List<(JsonTarget, bool)?> highlight;
   final ({int first, int last})? active;
-  final Map<int, JsonTarget> anchors;
-  final String? activePath;
+  final JsonTarget? activeTarget;
   final ValueChanged<JsonTarget> onAnchor;
 
   static const _style = TextStyle(
@@ -477,7 +515,8 @@ class _CodePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final colors = {
       JsonToken.key: scheme.tertiary,
       JsonToken.string: scheme.secondary,
@@ -488,6 +527,13 @@ class _CodePanel extends StatelessWidget {
     };
     final contentWidth =
         _gutterWidth + 24 + layout.longestLine * _charWidth() + 240;
+    // Line numbers count within each section, from 1.
+    final numbers = <int>[];
+    var n = 0;
+    for (final row in layout.rows) {
+      n = row.line == null ? 0 : n + 1;
+      numbers.add(n);
+    }
     return LayoutBuilder(
       builder: (context, constraints) => Scrollbar(
         controller: horizontal,
@@ -501,34 +547,73 @@ class _CodePanel extends StatelessWidget {
               controller: vertical,
               child: ListView.builder(
                 controller: vertical,
-                // Room below the last line, so a value near the end can
+                // Room below the last row, so a value near the end can
                 // still scroll to the top like any other.
                 padding: EdgeInsets.only(
                   top: 8,
                   bottom: math.max(8, constraints.maxHeight - 3 * _lineHeight),
                 ),
                 itemExtent: _lineHeight,
-                itemCount: layout.lines.length,
+                itemCount: layout.rows.length,
                 itemBuilder: (context, i) {
-                  final line = layout.lines[i];
+                  final row = layout.rows[i];
+                  if (row.line == null) {
+                    if (row.title == null) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            row.side == 'request'
+                                ? Icons.north_east
+                                : Icons.south_west,
+                            size: 14,
+                            color: scheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            row.title!,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: scheme.primary,
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            row.subtitle!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   final marked =
                       active != null && i >= active!.first && i <= active!.last;
-                  final anchor = anchors[i];
+                  final key = highlight[i];
+                  final tinted = marked || key != null;
+                  final accent = marked
+                      ? scheme.primary
+                      : scheme.primary.withValues(alpha: 0.45);
                   return Container(
-                    decoration: marked
+                    decoration: tinted
                         ? BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.16),
+                            color: scheme.primary.withValues(
+                              alpha: marked ? 0.18 : 0.06,
+                            ),
                             border: Border(
-                              left: BorderSide(color: scheme.primary, width: 3),
+                              left: BorderSide(color: accent, width: 3),
                             ),
                           )
                         : null,
                     child: Row(
                       children: [
                         SizedBox(
-                          width: _gutterWidth - (marked ? 3 : 0),
+                          width: _gutterWidth - (tinted ? 3 : 0),
                           child: Text(
-                            '${i + 1}',
+                            '${numbers[i]}',
                             textAlign: TextAlign.right,
                             style: _style.copyWith(
                               color: marked
@@ -541,7 +626,9 @@ class _CodePanel extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             children: [
-                              for (final (kind, text) in tokenize(line.text))
+                              for (final (kind, text) in tokenize(
+                                row.line!.text,
+                              ))
                                 TextSpan(
                                   text: text,
                                   style: TextStyle(color: colors[kind]),
@@ -551,12 +638,12 @@ class _CodePanel extends StatelessWidget {
                           style: _style,
                           softWrap: false,
                         ),
-                        if (anchor != null) ...[
+                        if (key case (final target, true)) ...[
                           const SizedBox(width: 12),
                           _AnchorLabel(
-                            anchor,
-                            active: anchor.path == activePath,
-                            onTap: () => onAnchor(anchor),
+                            target,
+                            active: target.sameAs(activeTarget),
+                            onTap: () => onAnchor(target),
                           ),
                         ],
                       ],
@@ -572,8 +659,8 @@ class _CodePanel extends StatelessWidget {
   }
 }
 
-/// A target's label at the end of its first line: tap it to mark the
-/// value.
+/// A key part's label at the end of its first row: tap it to mark the
+/// value and read why it matters.
 class _AnchorLabel extends StatelessWidget {
   const _AnchorLabel(this.target, {required this.active, required this.onTap});
 
@@ -608,30 +695,6 @@ class _AnchorLabel extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// The view's controls, in a column; with a [limit], at most that high and
-/// scrolling.
-class _Controls extends StatelessWidget {
-  const _Controls({required this.limit, required this.children});
-
-  final double? limit;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final column = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: children,
-    );
-    final limit = this.limit;
-    if (limit == null) return column;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: limit),
-      child: SingleChildScrollView(child: column),
     );
   }
 }

@@ -62,4 +62,18 @@ void main() {
       '  "rule": 3, "why": "A", "ok": true',
     );
   });
+
+  test(
+    'layoutCall puts the response under the request, each with a header',
+    () {
+      final call = layoutCall({'a': 1}, {'b': 2}, responseTitle: 'RESPONSE');
+      final rows = call.rows;
+      expect(rows.first.title, 'REQUEST');
+      final b = call.range('response', 'b')!;
+      expect(rows[b.first].line!.text.trim(), '"b": 2');
+      expect(b.first, greaterThan(call.range('request', '')!.last));
+      expect(rows[call.range('response', '')!.first - 1].title, 'RESPONSE');
+      expect(call.range('request', 'b'), isNull);
+    },
+  );
 }

@@ -113,3 +113,67 @@ List<(JsonToken, String)> tokenize(String line) {
   if (at < line.length) out.add((JsonToken.punctuation, line.substring(at)));
   return out;
 }
+
+/// One row of the call's single pane: a section's header, a blank line
+/// between sections, or a line of one side's JSON.
+class CallRow {
+  const CallRow.header(this.title, this.subtitle, this.side) : line = null;
+  const CallRow.gap() : title = null, subtitle = null, side = null, line = null;
+  const CallRow.json(this.side, JsonLine this.line)
+    : title = null,
+      subtitle = null;
+
+  final String? title;
+  final String? subtitle;
+
+  /// Which section it's in: `request` or `response`.
+  final String? side;
+  final JsonLine? line;
+}
+
+/// The request and the response in one list of rows, each side under its
+/// header, with every value's rows by side and path.
+class CallLayout {
+  CallLayout._(this.rows, this._ranges);
+
+  final List<CallRow> rows;
+  final Map<String, Map<String, ({int first, int last})>> _ranges;
+
+  /// The rows of the value at [path] on [side] (`request`, `response`).
+  ({int first, int last})? range(String side, String path) =>
+      _ranges[side]?[path];
+
+  int get longestLine => rows.fold(
+    0,
+    (max, r) => (r.line?.text.length ?? 0) > max ? r.line!.text.length : max,
+  );
+}
+
+/// [request] and [response] laid out one after the other, each under a
+/// header with [requestTitle] or [responseTitle].
+CallLayout layoutCall(
+  Object? request,
+  Object? response, {
+  String requestTitle = 'REQUEST',
+  String requestSubtitle = '',
+  String responseTitle = 'RESPONSE',
+  String responseSubtitle = '',
+}) {
+  final rows = <CallRow>[];
+  final ranges = <String, Map<String, ({int first, int last})>>{};
+  void add(String side, String title, String subtitle, Object? json) {
+    rows.add(CallRow.header(title, subtitle, side));
+    final layout = layoutJson(json);
+    final start = rows.length;
+    rows.addAll([for (final l in layout.lines) CallRow.json(side, l)]);
+    ranges[side] = {
+      for (final MapEntry(:key, :value) in layout.ranges.entries)
+        key: (first: start + value.first, last: start + value.last),
+    };
+  }
+
+  add('request', requestTitle, requestSubtitle, request);
+  rows.add(const CallRow.gap());
+  add('response', responseTitle, responseSubtitle, response);
+  return CallLayout._(rows, ranges);
+}

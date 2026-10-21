@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:contacthub_app/main.dart';
-import 'package:contacthub_app/routing/aityx_call_view.dart';
 import 'package:contacthub_app/routing/json_layout.dart';
 import 'package:contacthub_app/routing/routing.dart';
+import 'package:contacthub_app/routing/routing_screen.dart'
+    show routingDecision;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -32,6 +33,14 @@ class FakeRouter implements RequestRouter {
     return answer as RoutingOutcome? ?? _outcome();
   }
 }
+
+/// The single pane's rows for [o], as the routing screen lays them out.
+CallLayout _pane(RoutingOutcome o) =>
+    layoutCall(o.aityxRequest, routingDecision(o.aityxResponse));
+
+/// How far the call's pane is scrolled.
+double _offset(WidgetTester tester) =>
+    tester.widget<ListView>(find.byType(ListView)).controller!.offset;
 
 void main() {
   test('reads the API\'s answer', () {
@@ -142,17 +151,29 @@ void main() {
       // The request is shown, scrolled so the row's line is the second on
       // screen (one line of context above it), and the row is explained.
       final path = 'decision.decisions.department.table.3';
-      final first = layoutJson(outcome.aityxRequest).ranges[path]!.first;
-      final list = tester.widget<ListView>(find.byType(ListView).first);
-      expect(list.controller!.offset, 8 + (first - 1) * 22.0);
+      final first = _pane(outcome).range('request', path)!.first;
+      expect(_offset(tester), 8 + (first - 1) * 22.0);
       expect(
         find.textContaining('The row of the department table that fired'),
         findsOneWidget,
       );
-      final segmented = tester.widget<SegmentedButton<CallSide>>(
-        find.byType(SegmentedButton<CallSide>),
+    });
+
+    testWidgets('the jumped-to part stays selected when the page rebuilds', (
+      tester,
+    ) async {
+      await pump(tester, FakeRouter());
+      await tester.tap(find.text('Rule 3'));
+      await tester.pumpAndSettle();
+      ChoiceChip chip() => tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Department rule 3'),
       );
-      expect(segmented.selected, {CallSide.request});
+      expect(chip().selected, isTrue);
+
+      // A resize rebuilds the page, and with it the targets.
+      tester.view.physicalSize = const Size(1200, 1500);
+      await tester.pumpAndSettle();
+      expect(chip().selected, isTrue);
     });
 
     testWidgets("shows the store's policy, and its rule exactly", (
@@ -168,11 +189,10 @@ void main() {
 
       await tester.tap(find.text('Rule 16'));
       await tester.pumpAndSettle();
-      final first = layoutJson(outcome.aityxRequest)
-          .ranges['decision.decisions.resolution.table.16']!
+      final first = _pane(outcome)
+          .range('request', 'decision.decisions.resolution.table.16')!
           .first;
-      final list = tester.widget<ListView>(find.byType(ListView).first);
-      expect(list.controller!.offset, 8 + (first - 1) * 22.0);
+      expect(_offset(tester), 8 + (first - 1) * 22.0);
       expect(find.textContaining('fired for this order'), findsOneWidget);
 
       // The amount's rule lands exactly too, explained.
@@ -183,32 +203,50 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(link);
       await tester.pumpAndSettle();
-      final amount = layoutJson(outcome.aityxRequest)
-          .ranges['decision.decisions.refund_amount.table.4']!
+      final amount = _pane(outcome)
+          .range('request', 'decision.decisions.refund_amount.table.4')!
           .first;
-      expect(
-        tester.widget<ListView>(find.byType(ListView).first).controller!.offset,
-        8 + (amount - 1) * 22.0,
-      );
+      expect(_offset(tester), 8 + (amount - 1) * 22.0);
       expect(find.textContaining('how much is paid back'), findsOneWidget);
     });
 
-    testWidgets('an answer link switches to the response', (tester) async {
+    testWidgets('an answer link lands in the response, below the request', (
+      tester,
+    ) async {
       final outcome = _outcome();
       await pump(tester, FakeRouter(outcome));
 
       await tester.tap(find.text('Receipt'));
       await tester.pumpAndSettle();
 
-      final first = layoutJson(outcome.aityxResponse)
-          .ranges['receipt.decisions.department']!
+      final pane = _pane(outcome);
+      final first = pane
+          .range('response', 'receipt.decisions.department')!
           .first;
-      final list = tester.widget<ListView>(find.byType(ListView).last);
-      expect(list.controller!.offset, 8 + (first - 1) * 22.0);
-      final segmented = tester.widget<SegmentedButton<CallSide>>(
-        find.byType(SegmentedButton<CallSide>),
+      expect(first, greaterThan(pane.range('request', '')!.last));
+      expect(_offset(tester), 8 + (first - 1) * 22.0);
+      expect(
+        find.textContaining("The department table's trace"),
+        findsOneWidget,
       );
-      expect(segmented.selected, {CallSide.response});
+    });
+
+    testWidgets('the response shows just the routing decision', (tester) async {
+      final outcome = _outcome();
+      await pump(tester, FakeRouter(outcome));
+
+      final decision = routingDecision(outcome.aityxResponse);
+      expect((decision['answers'] as Map).keys, ['department']);
+      expect(((decision['receipt'] as Map)['decisions'] as Map).keys, [
+        'department',
+      ]);
+      // Links to response parts the pane doesn't show are left out...
+      expect(find.text('Hours'), findsNothing);
+      // ...but the request's stay.
+      expect(find.text('Hours table'), findsOneWidget);
+      expect(find.text('Copy full response'), findsOneWidget);
+      // Key parts are labeled in the pane before anything is jumped to.
+      expect(find.text('The routing decision'), findsWidgets);
     });
 
     testWidgets('fits a phone screen', (tester) async {
