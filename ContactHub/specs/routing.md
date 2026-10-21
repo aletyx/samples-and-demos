@@ -92,28 +92,39 @@ confidence input; the message.
 
 ## The aityx call
 
-[AityxCallView](../contacthub_app/lib/routing/aityx_call_view.dart), an
-improvement on Mortgage Hub's JSON view:
+[AityxCallView](../contacthub_app/lib/routing/aityx_call_view.dart): one
+pane, as in Mortgage Hub, with the key parts highlighted and labeled:
 
-- **Request** and **Response**, a toggle; each keeps its own scroll
-  position.
+- **One pane**: under a **REQUEST** header, the whole body sent to
+  `POST /v1/systemone`; under a **RESPONSE** header, just the routing
+  decision from aityx's answer: `answers.department` and its receipt,
+  `receipt.decisions.department`, the rule that fired
+  ([routingDecision](../contacthub_app/lib/routing/routing_screen.dart)).
+  Line numbers restart in each section. **Copy request** and **Copy full
+  response** copy the whole of each; **Copy section** the marked part.
+- **Key parts highlighted**: every part listed in `callTargets` (the
+  questions, the inputs, the tables and the rows that fired, the policy
+  limits, the order, the message, and in the response the decision and its
+  rule) is tinted with its label on its first row, the innermost winning
+  where they nest; a part over 12 rows is tinted on its first row only. A
+  label's tooltip says why it matters.
 - **Larger**: 14 px Roboto Mono (bundled, see
-  [assets/fonts](../contacthub_app/assets/fonts/README.md)), 22 px lines,
-  in a panel 75% of the window's height (360 to 760 px), with line
-  numbers and colors for keys, strings, numbers and literals; short lists,
-  such as a table's rows, stay on one line
-  ([json_layout.dart](../contacthub_app/lib/routing/json_layout.dart)).
-  **Full screen** opens it in a dialog at the same place.
+  [assets/fonts](../contacthub_app/assets/fonts/README.md)), 22 px rows,
+  in a pane 75% of the window's height (360 to 760 px), with colors for
+  keys, strings, numbers and literals; short lists, such as a table's
+  rows, stay on one line
+  ([json_layout.dart](../contacthub_app/lib/routing/json_layout.dart),
+  `layoutCall` for the two sections). **Full screen** opens it in a dialog
+  at the same place.
 - **Exact navigation**: the layout records every value's first and last
-  line; since every line is the same height, a jump scrolls the value's
-  first line to the top (one line of context above it), with room below
-  the last line so even the end of the response reaches the top. The
-  whole value is marked, its label pinned to its first line, and a panel
-  above the code says what it is, its path and why it matters.
-- **Jump to**: a chip for each part worth seeing on the current side,
-  including the rows that fired for this message; the result's links use
-  the same mechanism, switching sides as needed.
-- **Copy section** (the marked value) and **Copy request/response**.
+  row on each side; since every row is the same height, a jump scrolls the
+  value's first row to the top (one row of context above it), with room
+  below the last row so the end reaches the top too. The value is marked
+  strongly, and a panel above the pane says what it is, its side and path,
+  and why it matters.
+- **Jump to**: the request's key parts, then the response's, as chips. The
+  result's links use the same mechanism; links to parts of the response
+  the pane doesn't show are left out.
 
 The API includes the call only if aityx's answer doesn't contain the key.
 
