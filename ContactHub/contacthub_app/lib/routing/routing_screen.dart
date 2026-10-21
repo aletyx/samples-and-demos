@@ -132,7 +132,7 @@ class _Routing extends StatelessWidget {
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Jev is reading your request, and aityx is routing it…'),
+          Text('aityx is reading and routing your request…'),
         ],
       ),
     );
@@ -283,7 +283,7 @@ class _Outcome extends StatelessWidget {
         _TopicCard(
           r,
           links: links(const [
-            _JsonLink("Jev's answer", res, 'answers.topic'),
+            _JsonLink("aityx's reading", res, 'answers.topic'),
             _JsonLink('Question', req, 'questions.topic'),
             _JsonLink(
               'Confidence input',
@@ -296,7 +296,7 @@ class _Outcome extends StatelessWidget {
         Text('The aityx call', style: theme.textTheme.headlineSmall),
         const SizedBox(height: 4),
         Text(
-          'One call to /v1/systemone: Jev answers the questions about the '
+          'One call to /v1/systemone: aityx answers the questions about the '
           'message, then the routing model decides, deterministically, from '
           'those answers. The links above jump straight to the part of the '
           'request or response behind each item.',
@@ -334,15 +334,15 @@ List<JsonTarget> callTargets(Routing r) {
     const JsonTarget(
       req,
       'model',
-      'Jev model',
-      'The Jev model that answers the questions. Jev reads the message; it '
+      'Reading model',
+      'The aityx model that answers the questions. It reads the message; it '
           'never decides the route.',
     ),
     const JsonTarget(
       req,
       'questions.topic',
       'Topic question',
-      'A choice question: Jev picks one topic, each defined in plain words '
+      'A choice question: aityx picks one topic, each defined in plain words '
           'in its criteria, and says how confident it is.',
     ),
     const JsonTarget(
@@ -369,7 +369,7 @@ List<JsonTarget> callTargets(Routing r) {
       req,
       'decision.inputs',
       'Model inputs',
-      "The routing model's inputs: Jev's answers, by name, and its "
+      "The routing model's inputs: the questions' answers, by name, and "
           'confidence in the topic, bound with from = "jev:/answers/topic/'
           'confidence".',
     ),
@@ -377,7 +377,7 @@ List<JsonTarget> callTargets(Routing r) {
       req,
       'decision.decisions.clear_topic',
       'Clear topic rule',
-      'The topic routes directly only when Jev is at least 60% confident '
+      'The topic routes directly only when aityx is at least 60% confident '
           'and it fits a department.',
     ),
     const JsonTarget(
@@ -426,28 +426,28 @@ List<JsonTarget> callTargets(Routing r) {
     const JsonTarget(
       res,
       'answers.topic',
-      "Jev's topic",
-      "Jev's choice, its confidence, and the probability of every topic.",
+      'The topic',
+      "aityx's choice, its confidence, and the probability of every topic.",
     ),
     const JsonTarget(
       res,
       'answers.urgent_probability',
       'Urgency',
-      "Jev's probability that the message is urgent; the model treats 0.8 "
+      "aityx's probability that the message is urgent; the model treats 0.8 "
           'or more as urgent.',
     ),
     const JsonTarget(
       res,
       'answers.sensitive_data_probability',
       'Sensitive data',
-      "Jev's probability that the message holds a card number, password or "
+      "aityx's probability that the message holds a card number, password or "
           'ID.',
     ),
     const JsonTarget(
       res,
       'answers.abusive_probability',
       'Abuse',
-      "Jev's probability that the message is abusive.",
+      "aityx's probability that the message is abusive.",
     ),
     const JsonTarget(
       res,
@@ -478,7 +478,7 @@ List<JsonTarget> callTargets(Routing r) {
       'receipt.read',
       'Inputs read',
       'Every input the model read, its value and its source: here, all '
-          'from Jev.',
+          'from the questions (aityx names that source "jev").',
     ),
     const JsonTarget(
       res,
@@ -497,13 +497,13 @@ List<JsonTarget> callTargets(Routing r) {
       res,
       'usage',
       'Cost',
-      "The call's tokens: one System One charge covers Jev and the model.",
+      "The call's tokens: one System One charge covers the questions and the model.",
     ),
     const JsonTarget(
       res,
       'decision_error',
       'Model error',
-      'Present only when the model failed after Jev answered.',
+      'Present only when the model failed after the questions were answered.',
     ),
   ];
 }
@@ -697,7 +697,7 @@ class _ChecksCard extends StatelessWidget {
             Text('Checks on the message', style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
-              'Jev gives a probability; the model sets the bar (0.8, or 0.6 '
+              'aityx gives a probability; the model sets the bar (0.8, or 0.6 '
               'for the topic).',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -802,12 +802,12 @@ class _TopicCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Jev's reading of the topic",
+              "aityx's reading of the topic",
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
             Text(
-              'Jev chose ${topicNames[r.topic] ?? r.topic ?? 'nothing'}'
+              'aityx chose ${topicNames[r.topic] ?? r.topic ?? 'nothing'}'
               '${r.topicConfidence == null ? '' : ', ${(r.topicConfidence! * 100).round()}% confident'}.'
               ' The model routes from this answer, but the rules decide.',
               style: theme.textTheme.bodyMedium?.copyWith(

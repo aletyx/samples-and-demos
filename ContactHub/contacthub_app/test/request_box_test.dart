@@ -167,6 +167,37 @@ void main() {
     expect(sendButton(tester).onPressed, isNotNull);
   });
 
+  testWidgets('a sample ends a dictation, whose late text is ignored', (
+    tester,
+  ) async {
+    final voice = FakeVoice();
+    await pumpBox(tester, voice);
+
+    await tester.tap(find.byIcon(Icons.mic_none));
+    voice.state(VoiceState.listening, null);
+    await tester.pump();
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.readOnly, isTrue);
+
+    await tester.tap(find.text('Try a sample'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Charged twice'));
+    await tester.pumpAndSettle();
+    expect(voice.stops, 1);
+
+    // The stopped dictation's last words arrive late.
+    voice.text('old words', true);
+    voice.state(VoiceState.idle, null);
+    await tester.pump();
+
+    expect(
+      find.textContaining('charged twice for the same order'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('old words'), findsNothing);
+    expect(find.byIcon(Icons.mic_none), findsOneWidget);
+  });
+
   testWidgets('sending opens the routing for the request', (tester) async {
     final router = PendingRouter();
     await tester.pumpWidget(ContactHubApp(voice: FakeVoice(), router: router));

@@ -53,34 +53,34 @@
     "inputs": {
       "topic": {
         "type": "customer_service|billing|marketing|tech_support|trust_safety|hr|seller_services|procurement|business_sales|legal|press|investor_relations|other",
-        "desc": "Jev's choice: which department's work the message is mainly about",
-        "from": "Jev"
+        "desc": "aityx's choice: which department's work the message is mainly about",
+        "from": "the topic question"
       },
       "topic_confidence": {
         "type": "number [0..1]",
-        "desc": "Jev's confidence in its choice of topic",
+        "desc": "aityx's confidence in its choice of topic",
         "from": "jev:/answers/topic/confidence"
       },
       "urgent_probability": {
         "type": "number [0..1]",
-        "desc": "Jev probability: is the message urgent?",
-        "from": "Jev"
+        "desc": "aityx probability: is the message urgent?",
+        "from": "the questions"
       },
       "sensitive_data_probability": {
         "type": "number [0..1]",
-        "desc": "Jev probability: does the message contain a card number, password, bank account or ID number?",
-        "from": "Jev"
+        "desc": "aityx probability: does the message contain a card number, password, bank account or ID number?",
+        "from": "the questions"
       },
       "abusive_probability": {
         "type": "number [0..1]",
-        "desc": "Jev probability: is the message abusive, threatening or harassing?",
-        "from": "Jev"
+        "desc": "aityx probability: is the message abusive, threatening or harassing?",
+        "from": "the questions"
       }
     },
     "decisions": {
       "evidence_threshold": {
         "type": "number [0..1]",
-        "desc": "Minimum Jev probability that establishes a fact about the message",
+        "desc": "Minimum probability that establishes a fact about the message",
         "expr": "0.8"
       },
       "confidence_threshold": {

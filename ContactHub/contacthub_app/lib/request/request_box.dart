@@ -32,6 +32,10 @@ class _RequestBoxState extends State<RequestBox> {
 
   bool get _dictating => _state != VoiceState.idle;
 
+  /// Which dictation the callbacks belong to: one that was abandoned (for
+  /// a sample) may still send text, which is then ignored.
+  int _session = 0;
+
   @override
   void initState() {
     super.initState();
@@ -55,20 +59,22 @@ class _RequestBoxState extends State<RequestBox> {
     }
     if (_dictating) return;
     _before = _controller.text.trim();
+    final session = ++_session;
+    bool current() => mounted && session == _session;
     setState(() {
       _error = null;
       _state = VoiceState.listening;
     });
     _voice.start(
       onState: (state, progress) {
-        if (!mounted) return;
+        if (!current()) return;
         setState(() {
           _state = state;
           _progress = progress;
         });
       },
       onText: (text, isFinal) {
-        if (!mounted) return;
+        if (!current()) return;
         final joined = [_before, text.trim()].where((s) => s.isNotEmpty);
         _controller.value = TextEditingValue(
           text: joined.join(' '),
@@ -76,15 +82,22 @@ class _RequestBoxState extends State<RequestBox> {
         );
       },
       onError: (message) {
-        if (mounted) setState(() => _error = message);
+        if (current()) setState(() => _error = message);
       },
     );
   }
 
   /// Puts [sample] in the field, in place of what was there.
   void _useSample(SampleRequest sample) {
-    if (_dictating) _voice.stop();
-    setState(() => _error = null);
+    if (_dictating) {
+      _session++; // what that dictation still sends is ignored
+      _voice.stop();
+    }
+    setState(() {
+      _error = null;
+      _state = VoiceState.idle;
+      _progress = null;
+    });
     _controller.value = TextEditingValue(
       text: sample.text,
       selection: TextSelection.collapsed(offset: sample.text.length),
@@ -113,7 +126,7 @@ class _RequestBoxState extends State<RequestBox> {
                 controller: _controller,
                 minLines: 3,
                 maxLines: 6,
-                readOnly: _state == VoiceState.transcribing,
+                readOnly: _dictating,
                 textInputAction: TextInputAction.newline,
                 decoration: InputDecoration(
                   labelText: 'Your request',

@@ -55,6 +55,8 @@ class AityxCallView extends StatefulWidget {
     this.controller,
     this.height = 600,
     this.fullScreen = false,
+    this.initialOffsets = const {},
+    this.initialMarks = const {},
   });
 
   final Object? request;
@@ -65,6 +67,11 @@ class AityxCallView extends StatefulWidget {
   /// The code panel's height; ignored in [fullScreen], which fills.
   final double height;
   final bool fullScreen;
+
+  /// Where each side starts scrolled, and which part it starts with
+  /// marked: full screen opens where the page's view was.
+  final Map<CallSide, double> initialOffsets;
+  final Map<CallSide, String> initialMarks;
 
   @override
   State<AityxCallView> createState() => _AityxCallViewState();
@@ -80,8 +87,11 @@ class _AityxCallViewState extends State<AityxCallView> {
   late final AityxCallController _controller =
       widget.controller ?? AityxCallController();
   final _panelKey = GlobalKey();
-  final _vertical = {
-    for (final side in CallSide.values) side: ScrollController(),
+  late final _vertical = {
+    for (final side in CallSide.values)
+      side: ScrollController(
+        initialScrollOffset: widget.initialOffsets[side] ?? 0,
+      ),
   };
   final _horizontal = {
     for (final side in CallSide.values) side: ScrollController(),
@@ -89,7 +99,7 @@ class _AityxCallViewState extends State<AityxCallView> {
   late Map<CallSide, JsonLayout> _layouts;
 
   /// The part marked on each side: the last one jumped to.
-  final _active = <CallSide, String>{};
+  late final _active = <CallSide, String>{...widget.initialMarks};
 
   CallSide get _side => _controller.side;
 
@@ -190,9 +200,12 @@ class _AityxCallViewState extends State<AityxCallView> {
   void _jump(JsonTarget target) => _controller.reveal(target.side, target.path);
 
   Future<void> _openFullScreen() {
-    final controller = AityxCallController()
-      ..side = _side
-      ..path = _active[_side];
+    // The same side, scroll positions and marks: it opens where you were.
+    final controller = AityxCallController()..side = _side;
+    final offsets = {
+      for (final MapEntry(:key, :value) in _vertical.entries)
+        if (value.hasClients) key: value.offset,
+    };
     return showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
@@ -213,6 +226,8 @@ class _AityxCallViewState extends State<AityxCallView> {
               targets: widget.targets,
               controller: controller,
               fullScreen: true,
+              initialOffsets: offsets,
+              initialMarks: Map.of(_active),
             ),
           ),
         ),
@@ -335,74 +350,86 @@ class _AityxCallViewState extends State<AityxCallView> {
           ],
         ),
         const SizedBox(height: 12),
-        if (targets.isNotEmpty) ...[
-          Text(
-            'Jump to',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final t in targets)
-                ChoiceChip(
-                  label: Text(t.label),
-                  tooltip: t.why,
-                  selected: t.path == active,
-                  showCheckmark: false,
-                  avatar: Icon(
-                    Icons.my_location,
-                    size: 16,
-                    color: t.path == active
-                        ? scheme.onPrimaryContainer
-                        : scheme.primary,
-                  ),
-                  onSelected: (_) => _jump(t),
+        // The chips and the explanation; in full screen they get at most
+        // 40% of the height, scrolling, so a short window keeps room for
+        // the code.
+        _Controls(
+          limit: widget.fullScreen
+              ? MediaQuery.sizeOf(context).height * 0.4
+              : null,
+          children: [
+            if (targets.isNotEmpty) ...[
+              Text(
+                'Jump to',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final t in targets)
+                    ChoiceChip(
+                      label: Text(t.label),
+                      tooltip: t.why,
+                      selected: t.path == active,
+                      showCheckmark: false,
+                      avatar: Icon(
+                        Icons.my_location,
+                        size: 16,
+                        color: t.path == active
+                            ? scheme.onPrimaryContainer
+                            : scheme.primary,
+                      ),
+                      onSelected: (_) => _jump(t),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
             ],
-          ),
-          const SizedBox(height: 10),
-        ],
-        // What the marked part is, in words, above the code.
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: activeTarget == null
-              ? const SizedBox(width: double.infinity)
-              : Container(
-                  key: ValueKey(activeTarget.path),
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border(
-                      left: BorderSide(color: scheme.primary, width: 3),
-                    ),
-                  ),
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '${activeTarget.label}  ',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+            // What the marked part is, in words, above the code.
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: activeTarget == null
+                  ? const SizedBox(width: double.infinity)
+                  : Container(
+                      key: ValueKey(activeTarget.path),
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border(
+                          left: BorderSide(color: scheme.primary, width: 3),
                         ),
+                      ),
+                      child: Text.rich(
                         TextSpan(
-                          text: activeTarget.path,
-                          style: TextStyle(
-                            fontFamily: 'RobotoMono',
-                            color: scheme.onSurfaceVariant,
-                          ),
+                          children: [
+                            TextSpan(
+                              text: '${activeTarget.label}  ',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: activeTarget.path,
+                              style: TextStyle(
+                                fontFamily: 'RobotoMono',
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                            TextSpan(text: '\n${activeTarget.why}'),
+                          ],
                         ),
-                        TextSpan(text: '\n${activeTarget.why}'),
-                      ],
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     ),
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
+            ),
+          ],
         ),
         if (widget.fullScreen)
           Expanded(child: panel)
@@ -581,6 +608,30 @@ class _AnchorLabel extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The view's controls, in a column; with a [limit], at most that high and
+/// scrolling.
+class _Controls extends StatelessWidget {
+  const _Controls({required this.limit, required this.children});
+
+  final double? limit;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    );
+    final limit = this.limit;
+    if (limit == null) return column;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: limit),
+      child: SingleChildScrollView(child: column),
     );
   }
 }

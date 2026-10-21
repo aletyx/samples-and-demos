@@ -106,11 +106,24 @@
 
   // --- model ---------------------------------------------------------------
 
+  // The worker's unanswered requests, by id, to fail them all if it dies.
+  const pending = new Map();
+
   function getWorker() {
     if (!worker) {
       worker = new Worker(new URL("voice/moonshine-worker.js", document.baseURI), {
         type: "module",
       });
+      // A worker that can't load (its library unreachable, say) never
+      // answers: fail what's waiting, and start afresh next time.
+      worker.onerror = (event) => {
+        event.preventDefault();
+        const message = "The speech model could not load. Check the connection and try again.";
+        for (const { reject } of pending.values()) reject(new Error(message));
+        pending.clear();
+        worker.terminate();
+        worker = null;
+      };
     }
     return worker;
   }
@@ -125,9 +138,16 @@
         if (data.id !== id) return;
         if (data.type === "progress") return onProgress(data.progress);
         w.removeEventListener("message", listener);
+        pending.delete(id);
         if (data.type === "error") reject(new Error(data.message));
         else resolve(data);
       };
+      pending.set(id, {
+        reject: (error) => {
+          w.removeEventListener("message", listener);
+          reject(error);
+        },
+      });
       w.addEventListener("message", listener);
       w.postMessage({ ...message, id }, message.audio ? [message.audio.buffer] : []);
     });

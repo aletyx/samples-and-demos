@@ -9,7 +9,7 @@
 ///                      the routing model picks the department, on aityx's
 ///                      /v1/systemone; with the body sent to aityx and its
 ///                      answer under "aityx" (the key, a header, is in
-///                      neither)
+///                      neither); 504 after 90 s
 ///
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY         the key (secret)
@@ -32,6 +32,10 @@ import 'package:contacthub_api/routes.dart';
 import 'package:contacthub_api/routing.dart';
 
 const _maxBody = 16 * 1024;
+
+/// How long a routing waits for aityx; docker/nginx.conf's proxy waits
+/// longer.
+const _aityxDeadline = Duration(seconds: 90);
 
 /// What a routing call needs: the key, where aityx is, the model and a
 /// client.
@@ -160,12 +164,17 @@ Future<void> _route(HttpRequest request, _Aityx aityx) async {
     ..set('Authorization', 'Bearer ${aityx.key}')
     ..contentType = ContentType.json;
   call.write(jsonEncode(sent));
+  // One deadline for the whole answer, body included; when it runs out
+  // the call to aityx is aborted, not left running.
   final HttpClientResponse answer;
   final String text;
   try {
-    answer = await call.close().timeout(const Duration(seconds: 90));
-    text = await answer.transform(utf8.decoder).join();
+    (answer, text) = await () async {
+      final answer = await call.close();
+      return (answer, await answer.transform(utf8.decoder).join());
+    }().timeout(_aityxDeadline);
   } on TimeoutException {
+    call.abort(TimeoutException('aityx did not answer in time'));
     return _json(response, 504, {'error': 'aityx did not answer in time'});
   }
   if (answer.statusCode != 200) {

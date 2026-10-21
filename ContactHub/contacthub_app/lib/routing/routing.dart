@@ -48,7 +48,7 @@ class RoutingCheck {
   final String label;
   final bool flagged;
 
-  /// Jev's probability behind it (for `clear_topic`, its confidence in the
+  /// aityx's probability behind it (for `clear_topic`, its confidence in the
   /// topic).
   final double? probability;
 }
@@ -112,7 +112,7 @@ class Routing {
   final int responseHours;
   final bool needsReview;
 
-  /// Jev's choice of topic, its confidence, and every topic's probability.
+  /// aityx's choice of topic, its confidence, and every topic's probability.
   final String? topic;
   final double? topicConfidence;
   final Map<String, double> topicProbabilities;

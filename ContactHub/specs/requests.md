@@ -13,7 +13,7 @@ The feature files hold the current specification; see the
    a dev container and a devbox configuration, so the scaffolding can be
    launched and tested in a codespace and on a local machine.** Added
    `ContactHub/`: the Flutter app (`contacthub_app`, web, Android, iOS and
-   Linux) with a [welcome page](welcome.md) and a [Hello page](hello.md)
+   Linux) with a [welcome page](welcome.md) and a Hello page
    that shows the API's greeting; a Dart API (`contacthub_api`) with
    `/api/hello` and `/api/health`; devbox, process-compose and the health
    monitor, the Makefile, Docker Compose, and the dev container in
@@ -90,3 +90,15 @@ The feature files hold the current specification; see the
    for the checks (a card number, an abusive message); picking one fills
    the field. All 15 were routed where expected through the live API. See
    [Request box](request.md#samples).
+9. **Fix what the code review found, and never say "Jev" in the app,
+   always "aityx".** The app's text, and the routing model's own
+   descriptions shown in its JSON, now say aityx; only aityx's own
+   identifiers keep the name (`"model": "jev-latest"`, the
+   `jev:/answers/...` binding, and `"source": "jev"` in aityx's receipt).
+   Fixed: the field is read-only while dictating, and a dictation stopped
+   for a sample can no longer overwrite it; a speech model that fails to
+   load ends the dictation with an error instead of a spinner that never
+   stops; Android release builds get the internet permission; full screen
+   opens where the view was scrolled and keeps room for the code on short
+   windows; the API's 90 s deadline covers aityx's whole answer and aborts
+   the call, and nginx waits 100 s.
