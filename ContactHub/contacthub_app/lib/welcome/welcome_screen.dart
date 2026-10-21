@@ -3,14 +3,31 @@ import 'package:flutter/material.dart';
 import '../app_version.dart';
 import '../hello/greeting.dart';
 import '../hello/hello_screen.dart';
+import '../request/request_box.dart';
+import '../request/voice_input.dart';
 
-/// The app's home: the name, a one-line welcome, the button to the Hello
-/// page and, when the build sets it, the version.
+/// The app's home: the name, a one-line welcome, the request box (typed
+/// or dictated), a link to the Hello page and, when the build sets it, the
+/// version.
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key, this.greeter});
+  const WelcomeScreen({super.key, this.greeter, this.voice});
 
   /// Passed on to the Hello page.
   final Greeter? greeter;
+
+  /// Passed on to the request box.
+  final VoiceInput? voice;
+
+  /// Nothing processes a request yet: say it was received.
+  void _received(BuildContext context, String request) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Got your request. Routing it comes next.'),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +38,7 @@ class WelcomeScreen extends StatelessWidget {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
+              constraints: const BoxConstraints(maxWidth: 560),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -47,7 +64,12 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  FilledButton.icon(
+                  RequestBox(
+                    voice: voice,
+                    onSubmit: (request) => _received(context, request),
+                  ),
+                  const SizedBox(height: 24),
+                  TextButton.icon(
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => HelloScreen(greeter: greeter),
@@ -55,12 +77,6 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.waving_hand_outlined),
                     label: const Text('Say hello'),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                    ),
                   ),
                   if (AppVersion.version.isNotEmpty) ...[
                     const SizedBox(height: 32),
