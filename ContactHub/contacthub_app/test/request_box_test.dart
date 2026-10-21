@@ -153,15 +153,12 @@ void main() {
 
     await tester.tap(find.text('Try a sample'));
     await tester.pumpAndSettle();
-    expect(find.text('ONE FOR EACH DEPARTMENT'), findsOneWidget);
-    await tester.tap(find.text('A job application'));
+    expect(find.text("ORDERS: THE STORE'S POLICY"), findsOneWidget);
+    await tester.tap(find.text('Return within 30 days'));
     await tester.pumpAndSettle();
 
     expect(
-      find.text(
-        "I'd like to apply for the warehouse supervisor position in Dallas. "
-        'Where should I send my CV?',
-      ),
+      find.textContaining('running shoes from order 113-2045'),
       findsOneWidget,
     );
     expect(sendButton(tester).onPressed, isNotNull);
@@ -181,7 +178,7 @@ void main() {
 
     await tester.tap(find.text('Try a sample'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Charged twice'));
+    await tester.tap(find.text('On its way'));
     await tester.pumpAndSettle();
     expect(voice.stops, 1);
 
@@ -190,10 +187,7 @@ void main() {
     voice.state(VoiceState.idle, null);
     await tester.pump();
 
-    expect(
-      find.textContaining('charged twice for the same order'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('order 121-0408'), findsOneWidget);
     expect(find.textContaining('old words'), findsNothing);
     expect(find.byIcon(Icons.mic_none), findsOneWidget);
   });

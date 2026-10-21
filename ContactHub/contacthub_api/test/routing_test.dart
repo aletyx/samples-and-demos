@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:contacthub_api/orders.dart';
 import 'package:contacthub_api/routing.dart';
 import 'package:test/test.dart';
 
@@ -55,11 +56,58 @@ void main() {
     });
   });
 
-  test('routingRequest sends the questions, the model and the message', () {
-    final sent = routingRequest(model, 'Hi');
+  group('the order book', () {
+    final today = DateTime.utc(2026, 10, 21);
+
+    test('finds the order number in a message', () {
+      expect(orderNumberIn('Return order 113-2045 please'), '113-2045');
+      expect(orderNumberIn('No number here, call 555-12345'), isNull);
+    });
+
+    test('dates count back from today', () {
+      final jacket = orderState('order 114-7781', today);
+      expect(jacket['placed_on'], '2026-09-01');
+      expect(jacket['delivered_on'], '2026-09-06');
+      expect(jacket['amount'], 240);
+      expect(jacket['status'], 'delivered');
+    });
+
+    test('an undelivered order is expected 5 days after it was placed', () {
+      final lamp = orderState('order 112-8834', today);
+      expect(lamp['status'], 'shipped');
+      expect(lamp['placed_on'], '2026-10-09');
+      expect(lamp['delivered_on'], '2026-10-14');
+    });
+
+    test('a message without a known order gets status none', () {
+      expect(orderState('I lost the number', today)['status'], 'none');
+      expect(orderState('order 999-0000', today)['status'], 'none');
+      expect(orderState('order 999-0000', today)['number'], '999-0000');
+    });
+  });
+
+  test('routingRequest sends the questions, the model, the message, today '
+      'and the order', () {
+    final sent = routingRequest(
+      model,
+      'Return order 113-2045',
+      today: DateTime.utc(2026, 10, 21),
+    );
     expect(sent['questions'], model['questions']);
     expect(sent['decision'], model['decision']);
-    expect(sent['state'], {'message': 'Hi'});
+    final state = sent['state'] as Map;
+    expect(state['message'], 'Return order 113-2045');
+    expect(state['today'], '2026-10-21');
+    expect((state['order'] as Map)['item'], 'Running shoes');
+  });
+
+  test('the resolution table covers every resolution it can give', () {
+    final decisions = (model['decision'] as Map)['decisions'] as Map;
+    final table = decisions['resolution']['table'] as List;
+    final given = {for (final row in table.skip(1)) (row as Map)['then']};
+    final type =
+        ((model['decision'] as Map)['types'] as Map)['Resolution'] as String;
+    expect(given, type.split('|').toSet());
   });
 
   group('toRouting, from real aityx answers', () {
@@ -103,6 +151,48 @@ void main() {
       expect((routing['topic'] as Map)['choice'], 'customer_service');
       expect((routing['department'] as Map)['id'], 'trust_safety');
       expect(routing['department_rule'], 1);
+    });
+
+    test('an electronics return after 14 days refunds less 15%', () {
+      final sent = routingRequest(
+        model,
+        "I'd like to return the tablet from order 120-5150",
+      );
+      final routing = toRouting(
+        sent,
+        _json('test/fixtures/tablet-restocking.json'),
+      );
+      final policy = routing['policy'] as Map;
+      expect(policy['request_kind'], 'return_refund');
+      expect(policy['resolution'], 'refund');
+      expect(policy['resolution_rule'], 16);
+      expect(policy['reason'], contains('30 days'));
+      expect(policy['refund_amount'], 279.65);
+      expect(policy['amount_rule'], 4);
+      expect(policy['amount_reason'], contains('15% restocking fee'));
+      expect(policy['days_since_delivery'], 20);
+      expect((policy['order'] as Map)['item'], 'Tablet');
+    });
+
+    test('a return after 45 days gets store credit', () {
+      final sent = routingRequest(model, 'order 114-7781');
+      final policy =
+          toRouting(
+                sent,
+                _json('test/fixtures/jacket-store-credit.json'),
+              )['policy']
+              as Map;
+      expect(policy['resolution'], 'store_credit');
+      expect(policy['refund_amount'], 240);
+      expect(policy['days_since_delivery'], 45);
+    });
+
+    test('a package late after 12 days is investigated, high priority', () {
+      final sent = routingRequest(model, 'order 112-8834');
+      final routing = toRouting(sent, _json('test/fixtures/lamp-late.json'));
+      expect((routing['policy'] as Map)['resolution'], 'investigate_late');
+      expect(routing['priority'], 'high');
+      expect(routing['priority_reason'], contains('late package'));
     });
 
     test('fails on a decision error', () {

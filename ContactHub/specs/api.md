@@ -25,8 +25,13 @@ timeout (504 when it runs out) and answers 502 when aityx answers an
 error, a `decision_error` or no routing. `routing` holds the department
 (`id`, `name`, `person`, `role`, `email`), `reason` and `department_rule`,
 `priority`, `priority_reason` and `priority_rule`, `response_hours`,
-`needs_review`, `topic` (`choice`, `confidence`, `probabilities`) and
-`checks` (`id`, `label`, `flagged`, `probability`). `aityx` is left out
+`needs_review`, `topic` (`choice`, `confidence`, `probabilities`),
+`checks` (`id`, `label`, `flagged`, `probability`) and `policy`
+(`request_kind`, `resolution`, `reason`, `resolution_rule`,
+`refund_amount`, `amount_reason`, `amount_rule`, `refund_by`,
+`days_since_order`, `days_since_delivery`, `order`, `order_number`; see
+[Order policy](order-policy.md)). The state sent to aityx is the
+`message`, `today` (UTC) and the `order` from the order book. `aityx` is left out
 if aityx's answer contains the key. The Docker image carries the model
 in `/app/models`.
 

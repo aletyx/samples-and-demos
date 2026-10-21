@@ -35,21 +35,26 @@ when you stop.
 ## Samples
 
 [samples.dart](../contacthub_app/lib/request/samples.dart): each shows a
-title and, in the accent color, where it should go.
+title and, in the accent color, where it should go and, for orders, what
+the policy should offer. Three sections:
 
-- **One for each department**: Where is my package? (Customer Service),
-  Charged twice (Billing & Payments), A question about a product
-  (Marketing), Can't sign in (Technical Support), A phishing email (Trust
-  & Safety), A job application (Human Resources), Selling on the
-  marketplace (Seller Services), Becoming a supplier (Procurement &
-  Vendors), A bulk order (Business Sales), Delete my data (Legal &
-  Privacy), A press request (Public Relations), A shareholder question
-  (Investor Relations), Too vague to tell (General Inquiries).
+- **Orders: the store's policy**: one for each policy outcome, naming
+  orders in the API's order book (see
+  [Order policy](order-policy.md#the-samples)).
+- **The other departments**: A question about a product (Marketing),
+  Can't sign in (Technical Support), A phishing email (Trust & Safety), A
+  job application (Human Resources), Selling on the marketplace (Seller
+  Services), Becoming a supplier (Procurement & Vendors), A bulk order
+  (Business Sales), Delete my data (Legal & Privacy), A press request
+  (Public Relations), A shareholder question (Investor Relations), Too
+  vague to tell (General Inquiries); each with its own dates and figures
+  (a posting that closes November 15, 200 laptops on 30-day terms, 1,200
+  shares...). Customer Service's and Billing's are among the orders.
 - **The checks**: A card number in the message (Billing & Payments, high
   priority, reviewed) and An abusive message (Trust & Safety, whatever
   the topic).
 
-All 15 were sent through the live API and routed where their labels say.
+All 27 were sent through the live API and routed where their labels say.
 
 ## Voice input, on the device only
 

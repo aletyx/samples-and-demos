@@ -102,3 +102,20 @@ The feature files hold the current specification; see the
    opens where the view was scrolled and keeps room for the code on short
    windows; the API's 90 s deadline covers aityx's whole answer and aborts
    the call, and nginx waits 100 s.
+10. **Add dates, numbers and figures to the sample requests and to the
+    rules, with the usual commerce rules (for example, no automatic refund
+    more than a month after the purchase); be creative.** aityx's
+    questions can't read numbers, so the API now has an order book of
+    made-up orders, dated back from today, and sends the order a message
+    names, and today, with each call. A new question asks what the
+    customer wants done with their order, and the model applies the
+    [store's policy](order-policy.md): refund within 30 days, store
+    credit within 60, final sale, damage within 7 days, a 1-year warranty
+    on electronics, a 15% restocking fee on electronics after 14 days, a
+    person above $500, price drops within 14 days, cancellation before
+    shipping, late packages after 10 days, double charges; with the
+    amount and the date it's paid by. The routing screen shows **The
+    store's policy** with the order's facts and links to the rules that
+    fired. **Try a sample** leads with one sample per outcome, and the
+    others carry dates and figures. Two topics were sharpened so a broken
+    item bought here is a warranty claim, Customer Service's.

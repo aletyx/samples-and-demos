@@ -8,13 +8,16 @@ request and shows where it went, why, and the aityx call behind it.
 One call to aityx's `POST /v1/systemone`, built by
 [lib/routing.dart](../contacthub_api/lib/routing.dart) from
 [models/routing.json](../contacthub_api/models/routing.json), with the
-message as the only state (`{"message": "..."}`):
+the message, today and the order it names as the state (see
+[Order policy](order-policy.md)):
 
-1. **Jev** (`model: "jev-latest"`) answers four questions about the
+1. **Jev** (`model: "jev-latest"`) answers five questions about the
    message:
    - `topic`, a **choice** among the departments' topics, each defined in
      plain words in its `criteria`, plus `other`; the answer carries Jev's
      `confidence` and every topic's probability;
+   - `request_kind`, a **choice** of what the customer wants done with
+     their order (see [Order policy](order-policy.md));
    - `urgent_probability`, `sensitive_data_probability` and
      `abusive_probability`, yes/no questions (**noul**) answered as
      probabilities.
@@ -29,11 +32,12 @@ message as the only state (`{"message": "..."}`):
      the topic; an unclear topic to General Inquiries; otherwise one row
      per topic; General Inquiries last;
    - `priority` (`low<normal<high`): high for abuse, sensitive data,
-     urgency, and Trust & Safety or Legal; low for Marketing, Public
+     urgency, a late package, and Trust & Safety or Legal; low for Marketing, Public
      Relations and Investor Relations; normal otherwise;
    - `response_hours`: 4 for high, 24 for normal, 48 for low;
-   - `needs_review`: the topic is unclear, or the message holds sensitive
-     data or abuse.
+   - `needs_review`: the topic is unclear, the message holds sensitive
+     data or abuse, or the policy needs a person to approve it;
+   - the store's policy for the order: see [Order policy](order-policy.md).
 
 The API reads the department and priority from `answers`, and the reason
 for each from the `# why` of the table row that fired, whose number it
@@ -66,6 +70,8 @@ up, with `@contacthub.example` addresses) in the API's directory:
 **Request routed**, at most 1100 px wide:
 
 - the message, with a link to it in the request;
+- **The store's policy**, for a request about an order (see
+  [Order policy](order-policy.md));
 - a spinner, "Jev is reading your request, and aityx is routing it…",
   then the result, or the error with **Try again**;
 - **Routed to**: the department, its person, role and email, and the

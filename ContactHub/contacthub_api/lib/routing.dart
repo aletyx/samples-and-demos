@@ -4,6 +4,8 @@
 /// without a server.
 library;
 
+import 'orders.dart';
+
 /// The longest message accepted, in characters.
 const maxMessageLength = 2000;
 
@@ -139,15 +141,24 @@ String messageFrom(Object? body) {
   return trimmed;
 }
 
-/// The body sent to aityx's /v1/systemone: Jev's questions and the routing
-/// model from [model] (models/routing.json), and the message as the state.
+/// The body sent to aityx's /v1/systemone: the questions and the routing
+/// model from [model] (models/routing.json), and the state: the message,
+/// [today], and the order it names from the order book (lib/orders.dart).
 Map<String, Object?> routingRequest(
   Map<String, Object?> model,
-  String message,
-) => {
-  ...model,
-  'state': {'message': message},
-};
+  String message, {
+  DateTime? today,
+}) {
+  final day = today ?? DateTime.now().toUtc();
+  return {
+    ...model,
+    'state': {
+      'message': message,
+      'today': isoDate(day),
+      'order': orderState(message, day),
+    },
+  };
+}
 
 /// The routing in aityx's [answer] to [sent]; throws [RoutingFailed] when
 /// it holds none.
@@ -188,6 +199,11 @@ Map<String, Object?> toRouting(
   final topic = answers['topic'] as Map?;
   final departmentRule = fired('department');
   final priorityRule = fired('priority');
+  final resolutionRule = fired('resolution');
+  final amountRule = fired('refund_amount');
+  final order = ((sent['state'] as Map?)?['order'] as Map?) ?? const {};
+  final resolution = (answers['resolution'] as Map?)?['choice'];
+  num? number(String name) => (answers[name] as Map?)?['number'] as num?;
 
   return {
     'department': department.toJson(departmentId),
@@ -222,6 +238,23 @@ Map<String, Object?> toRouting(
         'probability': (topic?['confidence'] as num?)?.toDouble(),
       },
     ],
+    // The order on file, and what the store's policy offers for it; absent
+    // for a model without the order rules.
+    if (resolution is String)
+      'policy': {
+        'request_kind': (answers['request_kind'] as Map?)?['choice'],
+        'resolution': resolution,
+        'reason': resolutionRule?.why,
+        'resolution_rule': resolutionRule?.rule,
+        'refund_amount': number('refund_amount'),
+        'amount_reason': amountRule?.why,
+        'amount_rule': amountRule?.rule,
+        'refund_by': (answers['refund_by'] as Map?)?['date'],
+        'days_since_order': number('days_since_order'),
+        'days_since_delivery': number('days_since_delivery'),
+        'order': order['status'] == 'none' ? null : order,
+        'order_number': order['number'],
+      },
   };
 }
 

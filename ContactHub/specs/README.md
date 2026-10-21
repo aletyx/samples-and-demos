@@ -29,6 +29,11 @@ by Jev and aityx.
   whether it's reviewed; the screen shows why, with links to exactly the
   JSON behind each item, and the aityx call, large, with exact
   navigation.
+- [Order policy](order-policy.md): for a request about an order, the
+  store's policy from the order's dates and amounts (refund within 30
+  days, store credit within 60, final sale, damage within 7 days, warranty,
+  restocking fee, price drops, cancellations, late packages), with the
+  amount and the date it's paid by; the order book of the samples.
 - [Theme](theme.md): the aityx dark palette.
 - [App icon](app-icon.md): an orange speech bubble with a route that
   branches three ways, the chosen branch lit; the favicon and every
