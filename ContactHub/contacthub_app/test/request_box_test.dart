@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:contacthub_app/main.dart';
 import 'package:contacthub_app/request/voice_input.dart';
+import 'package:contacthub_app/routing/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,6 +35,17 @@ class FakeVoice implements VoiceInput {
 
   @override
   void stop() => stops++;
+}
+
+/// Never answers: the test only checks the routing screen opens.
+class PendingRouter implements RequestRouter {
+  final asked = <String>[];
+
+  @override
+  Future<RoutingOutcome> route(String message) {
+    asked.add(message);
+    return Completer<RoutingOutcome>().future;
+  }
 }
 
 void main() {
@@ -133,15 +147,19 @@ void main() {
     expect(find.byIcon(Icons.mic_none), findsOneWidget);
   });
 
-  testWidgets('the welcome page confirms a sent request', (tester) async {
-    await tester.pumpWidget(ContactHubApp(voice: FakeVoice()));
+  testWidgets('sending opens the routing for the request', (tester) async {
+    final router = PendingRouter();
+    await tester.pumpWidget(ContactHubApp(voice: FakeVoice(), router: router));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Change my address');
     await tester.pump();
     await tester.tap(find.text('Send'));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.textContaining('Got your request'), findsOneWidget);
+    expect(find.byType(RoutingScreen), findsOneWidget);
+    expect(find.text('Change my address'), findsOneWidget);
+    expect(router.asked, ['Change my address']);
   });
 }
