@@ -159,6 +159,23 @@ void main() {
       );
     });
 
+    testWidgets('the jumped-to part stays selected when the page rebuilds', (
+      tester,
+    ) async {
+      await pump(tester, FakeRouter());
+      await tester.tap(find.text('Rule 3'));
+      await tester.pumpAndSettle();
+      ChoiceChip chip() => tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Department rule 3'),
+      );
+      expect(chip().selected, isTrue);
+
+      // A resize rebuilds the page, and with it the targets.
+      tester.view.physicalSize = const Size(1200, 1500);
+      await tester.pumpAndSettle();
+      expect(chip().selected, isTrue);
+    });
+
     testWidgets("shows the store's policy, and its rule exactly", (
       tester,
     ) async {

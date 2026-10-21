@@ -133,4 +133,5 @@ The feature files hold the current specification; see the
     labeled; a jump marks one strongly and explains it. Links to response
     parts no longer shown are left out; **Copy full response** still
     copies all of it. The sample menu is wider, so its second lines fit.
-    See [Routing](routing.md#the-aityx-call).
+    A marked part stays selected when the page rebuilds (the review found
+    it lost its color on a resize). See [Routing](routing.md#the-aityx-call).

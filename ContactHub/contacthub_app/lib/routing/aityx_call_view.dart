@@ -26,6 +26,11 @@ class JsonTarget {
   final String path;
   final String label;
   final String why;
+
+  /// The same part of the call: the page rebuilds its targets, so they are
+  /// compared by where they point, not by identity.
+  bool sameAs(JsonTarget? other) =>
+      other != null && other.side == side && other.path == path;
 }
 
 /// Lets the page around an [AityxCallView] show a part of the call: the
@@ -156,6 +161,10 @@ class _AityxCallViewState extends State<AityxCallView> {
       for (final t in widget.targets)
         if (_range(t) != null) t,
     ];
+    // Keep the marked part, now as one of the rebuilt targets.
+    if (_active case final active?) {
+      _active = _targets.where(active.sameAs).firstOrNull ?? active;
+    }
     // Outer parts first, so inner ones overwrite them: the innermost wins.
     final sorted = [..._targets]
       ..sort((a, b) {
@@ -294,12 +303,14 @@ class _AityxCallViewState extends State<AityxCallView> {
             ChoiceChip(
               label: Text(t.label),
               tooltip: t.why,
-              selected: t == active,
+              selected: t.sameAs(active),
               showCheckmark: false,
               avatar: Icon(
                 Icons.my_location,
                 size: 16,
-                color: t == active ? scheme.onPrimaryContainer : scheme.primary,
+                color: t.sameAs(active)
+                    ? scheme.onPrimaryContainer
+                    : scheme.primary,
               ),
               onSelected: (_) => _jump(t),
             ),
@@ -631,7 +642,7 @@ class _CodePane extends StatelessWidget {
                           const SizedBox(width: 12),
                           _AnchorLabel(
                             target,
-                            active: target == activeTarget,
+                            active: target.sameAs(activeTarget),
                             onTap: () => onAnchor(target),
                           ),
                         ],
