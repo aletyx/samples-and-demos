@@ -64,3 +64,29 @@ The feature files hold the current specification; see the
    hello** link and the `http` package only it used, and `GET /api/hello`
    from the API. The API stays, with `/` and `/api/health` and the aityx
    key, for routing; its spec moved from `hello.md` to [API](api.md).
+7. **Add routing: with aityx and Jev, classify the text and route it to
+   the appropriate person (orders to Customer Service, product questions
+   to Marketing, job applications to HR, and so on), with all the usual
+   departments of a large online store. Show the request to aityx and its
+   response, as Mortgage Hub does but better: larger, with navigation
+   buttons that go exactly to the part of the JSON for each item.**
+   **Send** now opens the [routing](routing.md): the API's new
+   `POST /api/route` makes one System One call, where Jev answers four
+   questions about the message (the topic, as a choice among 13
+   departments' topics, and urgency, sensitive data and abuse) and
+   `models/routing.json` picks the department, the priority, the hours to
+   answer and whether a person reviews it first. Each department has a
+   (made-up) person. The screen shows the result, each item with links to
+   exactly its JSON (down to the table row that fired), and the aityx
+   call in a new viewer: request and response, 14 px Roboto Mono with line
+   numbers and colors, three quarters of the window high, full screen on
+   demand, and a **Jump to** bar; every jump lands the value's first line
+   at the top and marks and explains the value. The key was copied into
+   `ContactHub/.env` from Mortgage Hub's (git-ignored), to test against
+   the live API.
+8. **Add a drop-down of sample complaints to send instead of saying or
+   typing them, one for each department.** **Try a sample**, beside
+   **Send**, lists one request for each of the 13 departments and two
+   for the checks (a card number, an abusive message); picking one fills
+   the field. All 15 were routed where expected through the live API. See
+   [Request box](request.md#samples).

@@ -8,7 +8,8 @@ app's home. Centered, at most 560 px wide:
 - **Welcome to Contact Hub**, bold;
 - "Ask anything, and we get it to the right person.", muted;
 - the [request box](request.md): a field for the request, typed or
-  dictated with the microphone beside it, and **Send**;
+  dictated with the microphone beside it, or picked from **Try a
+  sample**, and **Send**, which opens the [routing](routing.md);
 - the build's version, `X.Y.Z` (see
   [Development environment](dev-environment.md)), small and faint, only
   when the build sets `CONTACTHUB_VERSION`.

@@ -147,6 +147,26 @@ void main() {
     expect(find.byIcon(Icons.mic_none), findsOneWidget);
   });
 
+  testWidgets('a sample fills the field', (tester) async {
+    await pumpBox(tester, FakeVoice());
+    await tester.enterText(find.byType(TextField), 'something else');
+
+    await tester.tap(find.text('Try a sample'));
+    await tester.pumpAndSettle();
+    expect(find.text('ONE FOR EACH DEPARTMENT'), findsOneWidget);
+    await tester.tap(find.text('A job application'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        "I'd like to apply for the warehouse supervisor position in Dallas. "
+        'Where should I send my CV?',
+      ),
+      findsOneWidget,
+    );
+    expect(sendButton(tester).onPressed, isNotNull);
+  });
+
   testWidgets('sending opens the routing for the request', (tester) async {
     final router = PendingRouter();
     await tester.pumpWidget(ContactHubApp(voice: FakeVoice(), router: router));

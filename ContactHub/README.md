@@ -2,9 +2,13 @@
 
 Contact Hub lets someone ask anything and gets the question to the right
 department or person, with the checks it needs run on the way. For now the
-welcome page takes the request, typed or dictated, with speech recognized
-in the browser so no audio leaves the device. Routing, run by
-[aityx.ai](https://aityx.ai), comes next.
+welcome page takes the request, typed, dictated (speech is recognized in
+the browser, so no audio leaves the device) or picked from a sample, and
+the routing screen says where it went: [Jev](https://aityx.ai/docs/coming-from-jev)
+classifies and checks the message and a decision model on
+[aityx.ai](https://aityx.ai) picks the department, the person and the
+priority. It shows why, and the aityx call itself, with links that jump to
+exactly the JSON behind each item.
 
 ## Technology
 
@@ -21,9 +25,10 @@ lock as Mortgage Hub's, so the two share one Nix store.
 ## Run it locally with devbox
 
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
-2. Optionally, put your [aityx](https://aityx.ai) key in `.env` (copy
+2. Put your [aityx](https://aityx.ai) key in `.env` (copy
    [.env.example](.env.example)): the same `AITYX_API_KEY` as Mortgage
-   Hub's. Nothing calls aityx yet, so the app runs without it.
+   Hub's, for instance `grep '^AITYX_' ../MortgageHub/.env > .env`.
+   Without it the app runs, but **Send** can't route.
 3. From this folder:
 
    ```bash
@@ -42,7 +47,9 @@ The ports are 8890 and 8891, so Contact Hub runs alongside Mortgage Hub
 or so. Type a request, or press the microphone beside the field and say
 it: the browser asks for the microphone the first time, and Chrome or
 Edge install their on-device English pack, while other browsers download
-a small speech model (see [Request box](specs/request.md)).
+a small speech model (see [Request box](specs/request.md)). Or pick one
+from **Try a sample**: one for each department, and two for the checks.
+**Send** routes it (see [Routing](specs/routing.md)).
 
 Once both are ready, the `health-check` monitor prints where to open the
 app (in a codespace, its forwarded URL too), waits 5 s
@@ -125,7 +132,7 @@ Otherwise add it at
 [github.com/settings/codespaces](https://github.com/settings/codespaces)
 (**New secret**, name `AITYX_API_KEY`, access to
 `aletyx/samples-and-demos`), or enter it when GitHub asks on the creation
-page. Nothing calls aityx yet, so the app runs without it.
+page. Without it the app runs, but **Send** can't route.
 
 On first start,
 [post-create.sh](../.devcontainer/ContactHub/post-create.sh) moves to

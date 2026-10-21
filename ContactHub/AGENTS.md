@@ -11,8 +11,8 @@ every commit and push:
   `contacthub_app/`, `dart analyze` and `dart test` in `contacthub_api/`,
   and `devbox services up` still starts the web server, the API and the
   health check cleanly.
-- **Secrets**, such as the aityx key (`AITYX_API_KEY`) once routing uses
-  it, live only in `.env` and the API's environment. Never pass them to
+- **Secrets**, such as the aityx key (`AITYX_API_KEY`), which routing uses,
+  live only in `.env` and the API's environment. Never pass them to
   Flutter, print them, or put them on a command line.
 - **Security**: check for hardcoded secrets or tokens, unsafe shell patterns
   (unquoted variables, `curl | bash` of unpinned sources, world-writable

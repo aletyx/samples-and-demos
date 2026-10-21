@@ -10,7 +10,8 @@ it.
 Contact Hub lets someone ask anything and routes the question to the
 right department or person, running the checks it needs on the way. For
 now it is a welcome page where a request can be typed or dictated, on
-the device. Nothing processes the request yet.
+the device, or picked from samples, and routed to the right department
+by Jev and aityx.
 
 ## Features
 
@@ -19,9 +20,15 @@ the device. Nothing processes the request yet.
 - [Welcome page](welcome.md): the app's home, with its name, a one-line
   welcome, the request box and the build's version.
 - [Request box](request.md): the request, typed or dictated with the
-  microphone beside the field, and **Send**. Speech is recognized in the
+  microphone beside the field, or picked from **Try a sample**, and
+  **Send**. Speech is recognized in the
   browser only: Chrome's and Edge's on-device Web Speech, else Moonshine
   tiny run by transformers.js in a Web Worker.
+- [Routing](routing.md): Jev classifies the message and checks it, the
+  routing model picks the department, the person, the priority and
+  whether it's reviewed; the screen shows why, with links to exactly the
+  JSON behind each item, and the aityx call, large, with exact
+  navigation.
 - [Theme](theme.md): the aityx dark palette.
 - [App icon](app-icon.md): an orange speech bubble with a route that
   branches three ways, the chosen branch lit; the favicon and every
@@ -30,7 +37,7 @@ the device. Nothing processes the request yet.
 **Backend**
 
 - [API](api.md): `contacthub_api`, a Dart server that holds the aityx key
-  and, for now, serves only `GET /api/health`.
+  and serves `POST /api/route` and `GET /api/health`.
 
 **Project**
 

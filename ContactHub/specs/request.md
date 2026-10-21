@@ -1,8 +1,8 @@
 # Request box
 
-Where someone says what they need: typed, or dictated with the
-microphone beside the field. It's on the [welcome page](welcome.md).
-Nothing processes the request yet; routing comes next.
+Where someone says what they need: typed, dictated with the microphone
+beside the field, or picked from **Try a sample**. It's on the
+[welcome page](welcome.md); **Send** [routes](routing.md) it.
 
 ## The box
 
@@ -21,13 +21,35 @@ Nothing processes the request yet; routing comes next.
   "Listening… tap the stop button when you're done.", "Turning your words
   into text…", or why dictation failed (in the error color), such as
   "Microphone access was denied."
-- **Send**, enabled when the field has text and no dictation is running.
-  It hands the trimmed text on; the welcome page answers with a snack bar,
-  "Got your request. Routing it comes next."
+- **Try a sample**, under the field on the left: a menu of ready-made
+  requests (see [Samples](#samples)); picking one replaces the field's
+  text, stopping any dictation.
+- **Send**, on the right, enabled when the field has text and no
+  dictation is running. It hands the trimmed text on, and the welcome
+  page opens the [routing](routing.md) for it.
 
 Dictated words go after whatever is already typed, separated by a space.
 With on-device speech they appear live as you speak; with the model,
 when you stop.
+
+## Samples
+
+[samples.dart](../contacthub_app/lib/request/samples.dart): each shows a
+title and, in the accent color, where it should go.
+
+- **One for each department**: Where is my package? (Customer Service),
+  Charged twice (Billing & Payments), A question about a product
+  (Marketing), Can't sign in (Technical Support), A phishing email (Trust
+  & Safety), A job application (Human Resources), Selling on the
+  marketplace (Seller Services), Becoming a supplier (Procurement &
+  Vendors), A bulk order (Business Sales), Delete my data (Legal &
+  Privacy), A press request (Public Relations), A shareholder question
+  (Investor Relations), Too vague to tell (General Inquiries).
+- **The checks**: A card number in the message (Billing & Payments, high
+  priority, reviewed) and An abusive message (Trust & Safety, whatever
+  the topic).
+
+All 15 were sent through the live API and routed where their labels say.
 
 ## Voice input, on the device only
 
@@ -83,4 +105,3 @@ typed text, the download, start-up and transcription states, and errors.
   first use: the audio stays on the device, but those two sites see the
   download.
 - No voice input in the Android, iOS and Linux apps yet.
-- Nothing is done with a sent request yet.
