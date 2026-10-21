@@ -247,3 +247,13 @@ spec.
     a note to check that `AITYX_API_KEY` is ticked as associated with the
     repository. The repository README points to them. See
     [Development environment](dev-environment.md).
+34. **Change the colors to use the same palette as the aityx website (from
+    a screenshot); also save the color theme to a text file.** Replaced the
+    Gruvbox theme with the aityx dark palette: near-black violet
+    backgrounds, light gray text and the orange accent as primary. "Needs
+    review" moved from primary to an amber tertiary so it stays distinct
+    from the accent and from red. The web manifest colors and the app
+    icon follow: an orange house on the page background, regenerated for
+    every platform. The palette is in
+    [theme-colors.txt](theme-colors.txt). See [Theme](theme.md) and
+    [App icon](app-icon.md).

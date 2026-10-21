@@ -22,7 +22,7 @@ class MortgageHubApp extends StatelessWidget {
     return MaterialApp(
       title: AppVersion.title,
       debugShowCheckedModeBanner: false,
-      theme: gruvboxSoftDarkTheme(),
+      theme: aityxDarkTheme(),
       home: WelcomeScreen(checker: checker),
     );
   }

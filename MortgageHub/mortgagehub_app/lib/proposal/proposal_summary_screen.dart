@@ -388,7 +388,7 @@ class _CheckRow extends StatelessWidget {
     final scheme = theme.colorScheme;
     final (color, icon) = switch (item.result) {
       CheckResult.pass => (scheme.secondary, Icons.check_circle),
-      CheckResult.review => (scheme.primary, Icons.error_outline),
+      CheckResult.review => (scheme.tertiary, Icons.error_outline),
       CheckResult.fail => (scheme.error, Icons.cancel),
     };
     return Padding(
