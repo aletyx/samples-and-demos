@@ -38,6 +38,9 @@ explains the reasons behind each piece.
   `API_PORT`, git-ignored). It also proxies the bare `/` to the API, which
   redirects it to `/app/`. `scripts/make.sh` passes `API_BASE_URL`, or
   `http://localhost:8891`.
+- `bash scripts/model-test.sh` runs the routing model's rules on aityx at
+  the policy's limits (see [Order policy](order-policy.md#verified)); run
+  it after changing the model.
 - **Version**: `X.Y.Z`, X and Y from `version.X.txt` and `version.Y.txt`
   (0.1 today), Z the build time as `YYYYMMDDHHMM` UTC; the build number is
   the same time in Unix seconds

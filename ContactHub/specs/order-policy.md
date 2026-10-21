@@ -105,6 +105,17 @@ broken item bought here is a warranty claim, Customer Service's, and
 three runs routed it there.) Tests use real aityx answers for the tablet,
 the jacket and the late lamp.
 
+`bash scripts/model-test.sh` runs the rules themselves on aityx
+([test/model_scenarios_test.dart](../contacthub_api/test/model_scenarios_test.dart),
+tagged `aityx`, skipped by a plain `dart test`): 21 cases with fixed facts
+just inside and just outside each limit (refund at 30 days, store credit
+at 31 and 60, not eligible at 61; no restocking fee at 14 days, 15% at
+15; $500.00 refunded, $500.01 to a person; damage at 7 and 8 days; the
+warranty at 365 and 366; price drops at 14 and 15; late at 11 days, not
+at 10; cancellations; duplicate charges). The questions' answers are given
+in the state, so only the rules run and every run is the same. Changing
+the refund window to 29 days fails the 30-day case.
+
 ## Known limitations
 
 - The order book is a fixed demo list; there's no customer account.

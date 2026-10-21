@@ -445,6 +445,14 @@ List<JsonTarget> callTargets(Routing r) {
         'Policy rule $rule',
         'The row of the policy table that fired for this order.',
       ),
+    if (r.policy?.amountRule case final rule?)
+      JsonTarget(
+        req,
+        'decision.decisions.refund_amount.table.$rule',
+        'Amount rule $rule',
+        'The row of the amount table that fired: how much is paid back, '
+            'and why.',
+      ),
     const JsonTarget(
       req,
       'decision.decisions.refund_amount',

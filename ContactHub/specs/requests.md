@@ -119,3 +119,8 @@ The feature files hold the current specification; see the
     fired. **Try a sample** leads with one sample per outcome, and the
     others carry dates and figures. Two topics were sharpened so a broken
     item bought here is a warranty claim, Customer Service's.
+11. **Fix what the code review found on the order policy.** The amount
+    rule that fired gets its own **Jump to** entry, with its explanation.
+    `scripts/model-test.sh` now runs the rules themselves on aityx, with
+    fixed facts at each limit of the policy, so a changed window or fee
+    fails a test (see [Order policy](order-policy.md#verified)).

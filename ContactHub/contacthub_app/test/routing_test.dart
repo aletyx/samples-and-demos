@@ -174,6 +174,23 @@ void main() {
       final list = tester.widget<ListView>(find.byType(ListView).first);
       expect(list.controller!.offset, 8 + (first - 1) * 22.0);
       expect(find.textContaining('fired for this order'), findsOneWidget);
+
+      // The amount's rule lands exactly too, explained.
+      // The card's link, scrolled back into view: the page moved to the
+      // call after the first jump.
+      final link = find.text('Amount rule 4').first;
+      await tester.ensureVisible(link);
+      await tester.pumpAndSettle();
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      final amount = layoutJson(outcome.aityxRequest)
+          .ranges['decision.decisions.refund_amount.table.4']!
+          .first;
+      expect(
+        tester.widget<ListView>(find.byType(ListView).first).controller!.offset,
+        8 + (amount - 1) * 22.0,
+      );
+      expect(find.textContaining('how much is paid back'), findsOneWidget);
     });
 
     testWidgets('an answer link switches to the response', (tester) async {
