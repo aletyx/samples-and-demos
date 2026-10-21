@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Continuous health monitor: every HEALTH_CHECK_INTERVAL seconds (15 by
-# default), one line per run: the time, then each check as its emoji, a
-# short label and ✅ (ok) / ❌ (failed), separated by " · ":
-#   🌐 Web · 🔌 API
+# Continuous health monitor. It first prints where to open the app (the
+# codespace's forwarded URL too, in a codespace) and waits
+# HEALTH_CHECK_DELAY seconds (5 by default). Then, every
+# HEALTH_CHECK_INTERVAL seconds (15 by default), one line per run: the time,
+# then each check as its emoji, a short label and ✅ (ok) / ❌ (failed),
+# separated by " · ":
+#   🌐 Web · 🔌 API · 🤖 aityx (the API's key: ✅ set, ⚪ not set)
 # Runs via `devbox services up` (see process-compose.yaml) or standalone.
 set -uo pipefail
 
 INTERVAL="${HEALTH_CHECK_INTERVAL:-15}"
+DELAY="${HEALTH_CHECK_DELAY:-5}"
 
 # This run's results, one "<emoji> <label> <status emoji>" each.
 RESULTS=()
@@ -32,11 +36,17 @@ get() {
 
 check_web() { ok_if "🌐 Web" get 5 "http://localhost:${FLUTTER_WEB_PORT:-8890}/app/"; }
 
-# The API's /api/health: {"ok":true}.
+# The API's /api/health: {"ok":true,"aityx":<whether its key is set>}.
 check_api() {
     local body
     body="$(curl -fs --max-time 5 "http://localhost:${API_PORT:-8891}/api/health")"
-    if [[ "$body" == *'"ok":true'* ]]; then report "🔌 API" ✅; else report "🔌 API" ❌; fi
+    if [[ "$body" != *'"ok":true'* ]]; then
+        report "🔌 API" ❌
+        report "🤖 aityx" ❌
+        return
+    fi
+    report "🔌 API" ✅
+    if [[ "$body" == *'"aityx":true'* ]]; then report "🤖 aityx" ✅; else report "🤖 aityx" ⚪; fi
 }
 
 # run_checks: one pass over every check, printed as one line.
@@ -50,9 +60,23 @@ run_checks() {
     printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${line# · }"
 }
 
+# print_address: where to open the app, before the first check.
+print_address() {
+    local port="${FLUTTER_WEB_PORT:-8890}"
+    echo "Contact Hub is up. Open the app at:"
+    echo "  http://localhost:$port/app/"
+    # A codespace forwards the port to its own URL; the Ports panel has it too.
+    if [[ -n "${CODESPACE_NAME:-}" && -n "${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}" ]]; then
+        echo "  https://$CODESPACE_NAME-$port.$GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN/app/"
+    fi
+    echo "Health checks start in $DELAY s, then every $INTERVAL s."
+}
+
 # Sourced (e.g. to call run_checks once): define the functions only.
 [[ "${BASH_SOURCE[0]}" == "$0" ]] || return 0
 
+print_address
+sleep "$DELAY"
 while true; do
     run_checks
     sleep "$INTERVAL"

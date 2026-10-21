@@ -20,11 +20,14 @@ now it is the scaffolding: a welcome page and a Hello page.
 - [Hello page](hello.md): "Hello, world!" and the API's greeting, which
   checks the app reaches the API.
 - [Theme](theme.md): the aityx dark palette.
+- [App icon](app-icon.md): an orange speech bubble with a route that
+  branches three ways, the chosen branch lit; the favicon and every
+  platform's icon, generated from SVG masters.
 
 **Backend**
 
-- [Hello page](hello.md#api): `contacthub_api`, a Dart server that serves
-  `GET /api/hello` and `GET /api/health`.
+- [Hello page](hello.md#api): `contacthub_api`, a Dart server that holds
+  the aityx key and serves `GET /api/hello` and `GET /api/health`.
 
 **Project**
 

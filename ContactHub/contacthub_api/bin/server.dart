@@ -1,12 +1,15 @@
-/// Contact Hub's API. For now it only proves the app reaches it, and
+/// Contact Hub's API. Holds the aityx.ai key, which must never reach the
+/// app; routing will use it. For now it only proves the app reaches it, and
 /// answers:
 ///
 ///   GET  /             302 to /app/, so a forwarded port's bare URL opens
 ///                      the app (the dev server proxies the root here)
-///   GET  /api/health   {"ok": true}
+///   GET  /api/health   {"ok": true, "aityx": true when the key is set}
 ///   GET  /api/hello    {"message": "Hello from Contact Hub's API"}
 ///
-/// Settings, from the environment (scripts/api.sh sets them):
+/// Settings, from the environment (scripts/api.sh loads .env):
+///   AITYX_API_KEY         the key (secret)
+///   AITYX_URL             aityx's base URL (default https://api.aityx.ai)
 ///   API_PORT              the port (default 8891)
 ///   CONTACTHUB_BIND_HOST  the address to bind (default 127.0.0.1)
 ///   ALLOWED_ORIGINS       comma-separated origins allowed by CORS
@@ -26,6 +29,16 @@ import 'package:contacthub_api/routes.dart';
 Future<void> main(List<String> args) async {
   if (args.firstOrNull == 'healthcheck') exit(await _healthcheck());
   final env = Platform.environment;
+  final key = env['AITYX_API_KEY'] ?? '';
+  final aityx = Uri.parse(
+    (env['AITYX_URL'] ?? '').isEmpty
+        ? 'https://api.aityx.ai'
+        : env['AITYX_URL']!,
+  );
+  if (aityx.scheme != 'https') {
+    stderr.writeln('error: AITYX_URL must be https');
+    exit(1);
+  }
   final port = int.parse(env['API_PORT'] ?? '8891');
   final host = env['CONTACTHUB_BIND_HOST'] ?? '127.0.0.1';
   final origins = (env['ALLOWED_ORIGINS'] ?? 'http://localhost:8890')
@@ -33,12 +46,13 @@ Future<void> main(List<String> args) async {
       .map((origin) => origin.trim())
       .where((origin) => origin.isNotEmpty)
       .toSet();
+  if (key.isEmpty) stderr.writeln('warning: AITYX_API_KEY is not set');
 
   final server = await HttpServer.bind(host, port);
-  stdout.writeln('contacthub_api on http://$host:$port');
+  stdout.writeln('contacthub_api on http://$host:$port (aityx: ${aityx.host})');
 
   await for (final request in server) {
-    unawaited(_handle(request, origins));
+    unawaited(_handle(request, origins, hasKey: key.isNotEmpty));
   }
 }
 
@@ -64,7 +78,11 @@ Future<int> _healthcheck() async {
   }
 }
 
-Future<void> _handle(HttpRequest request, Set<String> origins) async {
+Future<void> _handle(
+  HttpRequest request,
+  Set<String> origins, {
+  required bool hasKey,
+}) async {
   final response = request.response;
   final origin = request.headers.value('origin');
   if (origin != null && origins.contains(origin)) {
@@ -75,7 +93,7 @@ Future<void> _handle(HttpRequest request, Set<String> origins) async {
       ..set('Access-Control-Allow-Headers', 'Content-Type');
   }
   try {
-    final answer = route(request.method, request.uri.path);
+    final answer = route(request.method, request.uri.path, aityx: hasKey);
     response.statusCode = answer.status;
     if (answer.location case final location?) {
       response.headers.set(HttpHeaders.locationHeader, location);

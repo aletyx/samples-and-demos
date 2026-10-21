@@ -8,10 +8,13 @@ void main() {
     expect(answer.location, '/app/');
   });
 
-  test('health answers ok', () {
-    final answer = route('GET', '/api/health');
-    expect(answer.status, 200);
-    expect(answer.body, {'ok': true});
+  test('health answers ok, and whether the key is set', () {
+    final without = route('GET', '/api/health');
+    expect(without.status, 200);
+    expect(without.body, {'ok': true, 'aityx': false});
+
+    final withKey = route('GET', '/api/health', aityx: true);
+    expect(withKey.body, {'ok': true, 'aityx': true});
   });
 
   test('hello answers the greeting', () {

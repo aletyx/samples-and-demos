@@ -10,7 +10,7 @@ reaches its API. Routing, run by [aityx.ai](https://aityx.ai), comes next.
 | Part | Technology |
 |---|---|
 | App ([contacthub_app/](contacthub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
-| API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): for now `/api/health` and `/api/hello` |
+| API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key; for now `/api/health` and `/api/hello` |
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
@@ -20,7 +20,10 @@ lock as Mortgage Hub's, so the two share one Nix store.
 ## Run it locally with devbox
 
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
-2. From this folder:
+2. Optionally, put your [aityx](https://aityx.ai) key in `.env` (copy
+   [.env.example](.env.example)): the same `AITYX_API_KEY` as Mortgage
+   Hub's. Nothing calls aityx yet, so the app runs without it.
+3. From this folder:
 
    ```bash
    devbox services up           # add --pcflags "--tui=false" when not in a terminal
@@ -39,11 +42,17 @@ or so. Open the app and choose **Say hello**: the Hello page shows
 "Hello, world!" and the API's greeting, which proves the whole path, from
 the app through the proxy to the API, works.
 
-A `health-check` monitor logs one line every 15 s (set
-`HEALTH_CHECK_INTERVAL` to change it):
+Once both are ready, the `health-check` monitor prints where to open the
+app (in a codespace, its forwarded URL too), waits 5 s
+(`HEALTH_CHECK_DELAY`), then logs one line every 15 s
+(`HEALTH_CHECK_INTERVAL`); 🤖 [aityx](https://aityx.ai) is ⚪ when the API
+has no key:
 
 ```
-2026-10-21 11:42:10 🌐 Web ✅ · 🔌 API ✅
+Contact Hub is up. Open the app at:
+  http://localhost:8890/app/
+Health checks start in 5 s, then every 15 s.
+2026-10-21 11:42:10 🌐 Web ✅ · 🔌 API ✅ · 🤖 aityx ✅
 ```
 
 Stop everything with `devbox services stop`. To run only the app, use
@@ -87,7 +96,9 @@ and starts two services:
 | `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
 | `api` | The API compiled to a native executable ([contacthub_api/Dockerfile](contacthub_api/Dockerfile)); not published, reached only through `web` |
 
-The first build takes a few minutes (it downloads Flutter); later ones
+For the key, copy [.env.example](.env.example) to `.env` and fill in
+`AITYX_API_KEY` (or export it); it goes to the API only. The first build
+takes a few minutes (it downloads Flutter); later ones
 reuse Docker's cache. Set `FLUTTER_WEB_PORT` to change the port; the app
 is bound to 127.0.0.1 unless you set `CONTACTHUB_BIND_HOST=0.0.0.0`. Stop
 it with `docker compose down`. Both services have health checks, so
@@ -102,12 +113,21 @@ That link opens this repository's **Contact Hub** dev container on a
 4-core machine (16 GB RAM), which is what the Flutter and Nix builds want.
 To choose for yourself instead, use *Code → Codespaces → New with
 options* and pick **Contact Hub** as the dev container configuration —
-the repository holds several samples, so the configuration matters. No
-secret is needed yet.
+the repository holds several samples, so the configuration matters.
+
+The codespace uses your [aityx](https://aityx.ai) key, the same
+`AITYX_API_KEY` Codespaces secret as Mortgage Hub's. GitHub keeps
+Codespaces secrets per user and grants them per repository, so if your key
+already reaches this repository for Mortgage Hub, there is nothing to do.
+Otherwise add it at
+[github.com/settings/codespaces](https://github.com/settings/codespaces)
+(**New secret**, name `AITYX_API_KEY`, access to
+`aletyx/samples-and-demos`), or enter it when GitHub asks on the creation
+page. Nothing calls aityx yet, so the app runs without it.
 
 On first start,
 [post-create.sh](../.devcontainer/ContactHub/post-create.sh) moves to
-this folder and runs `devbox install`. Then, on that and every later
+this folder, says whether your key arrived and runs `devbox install`. Then, on that and every later
 start, [post-start.sh](../.devcontainer/ContactHub/post-start.sh) starts
 the services in the background and makes port **8890** public. There is
 nothing to run: once the app has compiled, open port 8890 from the

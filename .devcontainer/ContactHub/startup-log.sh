@@ -28,10 +28,11 @@ startup_facts() {
   local set
   echo "user $(id -un), $(uname -sm), in $(pwd)"
   echo "codespace: ${CODESPACE_NAME:-none (not a codespace)}"
-  for name in GITHUB_TOKEN; do
+  for name in AITYX_API_KEY GITHUB_TOKEN; do
     if [[ -n "${!name:-}" ]]; then set=set; else set="not set"; fi
     echo "$name: $set"
   done
+  echo "AITYX_URL: ${AITYX_URL:-default}"
   echo "devbox: $(command -v devbox || echo missing) $(devbox version 2>/dev/null)"
   echo "nix: $(nix --version 2>/dev/null || echo missing)"
   echo "ContactHub/.devbox: $([[ -d "$(dirname "$startup_log")/.devbox" ]] && echo present || echo missing)"

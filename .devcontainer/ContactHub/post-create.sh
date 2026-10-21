@@ -42,6 +42,18 @@ export PATH="$HOME/.nix-profile/bin:$PATH"
 app="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/ContactHub"
 cd "$app" || { echo "post-create: cannot find $app" >&2; exit 1; }
 
+# The aityx key is the user's own, passed in as a Codespaces secret (see
+# devcontainer.json) or put in .env. Report only whether it arrived: the
+# value must never be printed.
+if [[ -n "${AITYX_API_KEY:-}" ]]; then
+  echo "post-create: AITYX_API_KEY is set"
+else
+  echo "post-create: AITYX_API_KEY is not set. The app runs without it, but"
+  echo "post-create: routing will need it. To set it, add a Codespaces secret"
+  echo "post-create: at https://github.com/settings/codespaces, or copy"
+  echo "post-create: ContactHub/.env.example to .env and fill it in."
+fi
+
 # A failure says which step failed and how much disk is left, the likeliest
 # cause on a small machine.
 fail() {

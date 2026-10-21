@@ -30,9 +30,24 @@
   "containerEnv": {
     "CONTACTHUB_BIND_HOST": "0.0.0.0"
   },
-  // No secrets yet: nothing calls aityx.ai. The routing feature will ask
-  // for the user's own AITYX_API_KEY here, as Mortgage Hub does.
+  // Your own key, never the repository's: the same AITYX_API_KEY secret as
+  // Mortgage Hub's. Codespaces secrets belong to a user and are granted per
+  // repository, so a key already granted to this repository for Mortgage
+  // Hub reaches this container too, with nothing to copy. GitHub asks for
+  // it when you create a codespace unless you already hold it, and passes
+  // it in as an environment variable, which the scripts read before
+  // falling back to ContactHub/.env. Change it at
+  // https://github.com/settings/codespaces.
   //
+  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai;
+  // override it in ContactHub/.env if you need to (a stage key, for
+  // instance, works only against https://console-stage.aityx.ai).
+  "secrets": {
+    "AITYX_API_KEY": {
+      "description": "Your own aityx.ai API key, from the console's API keys page; the same one Mortgage Hub uses. Contact Hub's routing will run on aityx.",
+      "documentationUrl": "https://aityx.ai/docs"
+    }
+  },
   // The image's flutter and dart on the PATH of every terminal.
   // ${containerEnv:PATH} is the image's own PATH. Inside `devbox shell`
   // and `devbox services up`, devbox's Flutter, the same version, comes

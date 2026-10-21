@@ -28,10 +28,14 @@ their own `Greeter`.
 | Request | Answer |
 |---|---|
 | `GET /` | 302 to `/app/`, so a forwarded port's bare URL opens the app |
-| `GET /api/health` | `{"ok": true}` |
+| `GET /api/health` | `{"ok": true, "aityx": <whether the API has its key>}` |
 | `GET /api/hello` | `{"message": "Hello from Contact Hub's API"}` |
 | `OPTIONS` anything | 204 |
 | anything else | 404 `{"error": "not found"}` |
+
+The API reads `AITYX_API_KEY` and `AITYX_URL` (default
+`https://api.aityx.ai`, which must be https) from its environment;
+`scripts/api.sh` falls back to `.env`. Nothing calls aityx yet.
 
 CORS allows `ALLOWED_ORIGINS` (by default the dev server's,
 `http://localhost:8890` and `http://127.0.0.1:8890`). `server

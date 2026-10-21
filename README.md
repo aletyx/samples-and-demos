@@ -91,8 +91,8 @@ docker compose -f ContactHub/compose.yaml up --build
 ```
 
 Both serve the app at http://localhost:8890/app/, so it runs alongside
-Mortgage Hub. The badge above opens it in a codespace; no key is needed
-yet. See the [Contact Hub README](ContactHub/README.md).
+Mortgage Hub. The badge above opens it in a codespace, which uses the same
+`AITYX_API_KEY` Codespaces secret as Mortgage Hub; nothing calls aityx yet. See the [Contact Hub README](ContactHub/README.md).
 
 ## Payroll
 

@@ -16,7 +16,8 @@ class Answer {
   final String? location;
 }
 
-Answer route(String method, String path) {
+/// [aityx]: whether the API has an aityx key, reported by /api/health.
+Answer route(String method, String path, {bool aityx = false}) {
   if (method == 'OPTIONS') return const Answer(204);
   if (method == 'GET') {
     switch (path) {
@@ -26,7 +27,7 @@ Answer route(String method, String path) {
       case '/':
         return const Answer(302, location: '/app/');
       case '/api/health':
-        return const Answer(200, body: {'ok': true});
+        return Answer(200, body: {'ok': true, 'aityx': aityx});
       case '/api/hello':
         return const Answer(200, body: {'message': helloMessage});
     }

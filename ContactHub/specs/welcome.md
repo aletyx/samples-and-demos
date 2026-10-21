@@ -12,11 +12,11 @@ app's home. Centered, at most 480 px wide:
   [Development environment](dev-environment.md)), small and faint, only
   when the build sets `CONTACTHUB_VERSION`.
 
-The browser tab, the web app's manifest, and the Android, iOS and Linux
+The [app icon](app-icon.md) is a routed speech bubble. The browser tab,
+the web app's manifest, and the Android, iOS and Linux
 app names say **Contact Hub**.
 
 ## Known limitations
 
 - English only.
 - No sign-in.
-- The app icon is Flutter's default.
