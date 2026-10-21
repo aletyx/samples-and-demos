@@ -7,8 +7,11 @@ the browser, so no audio leaves the device) or picked from a sample, and
 the routing screen says where it went: [Jev](https://aityx.ai/docs/coming-from-jev)
 classifies and checks the message and a decision model on
 [aityx.ai](https://aityx.ai) picks the department, the person and the
-priority. It shows why, and the aityx call itself, with links that jump to
-exactly the JSON behind each item.
+priority. For a request about an order, it applies the store's policy to
+the order's dates and amounts (refund within 30 days, store credit within
+60, warranty, restocking fee, price drops, cancellations...) and says how
+much is paid back, and by when. It shows why, and the aityx call itself,
+with links that jump to exactly the JSON behind each item.
 
 ## Technology
 

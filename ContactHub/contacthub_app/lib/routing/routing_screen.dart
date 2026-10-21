@@ -207,6 +207,10 @@ class _Outcome extends StatelessWidget {
             const _JsonLink('Table', req, 'decision.decisions.department'),
           ]),
         ),
+        if (r.policy case final policy? when policy.applies) ...[
+          const SizedBox(height: 12),
+          _PolicyCard(policy, links: links),
+        ],
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -397,6 +401,80 @@ List<JsonTarget> callTargets(Routing r) {
       ),
     const JsonTarget(
       req,
+      'questions.request_kind',
+      'Request kind question',
+      'A choice question: what the customer wants done with their order '
+          '(where it is, a return, damage, a cancellation, a price drop, a '
+          'double charge), or none.',
+    ),
+    const JsonTarget(
+      req,
+      'decision.inputs.order',
+      'Order input',
+      'The order the message names, from the order book: its dates, '
+          'amounts, category, status and charges.',
+    ),
+    const JsonTarget(
+      req,
+      'decision.decisions.return_window_days',
+      'Policy limits',
+      'The store policy\'s numbers, one decision each: 30 days to refund, '
+          '60 for store credit, 7 to report damage, a 1-year warranty on '
+          'electronics, 14 days for a price drop, late after 10 days, a '
+          'person above \$500, a 15% restocking fee on electronics after '
+          '14 days, paid within 5 days.',
+    ),
+    const JsonTarget(
+      req,
+      'decision.decisions.days_since_delivery',
+      'Days since delivery',
+      'Today minus the delivery date, in days: what the windows are '
+          'measured against.',
+    ),
+    const JsonTarget(
+      req,
+      'decision.decisions.resolution',
+      'Policy table',
+      'What the policy offers, by request kind, status, category, dates '
+          'and amount. The first row that matches wins.',
+    ),
+    if (r.policy?.rule case final rule?)
+      JsonTarget(
+        req,
+        'decision.decisions.resolution.table.$rule',
+        'Policy rule $rule',
+        'The row of the policy table that fired for this order.',
+      ),
+    if (r.policy?.amountRule case final rule?)
+      JsonTarget(
+        req,
+        'decision.decisions.refund_amount.table.$rule',
+        'Amount rule $rule',
+        'The row of the amount table that fired: how much is paid back, '
+            'and why.',
+      ),
+    const JsonTarget(
+      req,
+      'decision.decisions.refund_amount',
+      'Amount table',
+      'How much is refunded or credited for each resolution, restocking '
+          'fee included.',
+    ),
+    const JsonTarget(
+      req,
+      'state.order',
+      'The order',
+      'The order on file the API sent, found by the number in the message.',
+    ),
+    const JsonTarget(
+      req,
+      'state.today',
+      'Today',
+      "The request's date, from the API's clock: every window counts from "
+          'it.',
+    ),
+    const JsonTarget(
+      req,
       'decision.decisions.priority',
       'Priority table',
       'How soon the department must answer: high for abuse, sensitive data, '
@@ -448,6 +526,42 @@ List<JsonTarget> callTargets(Routing r) {
       'answers.abusive_probability',
       'Abuse',
       "aityx's probability that the message is abusive.",
+    ),
+    const JsonTarget(
+      res,
+      'answers.request_kind',
+      'Request kind',
+      "aityx's choice of what the customer wants done with the order.",
+    ),
+    const JsonTarget(
+      res,
+      'answers.resolution',
+      'Resolution',
+      'What the store\'s policy offers.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.refund_amount',
+      'Refund amount',
+      'The money refunded or credited, in USD.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.refund_by',
+      'Refund by',
+      'The date the refund or credit is paid by: today plus 5 days.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.days_since_delivery',
+      'Days since delivery',
+      'Computed from the delivery date and today; -1 when not delivered.',
+    ),
+    const JsonTarget(
+      res,
+      'receipt.decisions.resolution',
+      'Policy receipt',
+      "The policy table's trace: the row that fired.",
     ),
     const JsonTarget(
       res,
@@ -852,6 +966,222 @@ class _TopicCard extends StatelessWidget {
                 ),
               ),
             links,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What each resolution is called, and how it reads: good for the
+/// customer, a step to take, or a no.
+const _resolutions = {
+  'ask_for_order': ('Ask for the order number', _Tone.step),
+  'cancel_and_refund': ('Cancel and refund', _Tone.good),
+  'return_after_delivery': ('Return it once it arrives', _Tone.step),
+  'share_tracking': ('On schedule: share the tracking', _Tone.good),
+  'investigate_late': ('Late: open a carrier investigation', _Tone.step),
+  'refund_duplicate': ('Refund the duplicate charge', _Tone.good),
+  'price_adjustment': ('Refund the price difference', _Tone.good),
+  'replace_or_refund': ('Replace or refund', _Tone.good),
+  'warranty_repair': ('Repair under warranty', _Tone.good),
+  'refund': ('Refund', _Tone.good),
+  'store_credit': ('Store credit', _Tone.good),
+  'manual_review': ('A person approves it', _Tone.step),
+  'not_eligible': ('Not eligible', _Tone.no),
+};
+
+enum _Tone { good, step, no }
+
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+String _date(DateTime d) => '${_months[d.month - 1]} ${d.day}, ${d.year}';
+
+String _money(double amount) {
+  final cents = (amount * 100).round();
+  final whole = (cents ~/ 100).toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+$)'),
+    (m) => '${m[1]},',
+  );
+  return '\$$whole.${(cents % 100).toString().padLeft(2, '0')}';
+}
+
+String _ago(int? days) => switch (days) {
+  null || < 0 => '',
+  0 => ' (today)',
+  1 => ' (yesterday)',
+  final d => ' ($d days ago)',
+};
+
+/// The store's policy for the order: what it offers, how much and by when,
+/// why, and the order's facts it was decided from.
+class _PolicyCard extends StatelessWidget {
+  const _PolicyCard(this.policy, {required this.links});
+
+  final OrderPolicy policy;
+  final Widget Function(List<_JsonLink>) links;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    const req = CallSide.request;
+    const res = CallSide.response;
+    final (label, tone) =
+        _resolutions[policy.resolution] ?? (policy.resolution, _Tone.step);
+    final accent = switch (tone) {
+      _Tone.good => scheme.secondary,
+      _Tone.step => scheme.tertiary,
+      _Tone.no => scheme.error,
+    };
+    final order = policy.order;
+    final rule = policy.rule;
+    Widget fact(String name, String value) => Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 96,
+            child: Text(
+              name,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
+        ],
+      ),
+    );
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(left: BorderSide(color: accent, width: 4)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "THE STORE'S POLICY",
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: accent,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: accent,
+              ),
+            ),
+            if (policy.refundAmount > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${_money(policy.refundAmount)}'
+                '${policy.refundBy == null ? '' : ', paid by ${_date(policy.refundBy!)}'}',
+                style: theme.textTheme.titleLarge,
+              ),
+              if (policy.amountReason != null)
+                Text(
+                  policy.amountReason!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+            if (policy.reason != null) ...[
+              const SizedBox(height: 8),
+              Text(policy.reason!, style: theme.textTheme.bodyLarge),
+            ],
+            links([
+              const _JsonLink('Answer', res, 'answers.resolution'),
+              if (rule != null)
+                _JsonLink(
+                  'Rule $rule',
+                  req,
+                  'decision.decisions.resolution.table.$rule',
+                ),
+              if (policy.refundAmount > 0) ...[
+                const _JsonLink('Amount', res, 'answers.refund_amount'),
+                if (policy.amountRule case final amountRule?)
+                  _JsonLink(
+                    'Amount rule $amountRule',
+                    req,
+                    'decision.decisions.refund_amount.table.$amountRule',
+                  ),
+              ],
+              const _JsonLink(
+                'Limits',
+                req,
+                'decision.decisions.return_window_days',
+              ),
+            ]),
+            const Divider(height: 24),
+            if (order == null)
+              Text(
+                policy.orderNumber == null
+                    ? 'The message names no order.'
+                    : 'Order ${policy.orderNumber} is not on file.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              )
+            else ...[
+              Text(
+                'Order ${order.number} · ${order.item}',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              fact(
+                'Ordered',
+                '${_date(order.placedOn)}${_ago(policy.daysSinceOrder)}',
+              ),
+              fact(
+                order.status == 'delivered' ? 'Delivered' : 'Expected',
+                '${_date(order.deliveredOn)}'
+                '${order.status == 'delivered' ? _ago(policy.daysSinceDelivery) : ' · ${order.status}'}',
+              ),
+              fact(
+                'Paid',
+                '${_money(order.amount)}'
+                    '${order.currentPrice != order.amount ? ' · ${_money(order.currentPrice)} today' : ''}'
+                    '${order.charges > 1 ? ' · charged ${order.charges} times' : ''}',
+              ),
+              fact('Category', switch (order.category) {
+                'final_sale' => 'Final sale',
+                'electronics' => 'Electronics',
+                _ => 'Standard',
+              }),
+              links(const [
+                _JsonLink('The order', req, 'state.order'),
+                _JsonLink('Today', req, 'state.today'),
+                _JsonLink(
+                  'Days since delivery',
+                  res,
+                  'answers.days_since_delivery',
+                ),
+                _JsonLink('Request kind', res, 'answers.request_kind'),
+              ]),
+            ],
           ],
         ),
       ),

@@ -10,9 +10,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-/// A real answer of the API: a job question about Berlin, routed to HR by
-/// department rule 8 and priority rule 6.
-final _fixture = File('test/fixtures/route-hr.json').readAsStringSync();
+/// A real answer of the API: a tablet returned 20 days after delivery,
+/// routed to Customer Service by department rule 3, and refunded less the
+/// restocking fee by policy rule 16.
+final _fixture = File('test/fixtures/route-tablet.json').readAsStringSync();
 RoutingOutcome _outcome() => RoutingOutcome.fromJson(
   (jsonDecode(_fixture) as Map).cast<String, Object?>(),
 );
@@ -36,15 +37,21 @@ void main() {
   test('reads the API\'s answer', () {
     final o = _outcome();
     final r = o.routing;
-    expect(r.department.name, 'Human Resources');
-    expect(r.department.person, 'Sofia Rossi');
-    expect(r.departmentRule, 8);
+    expect(r.department.name, 'Customer Service');
+    expect(r.department.person, 'Maria Lopez');
+    expect(r.departmentRule, 3);
     expect(r.priority, 'normal');
-    expect(r.priorityRule, 6);
+    expect(r.priorityRule, 7);
     expect(r.responseHours, 24);
     expect(r.needsReview, isFalse);
-    expect(r.topic, 'hr');
-    expect(r.topicProbabilities['hr'], 1);
+    expect(r.topic, 'customer_service');
+    expect(r.topicProbabilities['customer_service'], 1);
+    expect(r.policy!.resolution, 'refund');
+    expect(r.policy!.rule, 16);
+    expect(r.policy!.refundAmount, 279.65);
+    expect(r.policy!.refundBy, DateTime(2026, 10, 26));
+    expect(r.policy!.daysSinceDelivery, 20);
+    expect(r.policy!.order!.item, 'Tablet');
     expect(r.checks.map((c) => c.id), [
       'urgent',
       'sensitive_data',
@@ -69,7 +76,7 @@ void main() {
       final outcome = await router.route('Any jobs?');
       expect(sent.url, Uri.parse('http://localhost:8891/api/route'));
       expect(jsonDecode(sent.body), {'message': 'Any jobs?'});
-      expect(outcome.routing.department.id, 'hr');
+      expect(outcome.routing.department.id, 'customer_service');
     });
 
     test("says the API's error", () {
@@ -108,10 +115,12 @@ void main() {
     testWidgets('shows the department, the person and why', (tester) async {
       await pump(tester, FakeRouter());
 
-      expect(find.text('Human Resources'), findsWidgets);
-      expect(find.text('Sofia Rossi'), findsOneWidget);
+      expect(find.text('Customer Service'), findsWidgets);
+      expect(find.text('Maria Lopez'), findsOneWidget);
       expect(
-        find.text("Job applications and careers are Human Resources'."),
+        find.text(
+          "Orders, deliveries, returns and refunds are Customer Service's.",
+        ),
         findsOneWidget,
       );
       expect(
@@ -127,12 +136,12 @@ void main() {
       final outcome = _outcome();
       await pump(tester, FakeRouter(outcome));
 
-      await tester.tap(find.text('Rule 8'));
+      await tester.tap(find.text('Rule 3'));
       await tester.pumpAndSettle();
 
       // The request is shown, scrolled so the row's line is the second on
       // screen (one line of context above it), and the row is explained.
-      final path = 'decision.decisions.department.table.8';
+      final path = 'decision.decisions.department.table.3';
       final first = layoutJson(outcome.aityxRequest).ranges[path]!.first;
       final list = tester.widget<ListView>(find.byType(ListView).first);
       expect(list.controller!.offset, 8 + (first - 1) * 22.0);
@@ -144,6 +153,44 @@ void main() {
         find.byType(SegmentedButton<CallSide>),
       );
       expect(segmented.selected, {CallSide.request});
+    });
+
+    testWidgets("shows the store's policy, and its rule exactly", (
+      tester,
+    ) async {
+      final outcome = _outcome();
+      await pump(tester, FakeRouter(outcome));
+
+      expect(find.text('Refund'), findsOneWidget);
+      expect(find.text(r'$279.65, paid by Oct 26, 2026'), findsOneWidget);
+      expect(find.text('Order 120-5150 · Tablet'), findsOneWidget);
+      expect(find.textContaining('(20 days ago)'), findsOneWidget);
+
+      await tester.tap(find.text('Rule 16'));
+      await tester.pumpAndSettle();
+      final first = layoutJson(outcome.aityxRequest)
+          .ranges['decision.decisions.resolution.table.16']!
+          .first;
+      final list = tester.widget<ListView>(find.byType(ListView).first);
+      expect(list.controller!.offset, 8 + (first - 1) * 22.0);
+      expect(find.textContaining('fired for this order'), findsOneWidget);
+
+      // The amount's rule lands exactly too, explained.
+      // The card's link, scrolled back into view: the page moved to the
+      // call after the first jump.
+      final link = find.text('Amount rule 4').first;
+      await tester.ensureVisible(link);
+      await tester.pumpAndSettle();
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      final amount = layoutJson(outcome.aityxRequest)
+          .ranges['decision.decisions.refund_amount.table.4']!
+          .first;
+      expect(
+        tester.widget<ListView>(find.byType(ListView).first).controller!.offset,
+        8 + (amount - 1) * 22.0,
+      );
+      expect(find.textContaining('how much is paid back'), findsOneWidget);
     });
 
     testWidgets('an answer link switches to the response', (tester) async {
@@ -177,7 +224,7 @@ void main() {
 
       // Overflows would have been reported as exceptions.
       expect(tester.takeException(), isNull);
-      await tester.tap(find.text('Rule 8'));
+      await tester.tap(find.text('Rule 3'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(
@@ -196,7 +243,7 @@ void main() {
       router.answer = null;
       await tester.tap(find.text('Try again'));
       await tester.pumpAndSettle();
-      expect(find.text('Sofia Rossi'), findsOneWidget);
+      expect(find.text('Maria Lopez'), findsOneWidget);
       expect(router.asked.length, 2);
     });
   });

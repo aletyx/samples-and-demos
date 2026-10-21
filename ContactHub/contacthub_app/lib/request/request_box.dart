@@ -254,8 +254,9 @@ class _MicButton extends StatelessWidget {
   }
 }
 
-/// "Try a sample": a menu of ready-made requests, one per department and a
-/// few for the checks; picking one fills the field.
+/// "Try a sample": a menu of ready-made requests (one for each order
+/// policy, one for each other department, and a few for the checks);
+/// picking one fills the field.
 class _SampleMenu extends StatelessWidget {
   const _SampleMenu({required this.onSelected});
 
@@ -276,7 +277,7 @@ class _SampleMenu extends StatelessWidget {
             children: [
               Text(sample.title, style: theme.textTheme.bodyLarge),
               Text(
-                sample.department,
+                sample.subtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.primary,
                 ),
@@ -300,8 +301,12 @@ class _SampleMenu extends StatelessWidget {
         maximumSize: WidgetStatePropertyAll(Size(380, 480)),
       ),
       menuChildren: [
-        heading('ONE FOR EACH DEPARTMENT'),
-        for (final s in departmentSamples) item(s),
+        heading("ORDERS: THE STORE'S POLICY"),
+        for (final s in policySamples) item(s),
+        const Divider(),
+        heading('THE OTHER DEPARTMENTS'),
+        for (final s in departmentSamples)
+          if (!policySamples.contains(s)) item(s),
         const Divider(),
         heading('THE CHECKS'),
         for (final s in checkSamples) item(s),
