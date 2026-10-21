@@ -1,0 +1,80 @@
+{
+  // ---------------------------------------------------------------------
+  // Contact Hub
+  //
+  // A demo where someone can ask anything and the question is routed to
+  // the right department or person, with its checks run on the way. For
+  // now it is the scaffolding: a Flutter app (web, Android, iOS, Linux)
+  // with a welcome page and a Hello page, and a Dart API.
+  //
+  // Source:  https://github.com/aletyx/samples-and-demos (ContactHub/)
+  // Rules:   https://aityx.ai — will run the routing decisions
+  // Aletyx:  https://aletyx.com
+  //          https://nu01.com
+  //
+  // This repository holds several samples. This dev container is Contact
+  // Hub, in ContactHub/ — not Mortgage Hub, Mortgage_Process or Payroll.
+  // The name below is what GitHub shows in the "Dev container
+  // configuration" list when you create a codespace.
+  // ---------------------------------------------------------------------
+  "name": "Contact Hub",
+  "build": {
+    "dockerfile": "Containerfile",
+    // Nothing is copied into the image, so the build context is just this
+    // folder rather than the whole repository.
+    "context": "."
+  },
+  "remoteUser": "vscode",
+  // The dev servers must listen on every interface for the forwarded
+  // ports to reach them (only the container sees them).
+  "containerEnv": {
+    "CONTACTHUB_BIND_HOST": "0.0.0.0"
+  },
+  // No secrets yet: nothing calls aityx.ai. The routing feature will ask
+  // for the user's own AITYX_API_KEY here, as Mortgage Hub does.
+  //
+  // The image's flutter and dart on the PATH of every terminal.
+  // ${containerEnv:PATH} is the image's own PATH. Inside `devbox shell`
+  // and `devbox services up`, devbox's Flutter, the same version, comes
+  // first.
+  "remoteEnv": {
+    "PATH": "/opt/flutter/bin:${containerEnv:PATH}"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // The Flutter SDK baked into the image (see Containerfile), there
+        // from the moment VS Code attaches. Devbox's own Flutter only
+        // appears once post-create.sh has run `devbox install`, too late
+        // for the Dart extension, which then offers to download one.
+        "dart.flutterSdkPath": "/opt/flutter"
+      },
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ]
+    }
+  },
+  // Only the web app's port. The API (8891) stays inside the container:
+  // the app reaches it through the web server's /api/ proxy. The port's
+  // bare URL redirects to the app at /app/. Plain HTTP, which is what the
+  // dev server speaks; switching a public port to HTTPS makes it private.
+  // post-start.sh makes it public, which devcontainer.json cannot.
+  "forwardPorts": [8890],
+  "portsAttributes": {
+    "8890": {
+      "label": "Contact Hub web app",
+      "protocol": "http",
+      "onAutoForward": "openBrowserOnce"
+    }
+  },
+  // Both run from the repository root; the scripts move to ContactHub/
+  // themselves. post-create.sh installs the toolchain once; post-start.sh
+  // starts the services and makes the port public on every start.
+  "postCreateCommand": "bash -lc 'bash .devcontainer/ContactHub/post-create.sh'",
+  "postStartCommand": "bash -lc 'bash .devcontainer/ContactHub/post-start.sh'",
+  // Again each time VS Code attaches: a visibility set at start does not
+  // always stick, and users report it does from here.
+  "postAttachCommand": "bash .devcontainer/ContactHub/public-port.sh"
+}

@@ -1,0 +1,10 @@
+*
+!docker/nginx.conf
+!scripts/make.sh
+!scripts/version.sh
+!version.X.txt
+!version.Y.txt
+!contacthub_app/
+contacthub_app/build/
+contacthub_app/.dart_tool/
+contacthub_app/web_dev_config.yaml

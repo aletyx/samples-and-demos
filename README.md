@@ -7,6 +7,7 @@ sample with its own documentation.
 | Sample | What it shows | Launch |
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. For now the scaffolding: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -74,6 +75,24 @@ devbox services up -c MortgageHub --pcflags "--tui=false"
 Both serve the app at http://localhost:8880/app/. Stop them with
 `docker compose -f MortgageHub/compose.yaml down` or
 `devbox services stop -c MortgageHub`.
+
+## Contact Hub
+
+[ContactHub/](ContactHub/) will let someone ask anything and route the
+question to the right department or person, with its checks run on the
+way. For now it is the scaffolding, built like Mortgage Hub: a Flutter app
+with a welcome page and a Hello page that checks the app reaches its Dart
+API. From the root of this repository:
+
+```bash
+devbox services up -c ContactHub --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f ContactHub/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:8890/app/, so it runs alongside
+Mortgage Hub. The badge above opens it in a codespace; no key is needed
+yet. See the [Contact Hub README](ContactHub/README.md).
 
 ## Payroll
 
