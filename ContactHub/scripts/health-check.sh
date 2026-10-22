@@ -6,6 +6,7 @@
 # then each check as its emoji, a short label and ✅ (ok) / ❌ (failed),
 # separated by " · ":
 #   🌐 Web · 🔌 API · 🤖 aityx (the API's key: ✅ set, ⚪ not set)
+#   · 🧠 Local model (✅ Ollama lists it, ⚪ not yet: starting, or pulling)
 # Runs via `devbox services up` (see process-compose.yaml) or standalone.
 set -uo pipefail
 
@@ -36,17 +37,20 @@ get() {
 
 check_web() { ok_if "🌐 Web" get 5 "http://localhost:${FLUTTER_WEB_PORT:-8890}/app/"; }
 
-# The API's /api/health: {"ok":true,"aityx":<whether its key is set>}.
+# The API's /api/health: {"ok":true,"aityx":<whether its key is set>,
+# "local_model":{"name":"qwen3:1.7b","ready":<whether Ollama lists it>}}.
 check_api() {
     local body
     body="$(curl -fs --max-time 5 "http://localhost:${API_PORT:-8891}/api/health")"
     if [[ "$body" != *'"ok":true'* ]]; then
         report "🔌 API" ❌
         report "🤖 aityx" ❌
+        report "🧠 Local model" ❌
         return
     fi
     report "🔌 API" ✅
     if [[ "$body" == *'"aityx":true'* ]]; then report "🤖 aityx" ✅; else report "🤖 aityx" ⚪; fi
+    if [[ "$body" == *'"ready":true'* ]]; then report "🧠 Local model" ✅; else report "🧠 Local model" ⚪; fi
 }
 
 # run_checks: one pass over every check, printed as one line.

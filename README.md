@@ -7,7 +7,7 @@ sample with its own documentation.
 | Sample | What it shows | Launch |
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb) |
-| [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, read by a small local model (Ollama, qwen3:1.7b) and routed by an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -78,15 +78,18 @@ Both serve the app at http://localhost:8880/app/. Stop them with
 
 ## Contact Hub
 
-[ContactHub/](ContactHub/) will let someone ask anything and route the
+[ContactHub/](ContactHub/) lets someone ask anything and routes the
 question to the right department or person, with its checks run on the
 way. Built like Mortgage Hub: a Flutter app takes the request (typed,
 dictated with speech recognized in the browser, or picked from samples),
-and a Dart API routes it with one aityx call, in which Jev classifies and
-checks the message and a decision model picks the department, the person
-and the priority. The app shows why, and the aityx call, with links to
-exactly the JSON behind each item. Put your key in `ContactHub/.env`
-(see [.env.example](ContactHub/.env.example)), then, from the root of this
+and a Dart API routes it in two calls: a small open model running
+locally through [Ollama](https://ollama.com) (qwen3:1.7b) reads the
+message and answers the questions about it, then an aityx decision model
+picks the department, the person and the priority from those answers.
+The app shows what was read and why it went where, and both calls, with
+the key parts highlighted and links to exactly the JSON behind each
+item. Put your key in `ContactHub/.env` (see
+[.env.example](ContactHub/.env.example)), then, from the root of this
 repository:
 
 ```bash
@@ -96,8 +99,9 @@ docker compose -f ContactHub/compose.yaml up --build
 ```
 
 Both serve the app at http://localhost:8890/app/, so it runs alongside
-Mortgage Hub. The badge above opens it in a codespace, which uses the same
-`AITYX_API_KEY` Codespaces secret as Mortgage Hub. See the
+Mortgage Hub, and both start Ollama and pull the model on first start
+(about 1.4 GB). The badge above opens it in a codespace, which uses the
+same `AITYX_API_KEY` Codespaces secret as Mortgage Hub. See the
 [Contact Hub README](ContactHub/README.md).
 
 ## Payroll

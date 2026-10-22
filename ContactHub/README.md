@@ -4,26 +4,32 @@ Contact Hub lets someone ask anything and gets the question to the right
 department or person, with the checks it needs run on the way. For now the
 welcome page takes the request, typed, dictated (speech is recognized in
 the browser, so no audio leaves the device) or picked from a sample, and
-the routing screen says where it went: [Jev](https://aityx.ai/docs/coming-from-jev)
-classifies and checks the message and a decision model on
+the routing screen says where it went: a small open model running locally
+([Ollama](https://ollama.com) with qwen3:1.7b) reads the message and
+answers the routing model's questions about it (the topic, what the
+customer wants, urgency, sensitive data, abuse), and a decision model on
 [aityx.ai](https://aityx.ai) picks the department, the person and the
-priority. For a request about an order, it applies the store's policy to
-the order's dates and amounts (refund within 30 days, store credit within
-60, warranty, restocking fee, price drops, cancellations...) and says how
-much is paid back, and by when. It shows why, and the aityx call itself,
-with links that jump to exactly the JSON behind each item.
+priority from those answers. For a request about an order, it applies
+the store's policy to the order's dates and amounts (refund within 30
+days, store credit within 60, warranty, restocking fee, price drops,
+cancellations...) and says how much is paid back, and by when. It shows
+what was read and why it went where, and both calls themselves, with the
+key parts highlighted and links that jump to exactly the JSON behind
+each item.
 
 ## Technology
 
 | Part | Technology |
 |---|---|
 | App ([contacthub_app/](contacthub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
-| API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key; for now only `/api/health` |
+| API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key, asks the local model, then aityx |
+| Reading | [Ollama](https://ollama.com) running [qwen3:1.7b](https://ollama.com/library/qwen3) on the API's machine, held to a JSON schema |
+| Rules | An [aityx.ai](https://aityx.ai) decision model, [models/routing.json](contacthub_api/models/routing.json) |
 | Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
-[devbox.lock](devbox.lock): Flutter, GNU Make and curl. It is the same
-lock as Mortgage Hub's, so the two share one Nix store.
+[devbox.lock](devbox.lock): Flutter, GNU Make, curl and Ollama. The
+Flutter pin is Mortgage Hub's, so the two share one Nix store.
 
 ## Run it locally with devbox
 
@@ -44,32 +50,39 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 |---|---|
 | http://localhost:8890/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
 | http://localhost:8891/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
+| http://localhost:11434 | [Ollama](https://ollama.com), the local model's server ([scripts/ollama.sh](scripts/ollama.sh)), unless one already answers there (the Ollama app, say), which is then used. The first start pulls qwen3:1.7b, about 1.4 GB, into `~/.ollama` |
 
 The ports are 8890 and 8891, so Contact Hub runs alongside Mortgage Hub
 (8880 and 8881). The first start compiles the app, which takes a minute
-or so. Type a request, or press the microphone beside the field and say
-it: the browser asks for the microphone the first time, and Chrome or
-Edge install their on-device English pack, while other browsers download
-a small speech model (see [Request box](specs/request.md)). Or pick one
-from **Try a sample**: one for each department, and two for the checks.
-**Send** routes it (see [Routing](specs/routing.md)).
+or so, and pulls the model. Type a request, or press the microphone
+beside the field and say it: the browser asks for the microphone the
+first time, and Chrome or Edge install their on-device English pack,
+while other browsers download a small speech model (see [Request
+box](specs/request.md)). Or pick one from **Try a sample**: one for each
+department, one for each order policy, and two for the checks. **Send**
+routes it: the local model reads it, in well under a second once it's in
+memory, then aityx decides (see [Reading with a local
+model](specs/reading.md) and [Routing](specs/routing.md)). To try another
+model, set `OLLAMA_MODEL` in `.env` (qwen3:4b reads better, in about
+1.7 s).
 
-Once both are ready, the `health-check` monitor prints where to open the
-app (in a codespace, its forwarded URL too), waits 5 s
-(`HEALTH_CHECK_DELAY`), then logs one line every 15 s
+Once the web app and the API are ready, the `health-check` monitor
+prints where to open the app (in a codespace, its forwarded URL too),
+waits 5 s (`HEALTH_CHECK_DELAY`), then logs one line every 15 s
 (`HEALTH_CHECK_INTERVAL`); 🤖 [aityx](https://aityx.ai) is ⚪ when the API
-has no key:
+has no key, and 🧠 Local model ⚪ until Ollama has the model:
 
 ```
 Contact Hub is up. Open the app at:
   http://localhost:8890/app/
 Health checks start in 5 s, then every 15 s.
-2026-10-21 11:42:10 🌐 Web ✅ · 🔌 API ✅ · 🤖 aityx ✅
+2026-10-22 11:42:10 🌐 Web ✅ · 🔌 API ✅ · 🤖 aityx ✅ · 🧠 Local model ✅
 ```
 
 Stop everything with `devbox services stop`. To run only the app, use
 `devbox run web` (set `FLUTTER_WEB_PORT` to change the port); only the
-API, `devbox run api` (`API_PORT`).
+API, `devbox run api` (`API_PORT`); only Ollama and the pull,
+`devbox run local-model`.
 
 ### Building the binaries
 
@@ -101,21 +114,24 @@ docker compose up --build
 ```
 
 and open http://localhost:8890/app/. [compose.yaml](compose.yaml) builds
-and starts two services:
+and starts three services:
 
 | Service | What |
 |---|---|
 | `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
 | `api` | The API compiled to a native executable ([contacthub_api/Dockerfile](contacthub_api/Dockerfile)); not published, reached only through `web` |
+| `ollama` | The local model's server (`ollama/ollama`), on the CPU; pulls qwen3:1.7b on first start into a volume; not published, reached only by `api` |
 
 For the key, copy [.env.example](.env.example) to `.env` and fill in
 `AITYX_API_KEY` (or export it); it goes to the API only. The first build
-takes a few minutes (it downloads Flutter); later ones
-reuse Docker's cache. Set `FLUTTER_WEB_PORT` to change the port; the app
-is bound to 127.0.0.1 unless you set `CONTACTHUB_BIND_HOST=0.0.0.0`. Stop
-it with `docker compose down`. Both services have health checks, so
-`docker compose up --wait` returns once they are healthy. There is no hot
-reload: rebuild after a change.
+takes a few minutes (it downloads Flutter), and the first start pulls the
+model (about 1.4 GB); later ones reuse Docker's cache and the volume. Set
+`FLUTTER_WEB_PORT` to change the port; the app is bound to 127.0.0.1
+unless you set `CONTACTHUB_BIND_HOST=0.0.0.0`. Stop it with `docker
+compose down`. All three services have health checks, so `docker compose
+up --wait` returns once they are healthy, the model pulled. Without a
+GPU, a reading takes a few seconds. There is no hot reload: rebuild after
+a change.
 
 ## Run it in a codespace
 
@@ -139,12 +155,15 @@ page. Without it the app runs, but **Send** can't route.
 
 On first start,
 [post-create.sh](../.devcontainer/ContactHub/post-create.sh) moves to
-this folder, says whether your key arrived and runs `devbox install`. Then, on that and every later
-start, [post-start.sh](../.devcontainer/ContactHub/post-start.sh) starts
-the services in the background and makes port **8890** public. There is
-nothing to run: once the app has compiled, open port 8890 from the
-**Ports** panel (Codespaces may open it in a browser tab for you). Its
-bare URL redirects to the app at `/app/`.
+this folder, says whether your key arrived and runs `devbox install`
+(Ollama included). Then, on that and every later start,
+[post-start.sh](../.devcontainer/ContactHub/post-start.sh) starts the
+services in the background and makes port **8890** public; the first
+start also pulls the local model (about 1.4 GB), and the codespace's CPU
+reads a request in a few seconds. There is nothing to run: once the app
+has compiled, open port 8890 from the **Ports** panel (Codespaces may
+open it in a browser tab for you). Its bare URL redirects to the app at
+`/app/`.
 
 Watch the services with `devbox services attach`, restart them with
 `devbox services restart`, and stop them with `devbox services stop`.
@@ -175,7 +194,10 @@ Devbox, Nix, the GitHub CLI and Flutter.
 1. Create a branch from an up-to-date `main`.
 2. Make one change per pull request, with its tests. Run `flutter analyze`
    and `flutter test` in `contacthub_app/`, and `dart analyze` and
-   `dart test` in `contacthub_api/`.
+   `dart test` in `contacthub_api/`. After changing the model or the
+   prompt, `bash scripts/model-test.sh` runs the rules on aityx, and
+   `dart run tool/route_samples.dart` in `contacthub_app/` routes every
+   sample through the running API.
 3. Update the matching feature spec in [specs/](specs/) and add an entry to
    [specs/requests.md](specs/requests.md).
 4. Open a pull request against `main`.

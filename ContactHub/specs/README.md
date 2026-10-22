@@ -10,8 +10,8 @@ it.
 Contact Hub lets someone ask anything and routes the question to the
 right department or person, running the checks it needs on the way. For
 now it is a welcome page where a request can be typed or dictated, on
-the device, or picked from samples, and routed to the right department
-by Jev and aityx.
+the device, or picked from samples; a small local model reads it, and
+aityx routes it to the right department.
 
 ## Features
 
@@ -24,11 +24,16 @@ by Jev and aityx.
   **Send**. Speech is recognized in the
   browser only: Chrome's and Edge's on-device Web Speech, else Moonshine
   tiny run by transformers.js in a Web Worker.
-- [Routing](routing.md): Jev classifies the message and checks it, the
-  routing model picks the department, the person, the priority and
-  whether it's reviewed; the screen shows why, with links to exactly the
-  JSON behind each item, and the aityx call, large, with exact
-  navigation.
+- [Reading with a local model](reading.md): a small open model on
+  Ollama (qwen3:1.7b), on the machine that runs the API, answers the
+  routing model's questions about the message: the topic and how sure,
+  what the customer wants, urgency, sensitive data, abuse; which models
+  read how well.
+- [Routing](routing.md): aityx runs the routing model on what was read:
+  the department, the person, the priority and whether it's reviewed;
+  the screen shows what was read and why it went where, with links to
+  exactly the JSON behind each item, and both calls, large, readable,
+  with exact navigation.
 - [Order policy](order-policy.md): for a request about an order, the
   store's policy from the order's dates and amounts (refund within 30
   days, store credit within 60, final sale, damage within 7 days, warranty,

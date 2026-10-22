@@ -6,10 +6,10 @@ import 'package:flutter/services.dart';
 
 import 'json_layout.dart';
 
-/// Which half of the aityx call.
+/// Which half of a call.
 enum CallSide {
-  request('Request', 'What the API sent to aityx'),
-  response('Response', "aityx's answer");
+  request('Request', 'What the API sent'),
+  response('Response', 'The answer');
 
   const CallSide(this.label, this.description);
 
@@ -33,10 +33,10 @@ class JsonTarget {
       other != null && other.side == side && other.path == path;
 }
 
-/// Lets the page around an [AityxCallView] show a part of the call: the
-/// view scrolls [path]'s first line on [side] to the top and marks the
-/// whole value.
-class AityxCallController extends ChangeNotifier {
+/// Lets the page around a [CallView] show a part of the call: the view
+/// scrolls [path]'s first line on [side] to the top and marks the whole
+/// value.
+class CallController extends ChangeNotifier {
   CallSide side = CallSide.request;
   String? path;
 
@@ -47,19 +47,22 @@ class AityxCallController extends ChangeNotifier {
   }
 }
 
-/// The aityx call behind a routing, in one pane: the request, then the
-/// response, each under its header, pretty-printed with line numbers and
-/// colors. Every one of [targets] is highlighted with its label, as Mortgage
-/// Hub's view does; the "Jump to" bar and the page's links scroll to exactly
-/// one and mark it. [response] is what the pane shows of aityx's answer;
-/// [fullResponse], when given, is what "Copy full response" copies.
-class AityxCallView extends StatefulWidget {
-  const AityxCallView({
+/// One of the calls behind a routing (the local model's, aityx's), in one
+/// pane: the request, then the response, each under its header,
+/// pretty-printed with line numbers and colors. Every one of [targets] is
+/// highlighted with its label, as Mortgage Hub's view does; the "Jump to"
+/// bar and the page's links scroll to exactly one and mark it. [response]
+/// is what the pane shows of the answer; [fullResponse], when given, is
+/// what "Copy full response" copies.
+class CallView extends StatefulWidget {
+  const CallView({
     super.key,
+    required this.title,
     required this.request,
     required this.response,
     required this.targets,
     this.fullResponse,
+    this.requestSubtitle = '',
     this.responseSubtitle = '',
     this.controller,
     this.height = 600,
@@ -68,12 +71,18 @@ class AityxCallView extends StatefulWidget {
     this.initialMark,
   });
 
+  /// The call's name, the full-screen dialog's title: "The aityx call".
+  final String title;
   final Object? request;
   final Object? response;
   final Object? fullResponse;
+
+  /// After each section's header: where the request went, what the
+  /// response shows.
+  final String requestSubtitle;
   final String responseSubtitle;
   final List<JsonTarget> targets;
-  final AityxCallController? controller;
+  final CallController? controller;
 
   /// The pane's height; ignored in [fullScreen], which fills.
   final double height;
@@ -85,7 +94,7 @@ class AityxCallView extends StatefulWidget {
   final JsonTarget? initialMark;
 
   @override
-  State<AityxCallView> createState() => _AityxCallViewState();
+  State<CallView> createState() => _CallViewState();
 }
 
 /// Each row's height: fixed, so a row's offset is exactly
@@ -101,9 +110,8 @@ const _maxHighlightRows = 12;
 String _sideName(CallSide side) =>
     side == CallSide.request ? 'request' : 'response';
 
-class _AityxCallViewState extends State<AityxCallView> {
-  late final AityxCallController _controller =
-      widget.controller ?? AityxCallController();
+class _CallViewState extends State<CallView> {
+  late final CallController _controller = widget.controller ?? CallController();
   late final _vertical = ScrollController(
     initialScrollOffset: widget.initialOffset,
   );
@@ -130,7 +138,7 @@ class _AityxCallViewState extends State<AityxCallView> {
   }
 
   @override
-  void didUpdateWidget(AityxCallView old) {
+  void didUpdateWidget(CallView old) {
     super.didUpdateWidget(old);
     if (old.request != widget.request ||
         old.response != widget.response ||
@@ -153,7 +161,7 @@ class _AityxCallViewState extends State<AityxCallView> {
       widget.request,
       widget.response,
       requestTitle: 'REQUEST',
-      requestSubtitle: 'POST /v1/systemone, as the API sent it',
+      requestSubtitle: widget.requestSubtitle,
       responseTitle: 'RESPONSE',
       responseSubtitle: widget.responseSubtitle,
     );
@@ -240,13 +248,13 @@ class _AityxCallViewState extends State<AityxCallView> {
   void _jump(JsonTarget target) => _controller.reveal(target.side, target.path);
 
   Future<void> _openFullScreen() {
-    final controller = AityxCallController();
+    final controller = CallController();
     return showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('The aityx call'),
+            title: Text(widget.title),
             leading: IconButton(
               tooltip: 'Close',
               icon: const Icon(Icons.close),
@@ -255,10 +263,12 @@ class _AityxCallViewState extends State<AityxCallView> {
           ),
           body: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: AityxCallView(
+            child: CallView(
+              title: widget.title,
               request: widget.request,
               response: widget.response,
               fullResponse: widget.fullResponse,
+              requestSubtitle: widget.requestSubtitle,
               responseSubtitle: widget.responseSubtitle,
               targets: widget.targets,
               controller: controller,
@@ -527,12 +537,20 @@ class _CodePane extends StatelessWidget {
     };
     final contentWidth =
         _gutterWidth + 24 + layout.longestLine * _charWidth() + 240;
-    // Line numbers count within each section, from 1.
-    final numbers = <int>[];
+    // Line numbers count within each section, from 1; the continuation
+    // rows of a wrapped string share their line's number, and show none.
+    final numbers = <String>[];
     var n = 0;
     for (final row in layout.rows) {
-      n = row.line == null ? 0 : n + 1;
-      numbers.add(n);
+      final line = row.line;
+      if (line == null) {
+        n = 0;
+        numbers.add('');
+      } else if (line.continuation) {
+        numbers.add('');
+      } else {
+        numbers.add('${++n}');
+      }
     }
     return LayoutBuilder(
       builder: (context, constraints) => Scrollbar(
@@ -613,7 +631,7 @@ class _CodePane extends StatelessWidget {
                         SizedBox(
                           width: _gutterWidth - (tinted ? 3 : 0),
                           child: Text(
-                            '${numbers[i]}',
+                            numbers[i],
                             textAlign: TextAlign.right,
                             style: _style.copyWith(
                               color: marked
@@ -626,8 +644,8 @@ class _CodePane extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             children: [
-                              for (final (kind, text) in tokenize(
-                                row.line!.text,
+                              for (final (kind, text) in tokenizeLine(
+                                row.line!,
                               ))
                                 TextSpan(
                                   text: text,

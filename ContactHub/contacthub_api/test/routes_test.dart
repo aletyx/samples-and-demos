@@ -8,13 +8,27 @@ void main() {
     expect(answer.location, '/app/');
   });
 
-  test('health answers ok, and whether the key is set', () {
+  test('health answers ok, whether the key is set, and whether the local '
+      'model is ready', () {
     final without = route('GET', '/api/health');
     expect(without.status, 200);
-    expect(without.body, {'ok': true, 'aityx': false});
+    expect(without.body, {
+      'ok': true,
+      'aityx': false,
+      'local_model': {'name': '', 'ready': false},
+    });
 
-    final withKey = route('GET', '/api/health', aityx: true);
-    expect(withKey.body, {'ok': true, 'aityx': true});
+    final ready = route(
+      'GET',
+      '/api/health',
+      aityx: true,
+      localModel: (name: 'qwen3:1.7b', ready: true),
+    );
+    expect(ready.body, {
+      'ok': true,
+      'aityx': true,
+      'local_model': {'name': 'qwen3:1.7b', 'ready': true},
+    });
   });
 
   test('a preflight answers 204', () {

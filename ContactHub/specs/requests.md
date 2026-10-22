@@ -135,3 +135,36 @@ The feature files hold the current specification; see the
     copies all of it. The sample menu is wider, so its second lines fit.
     A marked part stays selected when the page rebuilds (the review found
     it lost its color on a resize). See [Routing](routing.md#the-aityx-call).
+
+## 2026-10-22
+
+13. **Change the app to use a simple, local LLM, such as Ollama with
+    qwen3:1.7b, to parse the contact request, and use aityx only for the
+    System One decision; make the response easy to understand in the
+    app, highlighting the key parts and presenting the JSON in a way
+    that is easy to read.** Routing is now two calls: the API first asks
+    the local model, on Ollama's `/api/chat`, the routing model's five
+    questions (its criteria written out as the prompt, the answer held
+    to a JSON schema, temperature 0, no thinking), then sends what it
+    read, with the message, today and the order, as the state of the
+    routing model to aityx's `/v1/systemone`, which decides; aityx reads
+    nothing itself (`jev-latest` and the `jev:/` binding are gone from
+    the model, the `message` is a declared input). See [Reading with a
+    local model](reading.md). Ollama is in devbox and `devbox services
+    up` starts it and pulls the model (`1-ollama`); Docker Compose has an
+    `ollama` service; `.env` takes `OLLAMA_URL` and `OLLAMA_MODEL`;
+    `/api/health` and the health monitor's 🧠 say whether the model is
+    ready. On the routing screen, a **Read on this machine** card says
+    which model read the request, how long it took and what it read,
+    each fact linked to its row; the topic bars are gone. **Behind the
+    routing** shows both calls, each in its own pane with its key parts
+    highlighted: the local one with the prompt, the schema and the
+    model's JSON answer parsed into rows; the aityx one with the answers
+    that decide, without their probability maps, the receipts of the
+    tables that fired and the provenance of every input. Long strings,
+    the prompt and the rules' reasons, now wrap onto unnumbered rows as
+    prose instead of running off the pane. qwen3:1.7b reads 22 of the 27
+    samples as labeled in about 0.7 s, every order and check sample
+    among them; qwen3:4b, 25 in 1.7 s (`OLLAMA_MODEL`). A new tool,
+    `dart run tool/route_samples.dart`, routes every sample through a
+    running API and makes the test fixtures.

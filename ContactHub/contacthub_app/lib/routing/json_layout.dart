@@ -1,14 +1,36 @@
 import 'dart:convert';
 
-/// One printed line of JSON: its text, how deep it is, and the path of the
+/// One printed row of JSON: its text, how deep it is, and the path of the
 /// value it opens or holds (`decision.decisions.department.table.3`; list
-/// indexes are segments too).
+/// indexes are segments too). A long string, or one with line breaks, is
+/// printed on several rows: its first row opens the string and the
+/// [continuation] rows follow it, unnumbered, the last closing it; on each,
+/// the text from [stringStart] on is the string's, shown as written (no
+/// escapes), so a prompt reads as the prose it is.
 class JsonLine {
-  const JsonLine(this.text, this.depth, this.path);
+  const JsonLine(this.text, this.depth, this.path)
+    : continuation = false,
+      stringStart = null;
+
+  const JsonLine.wrapped(
+    this.text,
+    this.depth,
+    this.path, {
+    required this.continuation,
+    required this.stringStart,
+  });
 
   final String text;
   final int depth;
   final String path;
+
+  /// The second and later rows of a string printed on several rows: the
+  /// same JSON line, so it gets no number of its own.
+  final bool continuation;
+
+  /// Where the string's own text starts in [text], on the rows of a
+  /// string printed on several rows; null on an ordinary row.
+  final int? stringStart;
 }
 
 /// [lines] as printed, and for every path the first and last line of its
@@ -27,9 +49,13 @@ class JsonLayout {
 /// header and rows stay readable as rows.
 const _inlineListWidth = 110;
 
+/// Strings longer than this, or with line breaks, print on several rows,
+/// each at most this wide, broken at spaces.
+const wrapWidth = 88;
+
 /// [json] pretty-printed with two-space indents, like
 /// `JsonEncoder.withIndent('  ')`, except that short lists of scalars stay
-/// on one line.
+/// on one line and long strings wrap (see [JsonLine]).
 JsonLayout layoutJson(Object? json) {
   final lines = <JsonLine>[];
   final ranges = <String, ({int first, int last})>{};
@@ -37,7 +63,23 @@ JsonLayout layoutJson(Object? json) {
   void emit(Object? value, String path, int depth, String key, String comma) {
     final indent = '  ' * depth;
     final first = lines.length;
-    if (value is Map && value.isNotEmpty) {
+    if (value is String && (value.contains('\n') || value.length > wrapWidth)) {
+      final segments = wrapString(value);
+      for (var i = 0; i < segments.length; i++) {
+        final firstRow = i == 0;
+        final lastRow = i == segments.length - 1;
+        final prefix = firstRow ? '$indent$key"' : '$indent  ';
+        lines.add(
+          JsonLine.wrapped(
+            '$prefix${segments[i]}${lastRow ? '"$comma' : ''}',
+            depth,
+            path,
+            continuation: !firstRow,
+            stringStart: prefix.length,
+          ),
+        );
+      }
+    } else if (value is Map && value.isNotEmpty) {
       lines.add(JsonLine('$indent$key{', depth, path));
       final entries = value.entries.toList();
       for (var i = 0; i < entries.length; i++) {
@@ -80,8 +122,36 @@ bool _inline(List<Object?> list) =>
     list.every((v) => v == null || v is String || v is num || v is bool) &&
     list.map(jsonEncode).join(', ').length <= _inlineListWidth;
 
+/// [text] cut into rows: at its line breaks, and at the last space before
+/// [wrapWidth] (or at [wrapWidth], in a word with no space to break at).
+List<String> wrapString(String text) {
+  final rows = <String>[];
+  for (final paragraph in text.split('\n')) {
+    var rest = paragraph;
+    while (rest.length > wrapWidth) {
+      var cut = rest.lastIndexOf(' ', wrapWidth);
+      if (cut <= 0) cut = wrapWidth;
+      rows.add(rest.substring(0, cut));
+      rest = rest.substring(cut).trimLeft();
+    }
+    rows.add(rest);
+  }
+  return rows;
+}
+
 /// What a piece of a JSON line is, for coloring.
 enum JsonToken { key, string, number, literal, punctuation, space }
+
+/// [line] split into colored pieces: [tokenize]d, except that on the rows
+/// of a wrapped string the string's own text is one piece.
+List<(JsonToken, String)> tokenizeLine(JsonLine line) {
+  final start = line.stringStart;
+  if (start == null) return tokenize(line.text);
+  return [
+    ...tokenize(line.text.substring(0, start)),
+    (JsonToken.string, line.text.substring(start)),
+  ];
+}
 
 /// [line] split into colored pieces: keys, strings, numbers, literals
 /// (`true`, `false`, `null`) and punctuation.

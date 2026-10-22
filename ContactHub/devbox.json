@@ -3,12 +3,14 @@
   "packages": {
     "flutter": "latest",
     "gnumake": "latest",
-    "curl":    "latest"
+    "curl":    "latest",
+    "ollama":  "latest"
   },
   "shell": {
     "scripts": {
       "web": "bash scripts/flutter-web.sh",
-      "api": "bash scripts/api.sh"
+      "api": "bash scripts/api.sh",
+      "local-model": "bash scripts/ollama.sh"
     }
   }
 }

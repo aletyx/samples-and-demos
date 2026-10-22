@@ -5,11 +5,13 @@
   // A demo where someone can ask anything and the question is routed to
   // the right department or person, with its checks run on the way: a
   // Flutter app (web, Android, iOS, Linux) takes the request, typed,
-  // dictated or picked from samples, and a Dart API routes it with Jev
-  // and a decision model on aityx.ai.
+  // dictated or picked from samples, and a Dart API routes it: a small
+  // local model (Ollama, qwen3:1.7b) reads it, and a decision model on
+  // aityx.ai decides.
   //
   // Source:  https://github.com/aletyx/samples-and-demos (ContactHub/)
-  // Rules:   https://aityx.ai — runs the routing decisions, with Jev
+  // Rules:   https://aityx.ai — runs the routing decisions
+  // Reading: https://ollama.com — runs the local model, installed by devbox
   // Aletyx:  https://aletyx.com
   //          https://nu01.com
   //

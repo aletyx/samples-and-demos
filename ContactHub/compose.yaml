@@ -2,16 +2,49 @@
 # open http://localhost:8890/app/. No devbox or Flutter needed on the host.
 #
 # The aityx settings come from the environment, else this folder's .env
-# (see .env.example), and reach the API only, never the web app.
+# (see .env.example), and reach the API only, never the web app. The
+# local model runs in its own service, on the CPU.
 
 services:
+  ollama:
+    # The local model that reads requests. On first start it pulls
+    # OLLAMA_MODEL (about 1.4 GB for qwen3:1.7b) into the volume; healthy
+    # once the model is there.
+    image: ollama/ollama:0.40.0
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        ollama serve &
+        until ollama list >/dev/null 2>&1; do sleep 1; done;
+        ollama pull "$$OLLAMA_MODEL" && wait
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:1.7b}
+    volumes:
+      - ollama:/root/.ollama
+    # Not published: only the API talks to it.
+    healthcheck:
+      test: ["CMD-SHELL", "ollama show \"$$OLLAMA_MODEL\" >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      start_period: 10m
+      start_interval: 5s
+      retries: 3
+    restart: unless-stopped
+
   api:
     build: contacthub_api
     environment:
       AITYX_API_KEY: ${AITYX_API_KEY:-}
       AITYX_URL: ${AITYX_URL:-}
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:1.7b}
       API_PORT: "8891"
       CONTACTHUB_BIND_HOST: 0.0.0.0
+    # Starts with ollama, without waiting for the model: it answers 503 to
+    # a routing until the model is pulled.
+    depends_on:
+      ollama:
+        condition: service_started
     # Not published: the web service proxies /api/ to it.
     # The image has no shell or curl; the server checks its own /api/health.
     healthcheck:
@@ -42,3 +75,7 @@ services:
     ports:
       - "${CONTACTHUB_BIND_HOST:-127.0.0.1}:${FLUTTER_WEB_PORT:-8890}:8080"
     restart: unless-stopped
+
+volumes:
+  # The pulled model, so it's downloaded once.
+  ollama:

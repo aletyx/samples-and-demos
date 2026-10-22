@@ -1,10 +1,11 @@
-/// Routing a request: the body sent to aityx (models/routing.json, with the
-/// message as its state) and the routing read back from aityx's answer,
-/// apart from the HTTP plumbing in bin/server.dart so it can be tested
-/// without a server.
+/// Routing a request: the body sent to aityx (the routing model of
+/// models/routing.json, with the facts the local model read as its state)
+/// and the routing read back from aityx's answer, apart from the HTTP
+/// plumbing in bin/server.dart so it can be tested without a server.
 library;
 
 import 'orders.dart';
+import 'reading.dart';
 
 /// The longest message accepted, in characters.
 const maxMessageLength = 2000;
@@ -141,19 +142,24 @@ String messageFrom(Object? body) {
   return trimmed;
 }
 
-/// The body sent to aityx's /v1/systemone: the questions and the routing
-/// model from [model] (models/routing.json), and the state: the message,
-/// [today], and the order it names from the order book (lib/orders.dart).
+/// The body sent to aityx's /v1/systemone: the routing model from [model]
+/// (models/routing.json, its `decision`; the questions are the local
+/// model's), and the state: the [message], the [reading], the facts the
+/// local model read from it (lib/reading.dart), [today], and the order the
+/// message names from the order book (lib/orders.dart). aityx runs the
+/// rules on these facts; it reads nothing itself.
 Map<String, Object?> routingRequest(
   Map<String, Object?> model,
-  String message, {
+  String message,
+  Map<String, Object?> reading, {
   DateTime? today,
 }) {
   final day = today ?? DateTime.now().toUtc();
   return {
-    ...model,
+    'decision': model['decision'],
     'state': {
       'message': message,
+      for (final name in factNames) name: reading[name],
       'today': isoDate(day),
       'order': orderState(message, day),
     },
@@ -194,14 +200,14 @@ Map<String, Object?> toRouting(
     return (rule: rule, why: _why(rows[0], rows[rule]));
   }
 
-  double probability(String name) => read<num>(name, 'noul').toDouble();
   bool flag(String name) => read<num>(name, 'noul') >= 0.5;
-  final topic = answers['topic'] as Map?;
+  final state = ((sent['state'] as Map?) ?? const {});
+  double? probability(String name) => (state[name] as num?)?.toDouble();
   final departmentRule = fired('department');
   final priorityRule = fired('priority');
   final resolutionRule = fired('resolution');
   final amountRule = fired('refund_amount');
-  final order = ((sent['state'] as Map?)?['order'] as Map?) ?? const {};
+  final order = (state['order'] as Map?) ?? const {};
   final resolution = (answers['resolution'] as Map?)?['choice'];
   num? number(String name) => (answers[name] as Map?)?['number'] as num?;
 
@@ -215,10 +221,10 @@ Map<String, Object?> toRouting(
     'response_hours': read<num>('response_hours', 'number'),
     'needs_review': flag('needs_review'),
     'topic': {
-      'choice': topic?['choice'],
-      'confidence': topic?['confidence'],
-      'probabilities': topic?['probabilities'] ?? const {},
+      'choice': state['topic'],
+      'confidence': probability('topic_confidence'),
     },
+    'request_kind': state['request_kind'],
     'checks': [
       for (final (id, label) in const [
         ('urgent', 'Urgent'),
@@ -235,14 +241,14 @@ Map<String, Object?> toRouting(
         'id': 'clear_topic',
         'label': 'Topic unclear (low confidence, or no department fits)',
         'flagged': !flag('clear_topic'),
-        'probability': (topic?['confidence'] as num?)?.toDouble(),
+        'probability': probability('topic_confidence'),
       },
     ],
     // The order on file, and what the store's policy offers for it; absent
     // for a model without the order rules.
     if (resolution is String)
       'policy': {
-        'request_kind': (answers['request_kind'] as Map?)?['choice'],
+        'request_kind': state['request_kind'],
         'resolution': resolution,
         'reason': resolutionRule?.why,
         'resolution_rule': resolutionRule?.rule,
@@ -280,16 +286,20 @@ String? _why(Object? header, Object? row) {
   return null;
 }
 
-/// The API's answer to the app: the routing, and the aityx call behind it,
+/// The API's answer to the app: the routing, the local model's call behind
+/// it ([readingSent] and [readingAnswer], Ollama's), and the aityx call,
 /// unless aityx's answer somehow contains the key (it never should).
-Map<String, Object?> withAityx(
-  Map<String, Object?> routing,
-  Map<String, Object?> sent,
-  Map<String, Object?> answer,
-  String text,
-  String key,
-) => {
+Map<String, Object?> apiAnswer({
+  required Map<String, Object?> routing,
+  required Map<String, Object?> readingSent,
+  required Map<String, Object?> readingAnswer,
+  required Map<String, Object?> sent,
+  required Map<String, Object?> answer,
+  required String text,
+  required String key,
+}) => {
   'routing': routing,
+  'reading': {'request': readingSent, 'response': readingAnswer},
   if (key.isEmpty || !text.contains(key))
     'aityx': {'request': sent, 'response': answer},
 };

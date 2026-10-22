@@ -274,6 +274,44 @@
           "store_path": "/nix/store/7ydf0dzbsq7w35bxifci2mslm76pw1qf-gnumake-4.4.1"
         }
       }
+    },
+    "ollama@latest": {
+      "last_modified": "2026-10-08T19:21:32Z",
+      "resolved": "github:NixOS/nixpkgs/8edc0c72e3a38faf5434e40d1f19431125fe4b30#ollama",
+      "source": "devbox-search",
+      "version": "0.40.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wdrwy1mmkvygrc1ijmgxmz1h37c1kd7s-ollama-0.40.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/wdrwy1mmkvygrc1ijmgxmz1h37c1kd7s-ollama-0.40.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/7w13jmk4ci1yis5zhc9kakqndw2958ny-ollama-0.40.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/7w13jmk4ci1yis5zhc9kakqndw2958ny-ollama-0.40.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/jxhjrhrxchy1811bd3w2zqddpbr2xwdd-ollama-0.40.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/jxhjrhrxchy1811bd3w2zqddpbr2xwdd-ollama-0.40.0"
+        }
+      }
     }
   }
 }

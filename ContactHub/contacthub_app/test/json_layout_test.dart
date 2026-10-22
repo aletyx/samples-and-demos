@@ -49,6 +49,53 @@ void main() {
     expect(layout.lines.length, 40 + 4);
   });
 
+  group('a long string wraps', () {
+    final prompt =
+        'First line.\n'
+        '${'word ' * 30}end.\n'
+        '\n'
+        'Last.';
+    final layout = layoutJson({'k': 'short', 'p': prompt, 'z': 0});
+
+    test('at line breaks and at the last space before the width', () {
+      final rows = layout.lines.where((l) => l.path == 'p').toList();
+      expect(rows.first.text, '  "p": "First line.');
+      expect(rows.first.continuation, isFalse);
+      expect(rows.first.stringStart, '  "p": "'.length);
+      expect(rows[1].continuation, isTrue);
+      expect(rows[1].text.length, lessThanOrEqualTo(4 + wrapWidth));
+      expect(rows[1].text, endsWith('word'));
+      expect(rows[2].text.trim(), startsWith('word'));
+      expect(rows[3].text, '    ');
+      expect(rows.last.text, '    Last.",');
+      expect(layout.ranges['p'], (first: 2, last: 2 + rows.length - 1));
+      expect(layout.lines.last.text, '}');
+      expect(layout.lines[layout.lines.length - 2].text, '  "z": 0');
+    });
+
+    test('a short string with no breaks stays on one row', () {
+      expect(layout.lines[0].text, '{');
+      expect(layout.lines[1].text, '  "k": "short",');
+      expect(layout.lines[1].stringStart, isNull);
+    });
+
+    test('wrapString cuts a word with no space at the width', () {
+      final rows = wrapString('x' * (wrapWidth + 5));
+      expect(rows, ['x' * wrapWidth, 'xxxxx']);
+      expect(wrapString('a\nb'), ['a', 'b']);
+    });
+
+    test('tokenizeLine colors the wrapped text as a string', () {
+      final first = layout.lines.firstWhere((l) => l.path == 'p');
+      final tokens = tokenizeLine(first);
+      expect(tokens.first.$1, JsonToken.space);
+      expect(tokens.map((t) => t.$2).join(), first.text);
+      expect(tokens.last, (JsonToken.string, 'First line.'));
+      final second = layout.lines[3];
+      expect(tokenizeLine(second).last.$1, JsonToken.string);
+    });
+  });
+
   test('tokenize tells keys from strings, numbers and literals', () {
     final tokens = tokenize('  "rule": 3, "why": "A", "ok": true');
     String kinds(JsonToken kind) =>

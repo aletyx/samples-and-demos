@@ -175,7 +175,7 @@ class Routing {
     required this.needsReview,
     required this.topic,
     required this.topicConfidence,
-    required this.topicProbabilities,
+    required this.requestKind,
     required this.checks,
     this.policy,
   });
@@ -195,11 +195,7 @@ class Routing {
       needsReview: json['needs_review'] as bool,
       topic: topic['choice'] as String?,
       topicConfidence: (topic['confidence'] as num?)?.toDouble(),
-      topicProbabilities: {
-        for (final MapEntry(:key, :value)
-            in ((topic['probabilities'] as Map?) ?? const {}).entries)
-          '$key': (value as num).toDouble(),
-      },
+      requestKind: json['request_kind'] as String?,
       checks: [
         for (final check in (json['checks'] as List?) ?? const [])
           RoutingCheck.fromJson((check as Map).cast<String, Object?>()),
@@ -226,33 +222,64 @@ class Routing {
   final int responseHours;
   final bool needsReview;
 
-  /// aityx's choice of topic, its confidence, and every topic's probability.
+  /// The local model's reading: the topic and how confident it is of it,
+  /// and what the customer wants done with their order (`return_refund`,
+  /// `cancel_order`..., `none` when the message isn't about an order).
   final String? topic;
   final double? topicConfidence;
-  final Map<String, double> topicProbabilities;
+  final String? requestKind;
   final List<RoutingCheck> checks;
 
   /// The store's policy for the order the request names, if any.
   final OrderPolicy? policy;
 }
 
-/// A routed request: the [routing], and the aityx call behind it, when the
-/// API sent it.
+/// A routed request: the [routing], and the two calls behind it, when the
+/// API sent them: the local model's (Ollama's /api/chat, which read the
+/// message) and aityx's (which decided from what it read).
 class RoutingOutcome {
-  const RoutingOutcome(this.routing, {this.aityxRequest, this.aityxResponse});
+  const RoutingOutcome(
+    this.routing, {
+    this.readingRequest,
+    this.readingResponse,
+    this.aityxRequest,
+    this.aityxResponse,
+  });
 
   factory RoutingOutcome.fromJson(Map<String, Object?> json) {
+    final reading = json['reading'] as Map?;
     final aityx = json['aityx'] as Map?;
     return RoutingOutcome(
       Routing.fromJson((json['routing'] as Map).cast<String, Object?>()),
+      readingRequest: reading?['request'],
+      readingResponse: reading?['response'],
       aityxRequest: aityx?['request'],
       aityxResponse: aityx?['response'],
     );
   }
 
   final Routing routing;
+  final Object? readingRequest;
+  final Object? readingResponse;
   final Object? aityxRequest;
   final Object? aityxResponse;
+
+  /// The local model's name, as the API asked Ollama for it.
+  String? get localModel => switch (readingRequest) {
+    {'model': final String name} => name,
+    _ => null,
+  };
+
+  /// How long the local model took, in seconds, from Ollama's answer
+  /// (`total_duration`, in nanoseconds); and how much of it was loading
+  /// the model into memory.
+  double? get readingSeconds => _nanos('total_duration');
+  double? get loadingSeconds => _nanos('load_duration');
+
+  double? _nanos(String field) => switch (readingResponse) {
+    Map m when m[field] is num => (m[field] as num) / 1e9,
+    _ => null,
+  };
 }
 
 /// Routes a request: the app's API unless a test says.

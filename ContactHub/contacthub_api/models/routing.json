@@ -1,9 +1,8 @@
 {
-  "model": "jev-latest",
   "questions": {
     "topic": {
       "type": "choice",
-      "instructions": "Which department of a large online store should handle state.message? Pick the one whose work the message is mainly about.",
+      "instructions": "Which department of a large online store should handle the message? Pick the one whose work the message is mainly about.",
       "criteria": {
         "customer_service": "An order already placed: where it is, delivery problems, a late, missing, wrong or damaged item, cancelling an order, a return or a refund, a price drop after buying, or an item bought here that broke or stopped working (warranty).",
         "billing": "Charges and payments: an unexpected or double charge, payment methods, invoices or receipts, gift card balances, a membership or subscription fee.",
@@ -22,7 +21,7 @@
     },
     "urgent_probability": {
       "type": "noul",
-      "instructions": "Is state.message urgent: a safety risk, a security breach in progress, money taken wrongly, or a deadline within the next 24 hours?",
+      "instructions": "Is the message urgent: a safety risk, a security breach in progress, money taken wrongly, or a deadline within the next 24 hours?",
       "criteria": {
         "true": "The message describes a safety risk, an ongoing security breach, money wrongly taken, or a deadline within 24 hours.",
         "false": "Nothing in the message needs action within 24 hours."
@@ -30,7 +29,7 @@
     },
     "sensitive_data_probability": {
       "type": "noul",
-      "instructions": "Does state.message itself contain a full payment card number, a password, a bank account number or a government ID number?",
+      "instructions": "Does the message itself contain a full payment card number, a password, a bank account number or a government ID number?",
       "criteria": {
         "true": "The message includes at least one such number or password written out.",
         "false": "The message includes none; mentioning a card or an account without its number doesn't count."
@@ -38,7 +37,7 @@
     },
     "abusive_probability": {
       "type": "noul",
-      "instructions": "Is state.message abusive, threatening or harassing toward the company or its staff?",
+      "instructions": "Is the message abusive, threatening or harassing toward the company or its staff?",
       "criteria": {
         "true": "The message threatens, harasses or insults people.",
         "false": "The message is civil, even if it complains firmly."
@@ -46,15 +45,15 @@
     },
     "request_kind": {
       "type": "choice",
-      "instructions": "If state.message is about an order, what does the customer want done? Pick none when it isn't about an order.",
+      "instructions": "What does the customer want done with an order they already placed? Pick none unless the message is about an order already placed.",
       "criteria": {
+        "none": "The message isn't about an order already placed: a question before buying, an account, a job, a company matter, or anything else.",
         "where_is_order": "To know where an order is, or to report that it is late or hasn't arrived.",
         "return_refund": "To return an item or get their money back for it, without saying it is damaged or defective.",
         "damaged_defective": "Something about an item that arrived damaged, broken or wrong, or that stopped working.",
         "cancel_order": "To cancel an order.",
         "price_adjustment": "The price dropped after they bought it, and they want the difference back.",
-        "duplicate_charge": "They were charged twice, or more than they should have been, for an order.",
-        "none": "Anything else, including messages that aren't about an order."
+        "duplicate_charge": "They were charged twice, or more than they should have been, for an order."
       }
     }
   },
@@ -67,33 +66,33 @@
     "inputs": {
       "topic": {
         "type": "customer_service|billing|marketing|tech_support|trust_safety|hr|seller_services|procurement|business_sales|legal|press|investor_relations|other",
-        "desc": "aityx's choice: which department's work the message is mainly about",
-        "from": "the topic question"
+        "desc": "The local model's choice: which department's work the message is mainly about",
+        "from": "the local model's reading"
       },
       "topic_confidence": {
         "type": "number [0..1]",
-        "desc": "aityx's confidence in its choice of topic",
-        "from": "jev:/answers/topic/confidence"
+        "desc": "The local model's confidence in its choice of topic",
+        "from": "the local model's reading"
       },
       "urgent_probability": {
         "type": "number [0..1]",
-        "desc": "aityx probability: is the message urgent?",
-        "from": "the questions"
+        "desc": "The local model's probability: is the message urgent?",
+        "from": "the local model's reading"
       },
       "sensitive_data_probability": {
         "type": "number [0..1]",
-        "desc": "aityx probability: does the message contain a card number, password, bank account or ID number?",
-        "from": "the questions"
+        "desc": "The local model's probability: does the message contain a card number, password, bank account or ID number?",
+        "from": "the local model's reading"
       },
       "abusive_probability": {
         "type": "number [0..1]",
-        "desc": "aityx probability: is the message abusive, threatening or harassing?",
-        "from": "the questions"
+        "desc": "The local model's probability: is the message abusive, threatening or harassing?",
+        "from": "the local model's reading"
       },
       "request_kind": {
         "type": "where_is_order|return_refund|damaged_defective|cancel_order|price_adjustment|duplicate_charge|none",
-        "desc": "aityx's choice: what the customer wants done with their order",
-        "from": "the request kind question"
+        "desc": "The local model's choice: what the customer wants done with their order",
+        "from": "the local model's reading"
       },
       "today": {
         "type": "date",
@@ -112,6 +111,11 @@
         },
         "desc": "The order the message names, from the order book: when it was placed and delivered (or is expected), what was paid and what it costs today, its category and status, and how many times it was charged. Status none when the message names no known order.",
         "from": "the order book, by the order number in the message"
+      },
+      "message": {
+        "type": "string",
+        "desc": "The request, as typed or dictated; the local model read it, the rules don't",
+        "from": "the request"
       }
     },
     "decisions": {
@@ -122,7 +126,7 @@
       },
       "confidence_threshold": {
         "type": "number [0..1]",
-        "desc": "Minimum confidence in the topic to route it without a person triaging it",
+        "desc": "Minimum confidence of the local model in the topic to route it without a person triaging it",
         "expr": "0.6"
       },
       "urgent": {

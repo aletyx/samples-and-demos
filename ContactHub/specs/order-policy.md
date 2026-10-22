@@ -8,7 +8,7 @@ aityx call.
 
 ## The facts
 
-aityx's questions classify; they don't read numbers or dates. So the
+The local model classifies; it doesn't read numbers or dates. So the
 facts come from where a store keeps them:
 
 - **The order book** ([lib/orders.dart](../contacthub_api/lib/orders.dart)):
@@ -22,10 +22,11 @@ facts come from where a store keeps them:
   up, and their dates count back from today, so a sample routes the same
   way whenever the demo runs.
 - **Today** (`state.today`), from the API's clock (UTC).
-- **What the customer wants** (`request_kind`), a choice question for
-  aityx: `where_is_order`, `return_refund`, `damaged_defective`,
-  `cancel_order`, `price_adjustment`, `duplicate_charge`, or `none` when
-  the message isn't about an order.
+- **What the customer wants** (`request_kind`), a choice question the
+  local model answers (see [Reading with a local model](reading.md)):
+  `none` when the message isn't about an order already placed, else
+  `where_is_order`, `return_refund`, `damaged_defective`,
+  `cancel_order`, `price_adjustment` or `duplicate_charge`.
 
 ## The rules
 
@@ -97,13 +98,12 @@ number (ask for it).
 
 ### Verified
 
-All 14, the 11 other department samples and the 2 check samples were sent
-through the live API: each got the expected department and resolution,
-amount and date. (The headphones first went to General Inquiries, torn
-between Customer Service and Technical Support; the topics now say a
-broken item bought here is a warranty claim, Customer Service's, and
-three runs routed it there.) Tests use real aityx answers for the tablet,
-the jacket and the late lamp.
+All 14 were sent through the live API, read by qwen3:1.7b and decided
+by aityx: each got the expected department and resolution, amount and
+date, except the price drop, which the local model read as Billing's
+(the policy still refunded the $50 difference). See [Reading with a local
+model](reading.md#which-model) for the other samples. Tests use the
+API's real answers for the tablet, the jacket and the late lamp.
 
 `bash scripts/model-test.sh` runs the rules themselves on aityx
 ([test/model_scenarios_test.dart](../contacthub_api/test/model_scenarios_test.dart),
@@ -112,9 +112,10 @@ just inside and just outside each limit (refund at 30 days, store credit
 at 31 and 60, not eligible at 61; no restocking fee at 14 days, 15% at
 15; $500.00 refunded, $500.01 to a person; damage at 7 and 8 days; the
 warranty at 365 and 366; price drops at 14 and 15; late at 11 days, not
-at 10; cancellations; duplicate charges). The questions' answers are given
-in the state, so only the rules run and every run is the same. Changing
-the refund window to 29 days fails the 30-day case.
+at 10; cancellations; duplicate charges). What the local model would have
+read is given in the state, as the API does, so only the rules run and
+every run is the same. Changing the refund window to 29 days fails the
+30-day case.
 
 ## Known limitations
 

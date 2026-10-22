@@ -13,8 +13,18 @@ class Answer {
   final String? location;
 }
 
-/// [aityx]: whether the API has an aityx key, reported by /api/health.
-Answer route(String method, String path, {bool aityx = false}) {
+/// The local model, as /api/health reports it: its name, and whether
+/// Ollama answers and lists it.
+typedef LocalModel = ({String name, bool ready});
+
+/// [aityx]: whether the API has an aityx key; [localModel]: the local
+/// model and whether it's ready; both reported by /api/health.
+Answer route(
+  String method,
+  String path, {
+  bool aityx = false,
+  LocalModel localModel = (name: '', ready: false),
+}) {
   if (method == 'OPTIONS') return const Answer(204);
   if (method == 'GET') {
     switch (path) {
@@ -24,7 +34,14 @@ Answer route(String method, String path, {bool aityx = false}) {
       case '/':
         return const Answer(302, location: '/app/');
       case '/api/health':
-        return Answer(200, body: {'ok': true, 'aityx': aityx});
+        return Answer(
+          200,
+          body: {
+            'ok': true,
+            'aityx': aityx,
+            'local_model': {'name': localModel.name, 'ready': localModel.ready},
+          },
+        );
     }
   }
   return const Answer(404, body: {'error': 'not found'});
