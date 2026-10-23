@@ -8,7 +8,7 @@ on the board and notifies when one appears.
 
 The patterns Wikipedia's
 [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
-page lists, seeded in [tool/catalogue.dart](../cellfie_app/tool/catalogue.dart):
+page lists, seeded in [seeds.dart](../cellfie_app/lib/life/seeds.dart):
 
 | Kind | Patterns |
 |---|---|
@@ -64,5 +64,8 @@ widget test checks a blinker drawn by hand is noticed.
   cells of each other are one cluster, unknown; a glider leaving a soup
   is recognized once it's clear of it.
 - Guns and the infinite-growth patterns aren't in the catalogue.
+- Diehard's two halves are three cells apart, so on the board it's two
+  clusters and is never recognized; it's in the catalogue, and the Zoo
+  places it, all the same.
 - A pattern is noticed when its count goes up, so one that moves is not
   noticed again; a pattern gone is not announced.

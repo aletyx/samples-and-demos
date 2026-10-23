@@ -57,3 +57,14 @@ The feature files hold the current specification; see the
    the dev container, the titles and the docs, with the tagline: every
    generation, the cells take a picture of themselves, and aityx says
    who's in it.
+5. **Give the player more random start options: dense, sparse, islands
+   and so on.** **Random start** is now a menu: Sparse soup, Soup, Dense
+   soup, Islands, Glider fleet, Zoo (one of each pattern in the
+   catalogue, scattered and turned at random), R-pentomino and Acorn,
+   each with a one-line summary. The catalogue's seeds moved from the
+   tool into the app (`lib/life/seeds.dart`), so the Zoo and the tool
+   share them. See [Board](board.md).
+6. **On Patterns noticed, when clicked, go to the call that detected it
+   in the panel.** Each notice is a link: tapping it scrolls the panel to
+   that generation's call, opens it, and marks it with an amber border.
+   See [Calls panel](calls-panel.md).

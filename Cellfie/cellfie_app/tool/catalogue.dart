@@ -3,7 +3,7 @@
 /// one row per phase of each pattern, from the seeds below. Each seed is
 /// run by Conway's rules for its period and every phase's canonical shape
 /// (lib/life/board.dart, the same code the app uses to describe a
-/// cluster) becomes a row, so aityx recognizes a pattern whichever way
+/// cluster) becomes a row; the seeds are in lib/life/seeds.dart, so aityx recognizes a pattern whichever way
 /// it's turned and at any point of its cycle.
 ///
 ///   dart run tool/catalogue.dart          # rewrites the model's table
@@ -14,64 +14,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cellfie_app/life/board.dart';
-
-/// A pattern as Wikipedia's Game of Life page lists it: its id in the
-/// model, its name, its period (1 for a still life; a methuselah's seed
-/// is one phase), and one phase's layout.
-class Seed {
-  const Seed(this.id, this.name, this.period, this.shape);
-
-  final String id;
-  final String name;
-  final int period;
-  final String shape;
-}
-
-const seeds = [
-  // Still lifes
-  Seed('block', 'Block', 1, 'oo/oo'),
-  Seed('beehive', 'Beehive', 1, '.oo./o..o/.oo.'),
-  Seed('loaf', 'Loaf', 1, '.oo./o..o/.o.o/..o.'),
-  Seed('boat', 'Boat', 1, 'oo./o.o/.o.'),
-  Seed('tub', 'Tub', 1, '.o./o.o/.o.'),
-  // Oscillators
-  Seed('blinker', 'Blinker', 2, 'ooo'),
-  Seed('toad', 'Toad', 2, '.ooo/ooo.'),
-  Seed('beacon', 'Beacon', 2, 'oo../oo../..oo/..oo'),
-  Seed(
-    'pulsar',
-    'Pulsar',
-    3,
-    '..ooo...ooo../............./o....o.o....o/o....o.o....o/o....o.o....o/'
-        '..ooo...ooo../............./..ooo...ooo../o....o.o....o/o....o.o....o/'
-        'o....o.o....o/............./..ooo...ooo..',
-  ),
-  Seed(
-    'pentadecathlon',
-    'Penta-decathlon',
-    15,
-    '..o....o../oo.oooo.oo/..o....o..',
-  ),
-  // Spaceships
-  Seed('glider', 'Glider', 4, '.o./..o/ooo'),
-  Seed('lwss', 'Light-weight spaceship', 4, 'o..o./....o/o...o/.oooo'),
-  Seed(
-    'mwss',
-    'Middle-weight spaceship',
-    4,
-    '..o.../o...o./.....o/o....o/.ooooo',
-  ),
-  Seed(
-    'hwss',
-    'Heavy-weight spaceship',
-    4,
-    '...oo../.o....o/o....../o.....o/oooooo.',
-  ),
-  // Methuselahs: recognized as seeded, before they grow
-  Seed('r_pentomino', 'R-pentomino', 1, '.oo/oo./.o.'),
-  Seed('diehard', 'Diehard', 1, '......o./oo....../.o...ooo'),
-  Seed('acorn', 'Acorn', 1, '.o...../...o.../oo..ooo'),
-];
+import 'package:cellfie_app/life/seeds.dart';
 
 /// The catalogue's rows after the header: cells, width, height, shape(s),
 /// the pattern, and why.

@@ -12,8 +12,10 @@ lists them), and the app draws the next board, labels the patterns,
 notifies when one appears, and shows every call, request and response,
 in a side panel. Conway's rules are on at the start; HighLife's birth with
 six neighbours and Life without death can be switched on from **Rules**.
-Press **Random start**, **Play**, and set the **Acceleration** from half a
-generation a second to as fast as aityx answers.
+Pick a **Random start** (a sparse, medium or dense soup, islands, a glider
+fleet, a zoo with one of each pattern, or a methuselah), press **Play**,
+and set the **Acceleration** from half a generation a second to as fast
+as aityx answers.
 
 ## Technology
 
@@ -52,8 +54,10 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 The ports are 8900 and 8901, so Cellfie runs alongside Mortgage Hub
 (8880, 8881) and Contact Hub (8890, 8891). The first start compiles the
-app, which takes a minute or so. Press **Random start** for a soup over
-the cells in view, or tap cells to draw; drag to move around the
+app, which takes a minute or so. Pick a **Random start** over the cells
+in view (soups of three densities, islands, a glider fleet, a zoo with
+one of each pattern, the R-pentomino or the acorn), or tap cells to
+draw; drag to move around the
 infinite board and scroll to zoom. **Play** runs generations at the
 **Acceleration** you set, **Step** runs one. Each generation is a call
 to aityx, shown in the panel on the right with what it decided and the

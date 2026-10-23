@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cellfie_app/calls/calls_panel.dart';
 import 'package:cellfie_app/life/board.dart';
 import 'package:cellfie_app/life/generation.dart';
 import 'package:cellfie_app/main.dart';
@@ -118,7 +119,10 @@ void main() {
     );
 
     await tester.tap(find.text('Random start'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(find.text('Glider fleet'), findsOneWidget);
+    await tester.tap(find.text('Soup'));
+    await tester.pumpAndSettle();
     final status = find.textContaining(RegExp(r'Generation 0 · \d+ cells'));
     expect(status, findsOneWidget);
     final cells = int.parse(
@@ -171,8 +175,50 @@ void main() {
     expect(find.text('−2 died'), findsOneWidget);
     expect(find.text('blinker'), findsWidgets);
     // A blinker appeared: a notice on the board and in the panel.
-    expect(find.text('Generation 0: A blinker appeared'), findsNWidgets(2));
+    // Over the board, and in the panel.
+    expect(find.textContaining('Generation 0: A blinker appeared'), findsNWidgets(2));
     expect(find.text('Patterns noticed'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 9));
+  });
+
+  testWidgets('tapping a pattern noticed opens the call that noticed it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final stepper = FakeStepper();
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+    for (final x in [-1, 0, 1]) {
+      await tester.tapAt(view.center + Offset(x * 14.0 + 7, 7));
+    }
+    await tester.pump();
+    // Three generations: the blinker is noticed at the first, and the
+    // newest call is on top.
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('Step'));
+      await tester.pump();
+      await tester.pump();
+    }
+    expect(find.text('Generation 2 → 3'), findsOneWidget);
+    expect(find.text('What aityx decided'), findsNothing);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CallsPanel),
+        matching: find.textContaining('A blinker appeared'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The first call's card is open, and only it.
+    expect(find.text('What aityx decided'), findsOneWidget);
+    final card = find.ancestor(
+      of: find.text('Generation 0 → 1'),
+      matching: find.byType(CallCard),
+    );
+    expect(tester.widget<CallCard>(card).expanded, isTrue);
+    expect(tester.widget<CallCard>(card).marked, isTrue);
     await tester.pump(const Duration(seconds: 9));
   });
 

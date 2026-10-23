@@ -9,7 +9,9 @@ any call, it explains that every generation is one call to aityx.
 
 When a pattern has appeared, the first card lists the last 8 notices,
 `Generation 12: A glider appeared`, each with what the pattern is (see
-[Patterns](patterns.md)).
+[Patterns](patterns.md)). Tapping one scrolls the panel to the call that
+noticed it, opens it (closing any other) and marks it with an amber
+border until it's toggled; the panel holds which cards are open.
 
 ## A call
 

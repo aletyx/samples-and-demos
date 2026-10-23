@@ -105,8 +105,17 @@ class _CallJsonViewState extends State<CallJsonView> {
       JsonToken.punctuation: scheme.onSurfaceVariant,
       JsonToken.space: scheme.onSurface,
     };
+    // Room for the longest line, and for the widest label after it.
+    var labelWidth = 0.0;
+    for (final label in widget.highlights.values) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: theme.textTheme.labelSmall),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      if (painter.width > labelWidth) labelWidth = painter.width;
+    }
     final contentWidth =
-        _gutterWidth + 16 + _layout.longestLine * _charWidth() + 200;
+        _gutterWidth + 16 + _layout.longestLine * _charWidth() + labelWidth + 48;
     // Line numbers; the continuation rows of a wrapped string share their
     // line's number, and show none.
     final numbers = <String>[];

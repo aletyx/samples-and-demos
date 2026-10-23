@@ -76,7 +76,9 @@ const responseHighlights = {
 
 /// The side panel: the patterns noticed, then every call to aityx,
 /// newest first, each with what it decided and its request and response.
-class CallsPanel extends StatelessWidget {
+/// Tapping a pattern noticed scrolls to the call that noticed it, opens
+/// it and marks it.
+class CallsPanel extends StatefulWidget {
   const CallsPanel({
     super.key,
     required this.calls,
@@ -89,9 +91,66 @@ class CallsPanel extends StatelessWidget {
   final VoidCallback? onClear;
 
   @override
+  State<CallsPanel> createState() => _CallsPanelState();
+}
+
+/// A collapsed card's height, to scroll near a call before its card is
+/// built; the jump is then made exact on the card itself.
+const _collapsedCardHeight = 118.0;
+
+class _CallsPanelState extends State<CallsPanel> {
+  final _scroll = ScrollController();
+
+  /// The generations whose cards are open, and the one just jumped to.
+  final _open = <int>{};
+  int? _marked;
+  final _cardKeys = <int, GlobalKey>{};
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(int generation) =>
+      _cardKeys.putIfAbsent(generation, GlobalKey.new);
+
+  /// Scrolls to the call of [generation], opens it and marks it.
+  void _jumpTo(int generation) {
+    final index = widget.calls.indexWhere(
+      (c) => c.generation.generation == generation,
+    );
+    if (index < 0) return;
+    setState(() {
+      _open
+        ..clear()
+        ..add(generation);
+      _marked = generation;
+    });
+    // Near it first, so the card gets built, then exactly onto it.
+    final near = index * _collapsedCardHeight;
+    if (_scroll.hasClients) {
+      _scroll.jumpTo(near.clamp(0.0, _scroll.position.maxScrollExtent));
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = _keyFor(generation).currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          alignment: 0,
+          duration: const Duration(milliseconds: 250),
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final calls = widget.calls;
+    final notes = widget.notes;
+    final onClear = widget.onClear;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -138,16 +197,24 @@ class CallsPanel extends StatelessWidget {
                   ),
                 )
               : ListView.builder(
+                  controller: _scroll,
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                   itemCount: calls.length + (notes.isEmpty ? 0 : 1),
                   itemBuilder: (context, i) {
                     if (notes.isNotEmpty && i == 0) {
-                      return _NotesCard(notes: notes);
+                      return _NotesCard(notes: notes, onTap: _jumpTo);
                     }
                     final call = calls[i - (notes.isEmpty ? 0 : 1)];
+                    final generation = call.generation.generation;
                     return CallCard(
-                      key: ValueKey(call.generation.generation),
+                      key: _keyFor(generation),
                       call: call,
+                      expanded: _open.contains(generation),
+                      marked: _marked == generation,
+                      onToggle: () => setState(() {
+                        if (!_open.remove(generation)) _open.add(generation);
+                        if (_marked == generation) _marked = null;
+                      }),
                     );
                   },
                 ),
@@ -158,9 +225,12 @@ class CallsPanel extends StatelessWidget {
 }
 
 class _NotesCard extends StatelessWidget {
-  const _NotesCard({required this.notes});
+  const _NotesCard({required this.notes, required this.onTap});
 
   final List<PatternNote> notes;
+
+  /// Tapping a note: the generation of the call that noticed it.
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -187,33 +257,60 @@ class _NotesCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            for (final note in notes.take(8)) ...[
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Generation ${note.generation}: ',
-                      style: TextStyle(color: scheme.onSurfaceVariant),
-                    ),
-                    TextSpan(
-                      text: note.text,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                style: theme.textTheme.bodyMedium,
-              ),
-              if (note.about case final about?)
-                Padding(
-                  padding: const EdgeInsets.only(left: 12, bottom: 4),
-                  child: Text(
-                    about,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
+            for (final note in notes.take(8))
+              InkWell(
+                onTap: () => onTap(note.generation),
+                borderRadius: BorderRadius.circular(4),
+                child: Tooltip(
+                  message: 'Go to the call that noticed it',
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Generation ${note.generation}: ',
+                                style: TextStyle(color: scheme.onSurfaceVariant),
+                              ),
+                              TextSpan(
+                                text: note.text,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: EdgeInsets.only(left: 6),
+                                  child: Icon(
+                                    Icons.arrow_downward,
+                                    size: 14,
+                                    color: Aityx.amber,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        if (note.about case final about?)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Text(
+                              about,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
-            ],
+              ),
           ],
         ),
       ),
@@ -223,25 +320,27 @@ class _NotesCard extends StatelessWidget {
 
 /// One call: the generation, the counts and the patterns in its header;
 /// expanded, what aityx decided for each situation and cluster, and the
-/// request and the response.
-class CallCard extends StatefulWidget {
-  const CallCard({super.key, required this.call, this.expanded = false});
+/// request and the response. The panel holds whether it's open, and
+/// marks it after a jump.
+class CallCard extends StatelessWidget {
+  const CallCard({
+    super.key,
+    required this.call,
+    required this.expanded,
+    required this.onToggle,
+    this.marked = false,
+  });
 
   final CallRecord call;
   final bool expanded;
-
-  @override
-  State<CallCard> createState() => _CallCardState();
-}
-
-class _CallCardState extends State<CallCard> {
-  late bool _expanded = widget.expanded;
+  final VoidCallback onToggle;
+  final bool marked;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final call = widget.call;
+
     final g = call.generation;
     final recognized = <String, int>{};
     for (final p in g.patterns) {
@@ -256,12 +355,18 @@ class _CallCardState extends State<CallCard> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: scheme.surfaceContainerLow,
+      shape: marked
+          ? RoundedRectangleBorder(
+              side: const BorderSide(color: Aityx.amber, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: onToggle,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
               child: Column(
@@ -278,7 +383,7 @@ class _CallCardState extends State<CallCard> {
                         ),
                       ),
                       Icon(
-                        _expanded ? Icons.expand_less : Icons.expand_more,
+                        expanded ? Icons.expand_less : Icons.expand_more,
                         color: scheme.onSurfaceVariant,
                       ),
                     ],
@@ -309,7 +414,7 @@ class _CallCardState extends State<CallCard> {
               ),
             ),
           ),
-          if (_expanded)
+          if (expanded)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(

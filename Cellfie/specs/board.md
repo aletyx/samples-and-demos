@@ -37,9 +37,21 @@ The bar above the board, wrapping on narrow windows:
   [Generation](generation.md)) until paused, or until the board is empty,
   or a generation fails (then a message says why).
 - **Step**: one generation; disabled while playing or while one runs.
-- **Random start**: a random soup over the cells in view (at most 100 ×
-  70, each alive with probability 0.35), at generation 0; the patterns
-  noticed start over.
+- **Random start**: a menu of starts over the cells in view (at most 100
+  × 70), at generation 0; the patterns noticed start over
+  ([startBoard](../cellfie_app/lib/life/board.dart)):
+  - **Sparse soup**, **Soup** and **Dense soup**: each cell alive with
+    probability 0.12, 0.35 and 0.6;
+  - **Islands**: 4 to 16 discs (one per 600 cells in view) of radius 3 to
+    6, each cell in them alive with probability 0.55;
+  - **Glider fleet**: 3 to 20 gliders (one per 400 cells), each turned or
+    flipped at random, placed where no other cell is within two cells;
+  - **Zoo**: one of each pattern in the catalogue
+    ([seeds.dart](../cellfie_app/lib/life/seeds.dart)), turned or flipped
+    at random, placed the same way; a pattern that finds no room in 40
+    tries, or doesn't fit the view, is left out;
+  - **R-pentomino** and **Acorn**: the seed alone, in the middle.
+  Each item shows a one-line summary.
 - **Clear**: empties the board, generation 0.
 - **Acceleration**: a slider with six stops: ½, 1, 2 (the default), 4 and
   8 generations per second, and *as fast as aityx answers*. A generation
@@ -55,8 +67,8 @@ Widget tests draw a blinker by tapping, step it through a fake aityx and
 check the request (5 situations, one 1 × 3 cluster, Conway's rules
 alone), the next board, the call in the panel and the notice; switch a
 rule on in the dialog and see it in the next request; play at 2 generations/s until paused;
-a failed generation pausing with its message; the random start and
-Clear; and the calls drawer on a 390 px phone.
+a failed generation pausing with its message; the random start menu,
+a soup, and Clear; and the calls drawer on a 390 px phone.
 
 ## Known limitations
 

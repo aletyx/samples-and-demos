@@ -183,20 +183,21 @@ class _LifeScreenState extends State<LifeScreen> {
     }
   }
 
-  /// A random soup over the cells in view (at most 100 × 70), a third of
-  /// them alive, at generation 0.
-  void _randomStart() {
+  /// A start of [kind] over the cells in view (at most 100 × 70), at
+  /// generation 0.
+  void _randomStart(StartKind kind) {
     final visible = _camera.visible;
     final width = math.min(visible.right - visible.left - 1, 100);
     final height = math.min(visible.bottom - visible.top - 1, 70);
     final x = (_camera.centerX - width / 2).round();
     final y = (_camera.centerY - height / 2).round();
     _reset(
-      Board.random(
+      startBoard(
+        kind,
         x: x,
         y: y,
-        width: math.max(width, 3),
-        height: math.max(height, 3),
+        width: math.max(width, 8),
+        height: math.max(height, 8),
         random: widget.random,
       ),
     );
@@ -420,7 +421,7 @@ class _Controls extends StatelessWidget {
   final VoidCallback onPlay;
   final VoidCallback onPause;
   final VoidCallback onStep;
-  final VoidCallback onRandom;
+  final ValueChanged<StartKind> onRandom;
   final VoidCallback onClear;
   final ValueChanged<int> onAcceleration;
   final VoidCallback onZoomIn;
@@ -456,10 +457,34 @@ class _Controls extends StatelessWidget {
             icon: const Icon(Icons.skip_next),
             label: const Text('Step'),
           ),
-          OutlinedButton.icon(
-            onPressed: onRandom,
-            icon: const Icon(Icons.casino_outlined),
-            label: const Text('Random start'),
+          MenuAnchor(
+            menuChildren: [
+              for (final kind in StartKind.values)
+                MenuItemButton(
+                  onPressed: () => onRandom(kind),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(kind.label),
+                      Text(
+                        kind.summary,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+            builder: (context, controller, child) => OutlinedButton.icon(
+              onPressed: () =>
+                  controller.isOpen ? controller.close() : controller.open(),
+              icon: const Icon(Icons.casino_outlined),
+              label: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [Text('Random start'), Icon(Icons.arrow_drop_down)],
+              ),
+            ),
           ),
           TextButton.icon(
             onPressed: board.alive.isEmpty ? null : onClear,

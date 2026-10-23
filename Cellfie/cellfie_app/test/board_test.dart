@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cellfie_app/life/board.dart';
+import 'package:cellfie_app/life/seeds.dart';
 
 /// A horizontal blinker at the origin.
 final blinker = cellsOf('ooo');
@@ -119,5 +120,76 @@ void main() {
     final one = board.toggled((x: 2, y: 3));
     expect(one.alive, {(x: 2, y: 3)});
     expect(one.toggled((x: 2, y: 3)).alive, isEmpty);
+  });
+
+  group('the starts', () {
+    Board start(StartKind kind, {int width = 100, int height = 70}) =>
+        startBoard(kind, x: -50, y: -35, width: width, height: height, random: Random(7));
+
+    void within(Board board, {int width = 100, int height = 70}) {
+      for (final cell in board.alive) {
+        expect(cell.x, inInclusiveRange(-50, -50 + width - 1));
+        expect(cell.y, inInclusiveRange(-35, -35 + height - 1));
+      }
+      expect(board.generation, 0);
+    }
+
+    test('soups fill the region sparsely, by a third, or densely', () {
+      final sparse = start(StartKind.sparse);
+      final soup = start(StartKind.soup);
+      final dense = start(StartKind.dense);
+      within(sparse);
+      within(dense);
+      expect(sparse.population, inInclusiveRange(600, 1100));
+      expect(soup.population, inInclusiveRange(2100, 2800));
+      expect(dense.population, inInclusiveRange(3800, 4600));
+    });
+
+    test('islands are a few dense blobs inside the region', () {
+      final board = start(StartKind.islands);
+      within(board);
+      expect(board.population, inInclusiveRange(100, 1200));
+      expect(clustersOf(board.alive).length, inInclusiveRange(2, 16));
+    });
+
+    test('the glider fleet is gliders, each a cluster of its own', () {
+      final board = start(StartKind.gliders);
+      within(board);
+      final glider = canonicalShape(cellsOf(seedById('glider').shape));
+      final clusters = clustersOf(board.alive);
+      expect(clusters.length, inInclusiveRange(3, 20));
+      expect(clusters.map((c) => c.shape), everyElement(glider));
+    });
+
+    test('the zoo holds one of each pattern, turned at random', () {
+      final board = start(StartKind.zoo);
+      within(board);
+      final found = clustersOf(board.alive).map((c) => c.shape).toSet();
+      // Diehard's halves are three cells apart: two clusters, never one.
+      final whole = seeds.where((s) => clustersOf(cellsOf(s.shape)).length == 1);
+      for (final seed in whole) {
+        expect(found, contains(canonicalShape(cellsOf(seed.shape))), reason: seed.name);
+      }
+      expect(whole.length, seeds.length - 1);
+      expect(board.population, seeds.fold(0, (n, s) => n + cellsOf(s.shape).length));
+    });
+
+    test('the methuselahs sit in the middle', () {
+      final acorn = start(StartKind.acorn);
+      expect(acorn.population, 7);
+      expect(canonicalShape(acorn.alive), canonicalShape(cellsOf(seedById('acorn').shape)));
+      expect(acorn.alive.map((c) => c.x).reduce(min), inInclusiveRange(-5, 0));
+      final r = start(StartKind.rPentomino, width: 10, height: 10);
+      expect(r.population, 5);
+      within(r, width: 10, height: 10);
+    });
+
+    test('a shape that does not fit is left out', () {
+      final board = start(StartKind.zoo, width: 8, height: 8);
+      within(board, width: 8, height: 8);
+      // The pulsar (13 × 13) can't be placed; the block can.
+      expect(clustersOf(board.alive).map((c) => c.shape), contains('oo/oo'));
+      expect(board.population, lessThan(48));
+    });
   });
 }

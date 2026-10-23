@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cellfie_app/life/board.dart';
 import 'package:cellfie_app/life/rules.dart';
+import 'package:cellfie_app/life/seeds.dart';
 
 import '../tool/catalogue.dart';
 

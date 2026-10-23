@@ -7,6 +7,8 @@ library;
 
 import 'dart:math';
 
+import 'seeds.dart';
+
 /// A cell's coordinates; y grows downwards.
 typedef Cell = ({int x, int y});
 
@@ -157,23 +159,24 @@ List<Cluster> clustersOf(Set<Cell> alive) {
 String canonicalShape(Set<Cell> cells) {
   String? best;
   for (var transform = 0; transform < 8; transform++) {
-    final text = _shape([
-      for (final c in cells)
-        switch (transform) {
-          0 => (x: c.x, y: c.y),
-          1 => (x: -c.y, y: c.x),
-          2 => (x: -c.x, y: -c.y),
-          3 => (x: c.y, y: -c.x),
-          4 => (x: -c.x, y: c.y),
-          5 => (x: c.y, y: c.x),
-          6 => (x: c.x, y: -c.y),
-          _ => (x: -c.y, y: -c.x),
-        },
-    ]);
+    final text = _shape([for (final c in cells) transformCell(c, transform)]);
     if (best == null || text.compareTo(best) < 0) best = text;
   }
   return best!;
 }
+
+/// [c] under one of the 8 symmetries of the square: 0 as it is, 1 to 3
+/// turned, 4 to 7 flipped and turned.
+Cell transformCell(Cell c, int transform) => switch (transform) {
+  0 => (x: c.x, y: c.y),
+  1 => (x: -c.y, y: c.x),
+  2 => (x: -c.x, y: -c.y),
+  3 => (x: c.y, y: -c.x),
+  4 => (x: -c.x, y: c.y),
+  5 => (x: c.y, y: c.x),
+  6 => (x: c.x, y: -c.y),
+  _ => (x: -c.y, y: -c.x),
+};
 
 String _shape(List<Cell> cells) {
   final minX = cells.map((c) => c.x).reduce(min);
@@ -280,4 +283,130 @@ class Board {
     }
     return Board(alive: next, generation: generation + 1, born: born);
   }
+}
+
+/// What **Random start** can fill the view with.
+enum StartKind {
+  sparse('Sparse soup', 'A few cells here and there: most die out, some settle.'),
+  soup('Soup', 'A third of the cells alive: the classic random start.'),
+  dense('Dense soup', 'Most cells alive: the first generation is a massacre.'),
+  islands('Islands', 'A dozen small dense blobs, each on its own.'),
+  gliders('Glider fleet', 'Gliders flying in every direction.'),
+  zoo('Zoo', 'One of each pattern in the catalogue, scattered and turned at random.'),
+  rPentomino('R-pentomino', 'Five cells that take 1,103 generations to settle.'),
+  acorn('Acorn', 'Seven cells that grow for 5,206 generations.');
+
+  const StartKind(this.label, this.summary);
+
+  final String label;
+  final String summary;
+}
+
+/// A board of [kind] over the [width] × [height] cells from ([x], [y]),
+/// the cells in view, at generation 0.
+Board startBoard(
+  StartKind kind, {
+  required int x,
+  required int y,
+  required int width,
+  required int height,
+  Random? random,
+}) {
+  final rng = random ?? Random();
+  Board soup(double density) => Board.random(
+    x: x,
+    y: y,
+    width: width,
+    height: height,
+    density: density,
+    random: rng,
+  );
+  Board centered(String shape) {
+    final cells = cellsOf(shape);
+    final w = cells.map((c) => c.x).reduce(max) + 1;
+    final h = cells.map((c) => c.y).reduce(max) + 1;
+    return Board(
+      alive: cellsOf(shape, x: x + (width - w) ~/ 2, y: y + (height - h) ~/ 2),
+    );
+  }
+
+  switch (kind) {
+    case StartKind.sparse:
+      return soup(0.12);
+    case StartKind.soup:
+      return soup(0.35);
+    case StartKind.dense:
+      return soup(0.6);
+    case StartKind.islands:
+      final cells = <Cell>{};
+      final n = (width * height / 600).round().clamp(4, 16);
+      for (var i = 0; i < n; i++) {
+        final cx = x + rng.nextInt(width);
+        final cy = y + rng.nextInt(height);
+        final r = 3 + rng.nextInt(4);
+        for (var dy = -r; dy <= r; dy++) {
+          for (var dx = -r; dx <= r; dx++) {
+            final inside = dx * dx + dy * dy <= r * r;
+            final cell = (x: cx + dx, y: cy + dy);
+            if (inside && _within(cell, x, y, width, height) && rng.nextDouble() < 0.55) {
+              cells.add(cell);
+            }
+          }
+        }
+      }
+      return Board(alive: cells);
+    case StartKind.gliders:
+      final cells = <Cell>{};
+      final n = (width * height / 400).round().clamp(3, 20);
+      final glider = cellsOf(seedById('glider').shape);
+      for (var i = 0; i < n; i++) {
+        _place(cells, glider, x, y, width, height, rng);
+      }
+      return Board(alive: cells);
+    case StartKind.zoo:
+      final cells = <Cell>{};
+      for (final seed in seeds) {
+        _place(cells, cellsOf(seed.shape), x, y, width, height, rng);
+      }
+      return Board(alive: cells);
+    case StartKind.rPentomino:
+      return centered(seedById('r_pentomino').shape);
+    case StartKind.acorn:
+      return centered(seedById('acorn').shape);
+  }
+}
+
+bool _within(Cell c, int x, int y, int width, int height) =>
+    c.x >= x && c.x < x + width && c.y >= y && c.y < y + height;
+
+/// Adds [shape], turned or flipped at random, somewhere in the region
+/// where its bounding box, with two cells around it, holds no cell yet,
+/// so it stays a cluster of its own. Gives up after 40 tries.
+bool _place(
+  Set<Cell> cells,
+  Set<Cell> shape,
+  int x,
+  int y,
+  int width,
+  int height,
+  Random rng,
+) {
+  final transform = rng.nextInt(8);
+  final turned = [for (final c in shape) transformCell(c, transform)];
+  final minX = turned.map((c) => c.x).reduce(min);
+  final minY = turned.map((c) => c.y).reduce(min);
+  final w = turned.map((c) => c.x).reduce(max) - minX + 1;
+  final h = turned.map((c) => c.y).reduce(max) - minY + 1;
+  if (w > width || h > height) return false;
+  for (var attempt = 0; attempt < 40; attempt++) {
+    final ox = x + rng.nextInt(width - w + 1);
+    final oy = y + rng.nextInt(height - h + 1);
+    final free = cells.every(
+      (c) => c.x < ox - 2 || c.x > ox + w + 1 || c.y < oy - 2 || c.y > oy + h + 1,
+    );
+    if (!free) continue;
+    cells.addAll([for (final c in turned) (x: ox + c.x - minX, y: oy + c.y - minY)]);
+    return true;
+  }
+  return false;
 }
