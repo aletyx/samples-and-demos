@@ -1,10 +1,9 @@
 /// The routing model's rules (models/routing.json) executed on aityx.ai
 /// with fixed facts, checking the outcomes just inside and just outside
-/// each limit of the store's policy. The local model isn't asked: what it
-/// would have read is given in the state, as the API does, so only the
-/// rules run and every run is the same. Tagged `aityx`: skipped by `dart
-/// test`, run by scripts/model-test.sh, which passes AITYX_API_KEY and
-/// AITYX_URL.
+/// each limit of the store's policy. The questions aren't asked: their
+/// answers are given in the state, so only the rules run and every run is
+/// the same. Tagged `aityx`: skipped by `dart test`, run by
+/// scripts/model-test.sh, which passes AITYX_API_KEY and AITYX_URL.
 @Tags(['aityx'])
 library;
 
@@ -13,8 +12,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
-/// A clear, civil request about a delivered $100 order, as the local
-/// model would have read it.
+/// A clear, civil request about a delivered $100 order.
 Map<String, Object?> facts({
   String kind = 'return_refund',
   int placedDaysAgo = 10,
@@ -29,7 +27,6 @@ Map<String, Object?> facts({
   String ago(int days) =>
       today.subtract(Duration(days: days)).toIso8601String().substring(0, 10);
   return {
-    'message': 'a request about an order',
     'topic': 'customer_service',
     'topic_confidence': 1,
     'urgent_probability': 0.01,
@@ -88,6 +85,13 @@ void main() {
     final model =
         jsonDecode(File('models/routing.json').readAsStringSync()) as Map;
     decision = (model['decision'] as Map).cast<String, Object?>();
+    // Without the questions there's no answer to bind the topic's
+    // confidence to: take it from the state like the other facts.
+    final inputs = decision['inputs'] as Map;
+    inputs['topic_confidence'] = {
+      ...(inputs['topic_confidence'] as Map),
+      'from': 'the state',
+    };
   });
   tearDownAll(() => client.close());
 

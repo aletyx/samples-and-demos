@@ -1,6 +1,6 @@
 /// Routes every sample request (lib/request/samples.dart) through a running
-/// API and prints where each went, what the policy offered and how long the
-/// local model took, against where the sample says it should go:
+/// API and prints where each went, what the policy offered and what aityx
+/// read, against where the sample says it should go:
 ///
 ///   dart run tool/route_samples.dart [--api http://localhost:8891] [--save DIR]
 ///
@@ -49,8 +49,6 @@ Future<void> main(List<String> args) async {
     final r = json['routing'] as Map;
     final department = (r['department'] as Map)['name'] as String;
     final policy = r['policy'] as Map?;
-    final reading = (json['reading'] as Map)['response'] as Map;
-    final seconds = (reading['total_duration'] as num) / 1e9;
     final topic = r['topic'] as Map;
     final read =
         '${topic['choice']} ${((topic['confidence'] as num) * 100).round()}% '
@@ -64,7 +62,7 @@ Future<void> main(List<String> args) async {
       '${(policy?['resolution'] as String? ?? '').padRight(22)} '
       '${(policy?['refund_amount'] as num?)?.toStringAsFixed(2).padLeft(8) ?? ''.padLeft(8)} '
       '${r['priority']}${r['needs_review'] == true ? ', review' : ''}  '
-      '${seconds.toStringAsFixed(1)} s  $read'
+      '$read'
       '${ok ? '' : '   expected $expected'}',
     );
     if (save != null) {

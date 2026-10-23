@@ -47,7 +47,7 @@ class CallController extends ChangeNotifier {
   }
 }
 
-/// One of the calls behind a routing (the local model's, aityx's), in one
+/// The aityx call behind a routing, in one
 /// pane: the request, then the response, each under its header,
 /// pretty-printed with line numbers and colors. Every one of [targets] is
 /// highlighted with its label, as Mortgage Hub's view does; the "Jump to"

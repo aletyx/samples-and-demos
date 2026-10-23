@@ -54,9 +54,7 @@ the policy should offer. Three sections:
   priority, reviewed) and An abusive message (Trust & Safety, whatever
   the topic).
 
-All 27 were sent through the live API; with qwen3:1.7b reading, 22
-routed where their labels say (see [Reading with a local
-model](reading.md#which-model) for the five it misreads).
+All 27 were sent through the live API and routed where their labels say.
 
 ## Voice input, on the device only
 
