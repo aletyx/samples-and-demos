@@ -8,6 +8,7 @@ sample with its own documentation.
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Cellfie](Cellfie/) | The cells take a picture of themselves every generation, and aityx says who's in it: Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -99,6 +100,37 @@ Both serve the app at http://localhost:8890/app/, so it runs alongside
 Mortgage Hub. The badge above opens it in a codespace, which uses the same
 `AITYX_API_KEY` Codespaces secret as Mortgage Hub. See the
 [Contact Hub README](ContactHub/README.md).
+
+## Cellfie
+
+[Cellfie/](Cellfie/): every generation, the cells take a picture of
+themselves, and aityx says who's in it. It plays Conway's Game of Life
+on an infinite board,
+with the rules of the game as a decision model on aityx. Built like
+Contact Hub: a Flutter app draws the board (drag, zoom, tap to draw,
+**Random start**, **Play** and an **Acceleration** control from half a
+generation a second to as fast as aityx answers), and a Dart API runs
+each generation as one aityx call, in which a decision table decides the
+fate of every situation on the board, with a why on every row, and a
+pattern catalogue names the well-known patterns (still lifes,
+oscillators, spaceships, methuselahs) among the clusters of live cells.
+The app labels the patterns on the board, notifies when one appears, and
+shows every call, request and response, in a side panel. Conway's rules
+are on at the start; HighLife's birth with six neighbours and Life without
+death can be switched on. Put your key in `Cellfie/.env` (see
+[.env.example](Cellfie/.env.example)), then, from the root of this
+repository:
+
+```bash
+devbox services up -c Cellfie --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f Cellfie/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:8900/app/, so it runs alongside
+the other two. The badge above opens it in a codespace, which uses the
+same `AITYX_API_KEY` Codespaces secret. See the
+[Cellfie README](Cellfie/README.md).
 
 ## Payroll
 
