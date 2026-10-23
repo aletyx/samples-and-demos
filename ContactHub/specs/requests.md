@@ -170,3 +170,11 @@ The feature files hold the current specification; see the
     cutout, as aityx.ai's own favicon is drawn; the PNG tile stays as the
     fallback and the app icons keep it. See
     [App icon](app-icon.md#favicon).
+
+15. **Apps showing a blank screen in a codespace.** Each app ran as a
+    Flutter debug build, whose `dart_sdk.js` (11 MB, uncompressed) took
+    minutes through the forwarded port, so the page stayed blank. The dev
+    containers now set `FLUTTER_WEB_MODE=release`: the app is built once in
+    release mode and served gzipped by `scripts/web-server.dart`, which
+    sends `/api/` and `/` on to the API. See
+    [Development environment](dev-environment.md).

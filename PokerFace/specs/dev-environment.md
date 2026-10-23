@@ -31,6 +31,20 @@ explains the reasons behind each piece.
     and waits 5 s (`HEALTH_CHECK_DELAY`). Then every 15 s
     (`HEALTH_CHECK_INTERVAL`) one line with the time, 🌐 Web, 🔌 API
     (`/api/health`) and 🤖 aityx (✅ the API has its key, ⚪ it doesn't).
+- **Release mode** (`FLUTTER_WEB_MODE=release`, which the dev containers
+  set): instead of `flutter run`, [scripts/flutter-web.sh](../scripts/flutter-web.sh)
+  starts [scripts/web-server.dart](../scripts/web-server.dart) on the web
+  port, then runs `flutter build web --release --base-href /app/` into
+  `build/web`. The server answers `/app/` with a page saying the app is
+  building (503, so `start-all.sh` and the readiness probe keep waiting)
+  until the build writes `build/web/.ready`, then serves the build,
+  gzipped, with any path without a file extension getting `index.html`,
+  and sends `/api/` and the bare `/` to the API, as the dev server's proxy
+  does. Through a codespace's forwarded port a debug build took minutes to
+  load (its `dart_sdk.js` alone is 11 MB, uncompressed) and the page
+  stayed blank meanwhile; the release build is a few MB and loads in
+  seconds, and no compiler keeps running. There is no hot reload in this
+  mode; locally the default stays `debug`.
 - The ports, 8910 and 8911, differ from Mortgage Hub's 8880/8881 and
   Contact Hub's 8890/8891, so all can run at once.
 - `devbox run web` runs only the web server, `devbox run api` only the API.
