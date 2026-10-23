@@ -47,7 +47,7 @@ The same, in a codespace: the repository's default dev container,
 builds every demo's toolchain and runs `./start-all.sh` on each start.
 It needs your own `AITYX_API_KEY` Codespaces secret and, optionally, an
 `AITYX_URL` secret (see [Launching it](#launching-it) below) and the
-8-core machine, since six apps compile at once.
+4-core, 16 GB machine; the initial build of all six apps can take longer.
 
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
@@ -93,8 +93,8 @@ The same secrets can be used for every demo.
 
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
-That opens the repository's default dev container, **All demos**, on an
-8-core machine (32 GB RAM): it starts Mortgage Hub with every other demo
+That opens the repository's default dev container, **All demos**, on a
+4-core machine (16 GB RAM): it starts Mortgage Hub with every other demo
 and the index page. If you create the codespace yourself through *Code →
 Codespaces → New with options*, keep **All demos** as the dev container
 configuration; the others start one demo each.

@@ -3,8 +3,8 @@
   // All demos
   //
   // Every demo in this repository that runs as services, started
-  // together: Mortgage Hub, Contact Hub, Life Hub, RoboRules, PokerFace,
-  // each a Flutter web app and a Dart API calling aityx.ai, and the
+  // together: Mortgage Hub, Contact Hub, Life Hub, Cellfie, RoboRules,
+  // PokerFace, each a Flutter web app and a Dart API calling aityx.ai, and the
   // index page (Index/) that links them and says which ones are up.
   //
   // Source:  https://github.com/aletyx/samples-and-demos
@@ -26,11 +26,11 @@
     "context": "."
   },
   "remoteUser": "vscode",
-  // Six Flutter apps compile at once on the first start, so this asks for
-  // the 8-core, 32 GB machine; a smaller one swaps and times out.
+  // The first start compiles six Flutter apps. Request the 4-core, 16 GB
+  // Codespaces machine; the initial builds can take longer.
   "hostRequirements": {
-    "cpus": 8,
-    "memory": "32gb"
+    "cpus": 4,
+    "memory": "16gb"
   },
   // The dev servers must listen on every interface for the forwarded
   // ports to reach them (only the container sees them). One variable per
