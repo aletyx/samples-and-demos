@@ -28,5 +28,9 @@
         "titleBar.inactiveBackground": "#e3674299",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#e36742"
+    "peacock.color": "#e36742",
+    "chat.tools.terminal.autoApprove": {
+        "printf": true,
+        "git remote": true
+    }
 }

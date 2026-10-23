@@ -42,7 +42,6 @@
       transition: border-color .15s;
     }
     .card:hover { border-color: var(--dim); }
-    .card.up { border-color: rgba(76, 195, 138, .45); }
     .head { display: flex; align-items: center; gap: 12px; }
     .icon {
       width: 40px; height: 40px; border-radius: 10px; flex: none;
@@ -59,9 +58,6 @@
     }
     .chip.aityx { color: var(--orange-light); border-color: rgba(227, 103, 66, .5); }
     .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: auto; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dim); flex: none; }
-    .dot.up { background: var(--green); box-shadow: 0 0 8px rgba(76, 195, 138, .6); }
-    .dot.off { background: var(--amber); }
     .status code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--fg); }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .btn {
@@ -72,7 +68,6 @@
     .btn:hover { text-decoration: none; border-color: var(--dim); }
     .btn.primary { background: var(--orange); border-color: var(--orange); color: var(--fg0); }
     .btn.primary:hover { background: var(--orange-light); }
-    .btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
     .btn svg { width: 15px; height: 15px; }
     h3.section { margin: 36px 0 12px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
     footer { max-width: 1100px; margin: 40px auto 0; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--border); padding-top: 18px; }
@@ -93,8 +88,7 @@
       </div>
     </div>
     <div class="meta">
-      <a href="https://github.com/aletyx/samples-and-demos">github.com/aletyx/samples-and-demos</a><br>
-      <span id="refreshed">Checking which demos are up…</span>
+      <a href="https://github.com/aletyx/samples-and-demos">github.com/aletyx/samples-and-demos</a>
     </div>
   </header>
 
@@ -114,11 +108,12 @@
   </footer>
 
   <script>
-    // The demos, in the order shown. "folder" matches the repository's folders
-    // and what /api/demos reports; the ports come from there too.
+    // The demos, in the order shown. "folder" matches the repository's folders;
+    // "port" is the web app's, the FLUTTER_WEB_PORT default in its
+    // process-compose.yaml.
     const demos = [
       {
-        folder: 'MortgageHub', name: 'Mortgage Hub',
+        folder: 'MortgageHub', port: 8880, name: 'Mortgage Hub',
         what: 'A mortgage application, from request to verdict',
         desc: 'A buyer fills in a proposal request, and a regulatory check says whether a lender can process it under current US rules: Fannie Mae’s eligibility matrix, the 2026 FHFA and FHA limits, FHA, VA and USDA rules and DTI limits, executed as a decision model on aityx.',
         chips: ['Flutter app', 'Dart API', 'aityx decision model'],
@@ -126,28 +121,28 @@
         icon: 'home', codespace: true, devcontainer: '.devcontainer/devcontainer.json',
       },
       {
-        folder: 'ContactHub', name: 'Contact Hub',
+        folder: 'ContactHub', port: 8890, name: 'Contact Hub',
         what: 'Ask anything, and it reaches the right person',
         desc: 'A request, typed or dictated on the device, is classified and checked by aityx and routed by a decision model to the department, the person and the priority; for an order, the store’s policy says what is refunded and by when. The app shows why, and the aityx call itself.',
         chips: ['Flutter app', 'Dart API', 'aityx decision model', 'speech on the device'],
         icon: 'chat', codespace: true,
       },
       {
-        folder: 'LifeHub', name: 'Life Hub',
+        folder: 'LifeHub', port: 8900, name: 'Life Hub',
         what: 'Conway’s Game of Life, its rules on aityx',
         desc: 'Life on an infinite board, with the rules of birth and death, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, with the request and the response in a side panel.',
         chips: ['Flutter app', 'Dart API', 'aityx decision model'],
         icon: 'grid', codespace: true,
       },
       {
-        folder: 'RoboRules', name: 'RoboRules',
+        folder: 'RoboRules', port: 8920, name: 'RoboRules',
         what: 'Robocode on the web, every turn played by aityx',
         desc: 'Tanks fight until one is left. Every robot’s behavior is an aityx decision model, its rules a table you can edit, and the whole battle (sensors, moves, bullets, hits, damage, scores) is played by aityx; the app only draws it.',
         chips: ['Flutter app', 'Dart API', 'aityx decision model'],
         icon: 'robot', codespace: true,
       },
       {
-        folder: 'PokerFace', name: 'PokerFace',
+        folder: 'PokerFace', port: 8910, name: 'PokerFace',
         what: 'A poker simulator where every player is a set of rules',
         desc: 'No-limit hold’em at a table of up to nine. At each turn the app works out the player’s situation and one aityx call runs their strategy on it: the action, the amount, and the rule that decided it. Five strategies to read, or write your own; every call in a sidebar; the pace in your hands.',
         chips: ['Flutter app', 'Dart API', 'aityx decision model', 'strategies as rules'],
@@ -187,35 +182,29 @@
       'https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=' +
       encodeURIComponent(d.devcontainer || '.devcontainer/' + d.folder + '/devcontainer.json') +
       '&machine=standardLinux32gb';
-    // A demo's web app from here: its port on this host or, in a codespace,
-    // whose forwarded URLs are <codespace>-<port>.<domain>, that URL.
-    const forwarded = location.hostname.match(/^(.+)-(\d+)\.(.+\.github\.dev)$/);
+    // A demo's web app from here. A codespace forwards each port on its own
+    // host, https://<codespace>-<port>.app.github.dev/, with no :port: this
+    // page's host with its port swapped for the app's. Anywhere else, the
+    // app's port on this host.
+    const forwarded = location.hostname.match(/^(.+)-(\d+)\.(app\.github\.dev)$/);
     const appUrl = (port) => forwarded
       ? 'https://' + forwarded[1] + '-' + port + '.' + forwarded[3] + '/app/'
       : 'http://' + location.hostname + ':' + port + '/app/';
     const ext = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg>';
 
-    function card(d, status) {
+    function card(d) {
       const el = document.createElement('article');
-      el.className = 'card' + (status && status.up ? ' up' : '');
+      el.className = 'card';
       el.id = 'demo-' + d.folder;
       const chips = d.chips.map(c => '<span class="chip' + (c.includes('aityx') ? ' aityx' : '') + '">' + c + '</span>').join('');
       let statusHtml, openHtml;
       if (d.open) {
         statusHtml = '<span>' + d.open + '</span>';
         openHtml = '';
-      } else if (!status) {
-        statusHtml = '<span class="dot"></span><span>Checking…</span>';
-        openHtml = '<a class="btn primary" aria-disabled="true">Open</a>';
-      } else if (status.up) {
-        const url = appUrl(status.web);
-        const key = status.aityx === false ? ' · no aityx key' : status.aityx === true ? ' · aityx key set' : '';
-        statusHtml = '<span class="dot up"></span><span>Up at <code>' + url + '</code>' + key + '</span>';
-        openHtml = '<a class="btn primary" href="' + url + '">Open ' + ext + '</a>';
       } else {
-        const port = status.web ? ' (port ' + status.web + ')' : '';
-        statusHtml = '<span class="dot off"></span><span>Not running' + port + ': <code>./start-all.sh ' + d.folder + '</code></span>';
-        openHtml = '<a class="btn primary" aria-disabled="true">Open</a>';
+        const url = appUrl(d.port);
+        statusHtml = '<span>Port ' + d.port + ', started by <code>./start-all.sh</code></span>';
+        openHtml = '<a class="btn primary" href="' + url + '" target="_blank" rel="noopener">Open' + ext + '</a>';
       }
       el.innerHTML =
         '<div class="head"><div class="icon"><svg viewBox="0 0 24 24" fill="currentColor" style="color:#E36742">' + icons[d.icon] + '</svg></div>' +
@@ -230,30 +219,8 @@
       return el;
     }
 
-    let statuses = null;
-    function render() {
-      const apps = document.getElementById('apps');
-      const mods = document.getElementById('models');
-      apps.replaceChildren(...demos.map(d => card(d, statuses ? statuses[d.folder] || { up: false } : null)));
-      mods.replaceChildren(...models.map(d => card(d, null)));
-    }
-    async function refresh() {
-      try {
-        const r = await fetch('api/demos', { cache: 'no-store' });
-        const json = await r.json();
-        statuses = {};
-        for (const d of json.demos) statuses[d.folder] = d;
-        const up = json.demos.filter(d => d.up).length;
-        document.getElementById('refreshed').textContent =
-          up + ' of ' + demos.length + ' apps up · checked ' + new Date().toLocaleTimeString();
-      } catch (e) {
-        document.getElementById('refreshed').textContent = 'Could not check the demos: ' + e;
-      }
-      render();
-    }
-    render();
-    refresh();
-    setInterval(refresh, 10000);
+    document.getElementById('apps').replaceChildren(...demos.map(card));
+    document.getElementById('models').replaceChildren(...models.map(card));
   </script>
 </body>
 </html>
