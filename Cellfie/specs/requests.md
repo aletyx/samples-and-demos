@@ -68,3 +68,10 @@ The feature files hold the current specification; see the
    in the panel.** Each notice is a link: tapping it scrolls the panel to
    that generation's call, opens it, and marks it with an amber border.
    See [Calls panel](calls-panel.md).
+7. **Apps showing a blank screen in a codespace.** Each app ran as a
+   Flutter debug build, whose `dart_sdk.js` (11 MB, uncompressed) took
+   minutes through the forwarded port, so the page stayed blank. The dev
+   containers now set `FLUTTER_WEB_MODE=release`: the app is built once in
+   release mode and served gzipped by `scripts/web-server.dart`, which
+   sends `/api/` and `/` on to the API. See
+   [Development environment](dev-environment.md).

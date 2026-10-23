@@ -32,7 +32,29 @@ flutter pub get
 # The welcome screen shows X.Y.Z, Z being when this server started.
 # API_BASE_URL: empty, so the app calls /api/ on its own origin (the
 # proxy above).
-exec flutter run -d web-server --web-hostname "$HOST" --web-port "$PORT" \
-  --base-href /app/ \
-  --dart-define="CELLFIE_VERSION=$VERSION" \
+defines=(
+  --dart-define="CELLFIE_VERSION=$VERSION"
   --dart-define="API_BASE_URL=${API_BASE_URL:-}"
+)
+# FLUTTER_WEB_MODE=release (the dev containers set it): a release build,
+# served by scripts/web-server.dart with the same /api/ and root proxy.
+# Through a codespace's forwarded port a debug build loads for minutes
+# (its dart_sdk.js alone is 11 MB, uncompressed) and the page stays
+# blank; a release build is a few MB, gzipped, and no compiler keeps
+# running. The server answers at once with a page saying the app is
+# building (503, so start-all.sh and the readiness probe wait), then the
+# build. No hot reload in this mode.
+if [[ "${FLUTTER_WEB_MODE:-debug}" == release ]]; then
+  out="$PWD/build/web"
+  rm -f "$out/.ready"
+  WEB_ROOT="$out" WEB_HOST="$HOST" WEB_PORT="$PORT" API_PORT="${API_PORT:-8931}" \
+    dart ../scripts/web-server.dart &
+  server=$!
+  trap 'kill "$server" 2>/dev/null' EXIT
+  flutter build web --release --base-href /app/ "${defines[@]}"
+  touch "$out/.ready"
+  wait "$server"
+  exit
+fi
+exec flutter run -d web-server --web-hostname "$HOST" --web-port "$PORT" \
+  --base-href /app/ "${defines[@]}"

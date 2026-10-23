@@ -28,8 +28,13 @@
   "remoteUser": "vscode",
   // The dev servers must listen on every interface for the forwarded
   // ports to reach them (only the container sees them).
+  // FLUTTER_WEB_MODE=release: each app is a release build, served gzipped
+  // with the API behind /api/ (scripts/flutter-web.sh), not a debug build,
+  // whose 11 MB dart_sdk.js takes minutes through a forwarded port and
+  // leaves the page blank meanwhile. Built once per start; no hot reload.
   "containerEnv": {
-    "CELLFIE_BIND_HOST": "0.0.0.0"
+    "CELLFIE_BIND_HOST": "0.0.0.0",
+    "FLUTTER_WEB_MODE": "release"
   },
   // Your own key, never the repository's: the same AITYX_API_KEY secret as
   // Mortgage Hub's and Contact Hub's. Codespaces secrets belong to a user
