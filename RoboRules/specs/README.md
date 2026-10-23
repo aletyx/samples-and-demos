@@ -9,8 +9,9 @@ request changes, and add one when a request adds a feature.
 A web take on the old Robocode where every robot's behavior is an aityx
 decision model and every turn of the battle (sensors, decisions, motion,
 bullets, collisions, damage) and every round's score is played by aityx.
-Random robots to start with; select one to change its rules; see which
-rules win.
+Random robots to start with, or Robocode's sample robots written as rules,
+added, removed and customized at will; select one to change its rules; see
+which rules win, with every event and every aityx call in the log.
 
 ## Features
 

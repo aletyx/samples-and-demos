@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../aityx/aityx_call_view.dart';
@@ -7,6 +5,7 @@ import '../aityx/theme.dart';
 import '../battle/controller.dart';
 import '../battle/model.dart';
 import '../battle/painter.dart';
+import '../battle/predefined_robots.dart';
 import 'classic.dart';
 import 'dialogs.dart';
 import 'rules_editor.dart';
@@ -48,17 +47,39 @@ class _BattleScreenState extends State<BattleScreen> {
     setState(() {});
   }
 
+  /// Whether robots can be added or removed: not during a battle.
+  bool get _idle => c.state == BattleState.setup || c.state == BattleState.over;
+
   Future<void> _newBattle() async {
     final setup = await showDialog<BattleSetup>(
       context: context,
-      builder: (_) =>
-          NewBattleDialog(robots: max(c.robots.length, 2), rounds: c.rounds),
+      builder: (_) => NewBattleDialog(
+        robots: c.robots,
+        rounds: c.rounds,
+        factory: c.factory,
+      ),
     );
     if (setup == null) return;
     c.rounds = setup.rounds;
-    c.randomRobots(setup.robots);
+    c.setRobots(setup.robots);
     _selected = null;
     c.start();
+  }
+
+  Future<void> _addRobot() async {
+    final kind = await showDialog<RobotKind>(
+      context: context,
+      builder: (_) => const AddRobotDialog(),
+    );
+    if (kind == null || !_idle) return;
+    c.addRobot(kind.make(taken: c.robots, factory: c.factory));
+    setState(() => _selected = c.robots.length - 1);
+  }
+
+  void _removeRobot(int index) {
+    if (!_idle) return;
+    c.removeRobot(index);
+    setState(() => _selected = null);
   }
 
   Future<void> _editRobot(int index) async {
@@ -78,10 +99,13 @@ class _BattleScreenState extends State<BattleScreen> {
     builder: (_) => ResultsDialog(controller: c),
   );
 
-  Future<void> _showCall() => showDialog<void>(
+  /// Shows [call], or the last one, in the viewer.
+  Future<void> _showCall([AityxCall? call]) => showDialog<void>(
     context: context,
     builder: (context) => ClassicDialog(
-      title: 'The last aityx call',
+      title: call == null
+          ? 'The last aityx call'
+          : 'aityx call ${call.number}: ${call.what}',
       width: 1100,
       actions: [
         ClassicButton(
@@ -89,8 +113,12 @@ class _BattleScreenState extends State<BattleScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],
-      child: c.lastRequest == null
-          ? const Text('No call yet: start a battle.')
+      child: !((call ?? c.lastCall)?.kept ?? false)
+          ? Text(
+              call == null
+                  ? 'No call yet: start a battle.'
+                  : 'Only the last ${c.keptCalls} calls are kept.',
+            )
           // The viewer in aityx's own dark theme, as in the other samples.
           : Theme(
               data: aityxDarkTheme(),
@@ -102,8 +130,8 @@ class _BattleScreenState extends State<BattleScreen> {
                     child: DefaultTextStyle(
                       style: Theme.of(context).textTheme.bodyMedium!,
                       child: AityxCallView(
-                        request: c.lastRequest,
-                        response: c.lastResponse,
+                        request: (call ?? c.lastCall)!.request,
+                        response: (call ?? c.lastCall)!.response,
                         responseSubtitle: 'what aityx answered',
                         targets: callTargets(c.robots),
                         height: MediaQuery.sizeOf(context).height * 0.55,
@@ -124,6 +152,9 @@ class _BattleScreenState extends State<BattleScreen> {
       controller: c,
       selected: _selected,
       onSelect: _editRobot,
+      onAdd: _idle && c.robots.length < maxRobots ? _addRobot : null,
+      onRemove: _idle ? _removeRobot : null,
+      onCall: _showCall,
     );
     return Scaffold(
       body: SafeArea(
@@ -136,7 +167,9 @@ class _BattleScreenState extends State<BattleScreen> {
             _MenuBar(
               controller: c,
               onNew: _newBattle,
+              onAdd: _idle && c.robots.length < maxRobots ? _addRobot : null,
               onEdit: _editRobot,
+              onRemove: _idle ? _removeRobot : null,
               onResults: _showResults,
               onCall: _showCall,
             ),
@@ -186,7 +219,7 @@ List<JsonTarget> callTargets(List<Robot> robots) {
       req,
       'decision.functions.step',
       'One turn',
-      'Every robot senses, decides with its own rules and moves; bullets fly; hits, rams and deaths are settled.',
+      'Every robot senses, decides with its own rules and moves; bullets fly; hits, rams and losses are settled.',
     ),
     const JsonTarget(
       req,
@@ -217,7 +250,7 @@ List<JsonTarget> callTargets(List<Robot> robots) {
       req,
       'decision.functions.settle',
       'Hits and rams',
-      'Bullet damage, energy gained by the shooter, rams and deaths.',
+      'Bullet damage, energy gained by the shooter, rams and which robots are lost.',
     ),
     const JsonTarget(
       req,
@@ -256,14 +289,18 @@ class _MenuBar extends StatelessWidget {
   const _MenuBar({
     required this.controller,
     required this.onNew,
+    required this.onAdd,
     required this.onEdit,
+    required this.onRemove,
     required this.onResults,
     required this.onCall,
   });
 
   final BattleController controller;
   final VoidCallback onNew;
+  final VoidCallback? onAdd;
   final ValueChanged<int> onEdit;
+  final ValueChanged<int>? onRemove;
   final VoidCallback onResults;
   final VoidCallback onCall;
 
@@ -314,8 +351,14 @@ class _MenuBar extends StatelessWidget {
             ('Results…', c.roundScores.isNotEmpty ? onResults : null),
           ]),
           menu('Robot', [
+            ('Add a robot…', onAdd),
             for (var i = 0; i < c.robots.length; i++)
               ('Edit ${c.robots[i].name}’s rules…', () => onEdit(i)),
+            for (var i = 0; i < c.robots.length; i++)
+              (
+                'Remove ${c.robots[i].name}',
+                onRemove == null ? null : () => onRemove!(i),
+              ),
           ]),
           menu('Options', [
             for (final s in [2.0, 5.0, 15.0, 30.0, 0.0])
@@ -388,7 +431,12 @@ class _Battlefield extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 color: Colors.black54,
                 child: Text(
-                  c.robots.isEmpty ? 'Battle › New… to start' : 'Press Start. Select a robot on the right to change its rules.',
+                  c.robots.length < 2
+                      ? 'At least two robots fight: add them on the right, '
+                            'or Battle › New…'
+                      : 'Press Start. Select a robot on the right to change '
+                            'its rules.',
+                  textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
@@ -420,17 +468,24 @@ class _Battlefield extends StatelessWidget {
 }
 
 /// The robots, as Robocode's buttons on the right: color, name, energy and
-/// the rule they follow now. Selecting one opens its rules.
+/// the rule they follow now. Selecting one opens its rules; between
+/// battles, each can be removed and more added.
 class _RobotList extends StatelessWidget {
   const _RobotList({
     required this.controller,
     required this.selected,
     required this.onSelect,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onCall,
   });
 
   final BattleController controller;
   final int? selected;
   final ValueChanged<int> onSelect;
+  final VoidCallback? onAdd;
+  final ValueChanged<int>? onRemove;
+  final ValueChanged<AityxCall> onCall;
 
   @override
   Widget build(BuildContext context) {
@@ -439,27 +494,141 @@ class _RobotList extends StatelessWidget {
       pressed: true,
       color: Classic.panelLight,
       padding: const EdgeInsets.all(4),
-      child: ListView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 2, 4, 6),
-            child: Text(
-              c.state == BattleState.setup
-                  ? 'Robots'
-                  : 'Round ${c.round} of ${c.rounds} · turn ${c.world?.tick ?? 0}',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          Flexible(
+            flex: 3,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 6),
+                  child: Text(
+                    c.state == BattleState.setup
+                        ? 'Robots'
+                        : 'Round ${c.round} of ${c.rounds} · turn ${c.world?.tick ?? 0}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                for (var i = 0; i < c.robots.length; i++)
+                  _RobotButton(
+                    robot: c.robots[i],
+                    bot: c.world?.bots.elementAtOrNull(i),
+                    total: c.totals['r${i + 1}']?.total ?? 0,
+                    selected: selected == i,
+                    onTap: () => onSelect(i),
+                    onRemove: onRemove == null ? null : () => onRemove!(i),
+                  ),
+                if (onAdd != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: ClassicButton(
+                      label: 'Add robot…',
+                      icon: Icons.add,
+                      tooltip:
+                          'Add one of the predefined robots, or a random one',
+                      onPressed: onAdd,
+                    ),
+                  ),
+              ],
             ),
           ),
-          for (var i = 0; i < c.robots.length; i++)
-            _RobotButton(
-              robot: c.robots[i],
-              bot: c.world?.bots.elementAtOrNull(i),
-              total: c.totals['r${i + 1}']?.total ?? 0,
-              selected: selected == i,
-              onTap: () => onSelect(i),
-            ),
+          const SizedBox(height: 6),
+          Expanded(
+            flex: 2,
+            child: _EventLog(controller: c, onCall: onCall),
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Everything that happened in the battle, newest at the bottom: rule
+/// changes, hits, losses, rounds and scores, and every aityx call, the
+/// kept ones opening in the viewer.
+class _EventLog extends StatelessWidget {
+  const _EventLog({required this.controller, required this.onCall});
+
+  final BattleController controller;
+  final ValueChanged<AityxCall> onCall;
+
+  @override
+  Widget build(BuildContext context) {
+    final events = controller.events;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+          child: Text(
+            events.isEmpty ? 'Events' : 'Events (${events.length})',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ),
+        Expanded(
+          child: Bevel(
+            pressed: true,
+            color: Colors.white,
+            padding: const EdgeInsets.all(2),
+            child: events.isEmpty
+                ? const Center(
+                    child: Text(
+                      'What happens in the battle, turn by turn, and every '
+                      'call to aityx.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: Classic.shadow),
+                    ),
+                  )
+                // Reversed, so the newest line stays in view at the bottom.
+                : ListView.builder(
+                    reverse: true,
+                    itemCount: events.length,
+                    itemBuilder: (_, i) {
+                      final e = events[events.length - 1 - i];
+                      final call = e.call;
+                      final text = Text(
+                        e.text,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: call == null
+                              ? Classic.text
+                              : call.kept
+                              ? Classic.selection
+                              : Classic.shadow,
+                          decoration: call != null && call.kept
+                              ? TextDecoration.underline
+                              : null,
+                        ),
+                      );
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 1,
+                        ),
+                        child: call == null
+                            ? text
+                            : Tooltip(
+                                message: call.kept
+                                    ? 'See what was sent to aityx and what '
+                                          'it answered'
+                                    : 'Only the last ${controller.keptCalls} '
+                                          'calls are kept',
+                                child: InkWell(
+                                  onTap: call.kept ? () => onCall(call) : null,
+                                  child: text,
+                                ),
+                              ),
+                      );
+                    },
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -471,6 +640,7 @@ class _RobotButton extends StatelessWidget {
     required this.total,
     required this.selected,
     required this.onTap,
+    required this.onRemove,
   });
 
   final Robot robot;
@@ -478,6 +648,7 @@ class _RobotButton extends StatelessWidget {
   final int total;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -516,9 +687,19 @@ class _RobotButton extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      alive ? energy.toStringAsFixed(1) : 'dead',
+                      alive ? energy.toStringAsFixed(1) : 'lost',
                       style: const TextStyle(fontSize: 12),
                     ),
+                    if (onRemove != null) ...[
+                      const SizedBox(width: 4),
+                      Tooltip(
+                        message: 'Remove ${robot.name} from the battle',
+                        child: InkWell(
+                          onTap: onRemove,
+                          child: const Icon(Icons.close, size: 14),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -662,7 +843,7 @@ class _Controls extends StatelessWidget {
             label: 'aityx call',
             icon: Icons.data_object,
             tooltip: 'See the last call to aityx: the battle model and what it answered',
-            onPressed: c.lastRequest == null ? null : onCall,
+            onPressed: c.lastRequest == null ? null : () => onCall(),
           ),
           if (c.error != null)
             Text(

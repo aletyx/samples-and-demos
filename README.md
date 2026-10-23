@@ -179,8 +179,8 @@ samples. See the [Cellfie README](Cellfie/README.md).
 tanks fight on a dark battlefield until one is left. Each robot's behavior
 is an aityx decision model, a table of rules over what it senses (the
 nearest enemy's distance and bearing, walls, energy, its gun) that sets how
-it drives, turns, aims and fires; select a robot to change its rules. The
-battle itself is played by aityx: one call plays up to 50 turns of sensing,
+it drives, turns, aims and fires; pick Robocode's sample robots or random
+ones, and select a robot to change its rules. The battle itself is played by aityx: one call plays up to 50 turns of sensing,
 every robot's rules, Robocode's motion, bullets, collisions and damage, and
 another scores each round. Put your key in `RoboRules/.env`, then:
 

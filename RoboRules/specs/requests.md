@@ -37,3 +37,23 @@ The requests that shaped RoboRules, oldest first, each with what changed.
    first in `index.html`; and the tile, orange on the dark background,
    rendered from `assets/icon/icon.svg` as `favicon.png` and the
    manifest's icons. See [App icon](app-icon.md).
+
+4. **Let the user add or remove bots, picking from the predefined ones,
+   and customize them.** Added the [predefined robots](robots.md#predefined-robots):
+   Robocode's sample robots (SittingDuck, Fire, SpinBot, Walls, Tracker,
+   RamFire, TrackFire, MyFirstRobot, Crazy) written as rules, plus a random
+   one. **New Battle** is now Robocode's: available robots on the left,
+   selected on the right, Add, Remove, Remove all and Edit rules… between,
+   what the highlighted robot does below; it opens with the battle's
+   current robots, so customizations survive. Between battles the robots
+   panel has an **×** on each robot and **Add robot…** (a picker), and the
+   Robot menu Add a robot… and Remove …; the editor's **Rules from…**
+   replaces a robot's rules with a predefined robot's or random ones. Two
+   to ten robots; a second robot of a kind is "Walls 2" in another color.
+5. **Add a view of all events, not only the last one; it can be below the
+   robots' cards.** Added the **Events** log under the robots: every rule
+   change, hit, loss, round start, end and score, the winner, failures,
+   and every aityx call, the last ten of which open in the viewer from
+   their line ([The window](window.md)).
+6. **Do not use "dead"; better use "lost".** A robot out of the round is
+   "lost" everywhere the app says it.

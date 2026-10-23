@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roborules_app/battle/api.dart';
 import 'package:roborules_app/battle/controller.dart';
 import 'package:roborules_app/battle/model.dart';
+import 'package:roborules_app/battle/predefined_robots.dart';
 import 'package:roborules_app/battle/random_robots.dart';
 import 'package:roborules_app/main.dart';
 
@@ -152,6 +153,64 @@ void main() {
     c.dispose();
   });
 
+  testWidgets('every event and every aityx call go in the log', (tester) async {
+    final api = FakeApi();
+    final c = battle(api)..keptCalls = 2;
+    c.start();
+    for (var i = 0; i < 400 && c.state != BattleState.over; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(c.state, BattleState.over);
+    final lines = c.events.map((e) => e.text).toList();
+    final r2 = c.robots[1].name;
+    expect(lines.first, startsWith('Battle: '));
+    expect(lines, contains('Round 1 begins'));
+    expect(lines, contains('Turn 10 · $r2 is lost'));
+    expect(lines.where((l) => l.contains('$r2 is hit')), isNotEmpty);
+    expect(
+      lines.where((l) => l.startsWith('aityx played turns 1–')),
+      hasLength(2),
+    );
+    expect(
+      lines.where((l) => l.startsWith('aityx scored round')),
+      hasLength(2),
+    );
+    expect(lines, contains('Round 2 begins'));
+    expect(lines.last, startsWith('Battle over: ${c.robots[0].name} wins'));
+    expect(lines.join(), isNot(contains('dead')));
+    // Two turn calls and two score calls; only the last two keep payloads.
+    expect(c.calls, hasLength(4));
+    expect(c.calls.map((k) => k.kept), [false, false, true, true]);
+    expect(c.events.where((e) => e.call != null), hasLength(4));
+    expect(c.lastCall!.what, 'the score of round 2');
+    c.dispose();
+  });
+
+  testWidgets('the window lists the events, and opens a kept call', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final c = battle(FakeApi())..rounds = 1;
+    await tester.pumpWidget(RoboRulesApp(controller: c));
+    expect(find.text('Events'), findsOneWidget);
+    c.start();
+    for (var i = 0; i < 400 && c.state != BattleState.over; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    await tester.pumpAndSettle();
+    expect(find.textContaining('is lost'), findsOneWidget);
+    expect(find.text('Results for 1 round'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('aityx scored round 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('aityx call 2: the score of round 1'), findsOneWidget);
+    c.dispose();
+    await tester.pump(const Duration(seconds: 3));
+  });
+
   testWidgets('a battle after a finished one plays again', (tester) async {
     final api = FakeApi();
     final c = battle(api)..rounds = 1;
@@ -215,6 +274,102 @@ void main() {
     expect(c.roundScores, hasLength(1));
     expect(c.round, 2);
     expect(c.error, isNull);
+    c.dispose();
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('robots can be added and removed between battles', (
+    tester,
+  ) async {
+    final c = battle(FakeApi());
+    final walls = sampleRobots.firstWhere((k) => k.name == 'Walls');
+    c.addRobot(walls.make(taken: c.robots, factory: c.factory));
+    expect(c.robots, hasLength(3));
+    expect(c.robots.last.name, 'Walls');
+    expect(c.world!.bots, hasLength(3));
+    expect(c.totals.keys, ['r1', 'r2', 'r3']);
+
+    c.removeRobot(0);
+    expect(c.robots, hasLength(2));
+    expect(c.robots.last.name, 'Walls');
+    expect(c.world!.bots, hasLength(2));
+    expect(c.totals.keys, ['r1', 'r2']);
+
+    for (var i = 0; i < 20; i++) {
+      c.addRobot(randomRobot.make(taken: c.robots, factory: c.factory));
+    }
+    expect(c.robots, hasLength(maxRobots));
+    expect(c.robots.map((r) => r.name).toSet(), hasLength(maxRobots));
+
+    c.setRobots([c.robots[0], c.robots[1]]);
+    expect(c.robots, hasLength(2));
+    expect(c.state, BattleState.setup);
+    c.dispose();
+  });
+
+  testWidgets('New Battle picks robots from the predefined ones', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final c = battle(FakeApi());
+    await tester.pumpWidget(RoboRulesApp(controller: c));
+    await tester.tap(find.text('New battle…'));
+    await tester.pumpAndSettle();
+    expect(find.text('Available robots'), findsOneWidget);
+    expect(find.text('Selected robots (2 of $maxRobots)'), findsOneWidget);
+
+    await tester.tap(find.text('Walls'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Drives along the walls'), findsOneWidget);
+    await tester.tap(find.text('Add →'));
+    await tester.pumpAndSettle();
+    expect(find.text('Selected robots (3 of $maxRobots)'), findsOneWidget);
+    expect(find.text('Walls'), findsNWidgets(2));
+
+    await tester.tap(find.text(c.robots[0].name).last);
+    await tester.pump();
+    await tester.tap(find.text('← Remove'));
+    await tester.pumpAndSettle();
+    expect(find.text('Selected robots (2 of $maxRobots)'), findsOneWidget);
+
+    await tester.tap(find.text('Start Battle'));
+    await tester.pumpAndSettle();
+    expect(c.robots.map((r) => r.name), [c.robots[0].name, 'Walls']);
+    expect(c.round, 1);
+    expect(c.state, isNot(BattleState.setup));
+    c.dispose();
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('the robots panel adds and removes robots', (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final c = battle(FakeApi());
+    await tester.pumpWidget(RoboRulesApp(controller: c));
+    await tester.tap(find.text('Add robot…'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add a robot'), findsOneWidget);
+    await tester.tap(find.text('SpinBot'));
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(c.robots, hasLength(3));
+    expect(c.robots.last.name, 'SpinBot');
+    expect(find.text('SpinBot'), findsWidgets);
+
+    await tester.tap(find.byIcon(Icons.close).last);
+    await tester.pumpAndSettle();
+    expect(c.robots, hasLength(2));
+    expect(find.text('SpinBot'), findsNothing);
+
+    // During a battle the roster is fixed.
+    c.start();
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(find.text('Add robot…'), findsNothing);
+    expect(find.byIcon(Icons.close), findsNothing);
     c.dispose();
     await tester.pump(const Duration(seconds: 3));
   });

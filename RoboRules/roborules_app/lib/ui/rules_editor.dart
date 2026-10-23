@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../aityx/json_layout.dart';
 import '../battle/model.dart';
+import '../battle/predefined_robots.dart';
 import '../battle/random_robots.dart';
 import 'classic.dart';
 
@@ -87,13 +88,39 @@ class _RulesEditorState extends State<RulesEditor>
       title: 'Rules of ${_robot.name}',
       width: 860,
       actions: [
-        ClassicButton(
-          label: 'Randomize rules',
-          icon: Icons.casino_outlined,
-          onPressed: () => setState(() {
-            _robot.rules = widget.factory.rules();
+        PopupMenuButton<RobotKind>(
+          tooltip:
+              "Replace the rules with a predefined robot's, or random ones",
+          color: Classic.panelLight,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: Classic.darkShadow),
+          ),
+          itemBuilder: (_) => [
+            for (final k in robotKinds)
+              PopupMenuItem(
+                value: k,
+                height: 28,
+                child: Text(
+                  k.isRandom ? 'Random rules' : "${k.name}'s rules",
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+          ],
+          onSelected: (k) => setState(() {
+            _robot.rules = k.rules(widget.factory);
             if (_tabs.index == 1) _showJson();
           }),
+          child: const Bevel(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.casino_outlined, size: 15),
+                SizedBox(width: 5),
+                Text('Rules from…', style: TextStyle(fontSize: 13)),
+              ],
+            ),
+          ),
         ),
         ClassicButton(
           label: 'Cancel',

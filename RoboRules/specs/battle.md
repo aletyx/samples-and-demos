@@ -34,7 +34,7 @@ Each turn (`step`):
    bullet within 18 px of another robot hits it for 4p + 2·max(0, p − 1),
    and gives its shooter 3p energy; it leaves the battlefield otherwise.
 5. **Settling** (`resolve`, `settle`, `finish`): damage, gains, rams (two
-   robots closer than 36 px stay put, stop, and lose 0.6 each), deaths (0
+   robots closer than 36 px stay put, stop, and lose 0.6 each), losses (0
    energy, `died` set to the turn), each robot's bullet damage dealt.
 
 The battlefield is 800 × 600 px; robots start 120 px apart, 60 px from the

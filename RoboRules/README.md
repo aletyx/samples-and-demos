@@ -5,11 +5,13 @@ fight on a dark battlefield until one is left. Here every robot's behavior
 is an [aityx](https://aityx.ai) decision model, its rules a decision table
 you can edit, and **the whole battle is played by aityx**: what each robot
 senses, which of its rules fires, how it moves, turns, aims and fires,
-where the bullets fly, who is hit or rams whom, damage, energy, deaths,
+where the bullets fly, who is hit or rams whom, damage, energy, who is lost,
 and each round's score. The app only draws it.
 
-Start with random robots (two by default), select a robot to change its
-rules, and see which rules win.
+Start with two random robots, or pick Robocode's sample robots (Walls,
+SpinBot, Tracker, RamFire, Crazy…) written as rules: add and remove them,
+select a robot to change its rules, and see which rules win, every event
+and every aityx call in the log.
 
 ## How it works
 
