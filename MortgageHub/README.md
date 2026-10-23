@@ -51,7 +51,7 @@ reload: rebuild after a change.
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
 2. For the regulatory check, put your own [aityx](https://aityx.ai) settings in `.env` (see
    [.env.example](.env.example)): `AITYX_API_KEY`, and
-   `AITYX_URL=https://console-stage.aityx.ai` for a stage key. In a
+   `AITYX_URL=https://api-stage.aityx.ai` for a stage key. In a
    codespace GitHub asks for the key instead; see
    [Run it in a codespace](#run-it-in-a-codespace). Check them
    with `bash scripts/aityx-check.sh`, and the mortgage rules with
@@ -120,6 +120,10 @@ Set it once, before launching:
 3. Under **Codespaces secrets**, choose **New secret**.
 4. Name it exactly `AITYX_API_KEY`, paste the key as the value, and give
    it access to the `aletyx/samples-and-demos` repository.
+5. For a non-default endpoint, add an optional `AITYX_URL` Codespaces
+   secret and give it access to the same repository. For a stage key, set
+   it to `https://api-stage.aityx.ai`; otherwise leave it unset to use
+   `https://api.aityx.ai`.
 
 ![The New secret form: name AITYX_API_KEY, the key as the value, and access to aletyx/samples-and-demos](docs/images/codespaces-new-secret.png)
 
@@ -130,10 +134,11 @@ account and passes it to the container as an environment variable: it is
 never written to disk there, never committed, and never reaches the Flutter
 app.
 
-Nothing else needs setting. The API URL defaults to `https://api.aityx.ai`
-and the payment estimate's rate to 6.5%. To change either, put `AITYX_URL`
-or `ASSUMED_RATE` in `.env` (see [.env.example](.env.example)) — a stage
-key, for instance, works only against `https://console-stage.aityx.ai`.
+The API URL defaults to `https://api.aityx.ai` and the payment estimate's
+rate to 6.5%. To change either locally, put `AITYX_URL` or `ASSUMED_RATE`
+in `.env` (see [.env.example](.env.example)). In Codespaces, set
+`AITYX_URL` as described above. A stage key works only against
+`https://api-stage.aityx.ai`.
 
 ### 2. Launch it
 

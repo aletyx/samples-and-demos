@@ -39,13 +39,15 @@
   // falling back to RoboRules/.env. Change it at
   // https://github.com/settings/codespaces.
   //
-  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai;
-  // override it in RoboRules/.env if you need to (a stage key, for
-  // instance, works only against https://console-stage.aityx.ai).
+  // AITYX_URL is optional and defaults to https://api.aityx.ai. Set the
+  // secret to https://api-stage.aityx.ai when using a stage key.
   "secrets": {
     "AITYX_API_KEY": {
       "description": "Your own aityx.ai API key, from the console's API keys page; the same one Mortgage Hub and Contact Hub use. Every RoboRules battle is played on aityx.",
       "documentationUrl": "https://aityx.ai/docs"
+    },
+    "AITYX_URL": {
+      "description": "Optional. API endpoint; leave unset for https://api.aityx.ai, or set https://api-stage.aityx.ai for a stage key."
     }
   },
   // The image's flutter and dart on the PATH of every terminal.

@@ -144,16 +144,46 @@ class Robot {
   /// [FormatException] when it isn't one.
   static Robot fromModel(Object? model, {required Color color}) {
     if (model is! Map) throw const FormatException('not a JSON object');
-    final table = ((model['decisions'] as Map?)?['action'] as Map?)?['table'];
+    final decisions = model['decisions'];
+    final action = decisions is Map ? decisions['action'] : null;
+    final table = action is Map ? action['table'] : null;
     if (table is! List || table.length < 2 || table.first is! List) {
       throw const FormatException(
         'decisions.action.table needs a header and at least one rule',
       );
     }
-    final header = (table.first as List).map((h) => '$h').toList();
+    final rawHeader = table.first as List;
+    if (rawHeader.any((h) => h is! String)) {
+      throw const FormatException('table headers must be strings');
+    }
+    final header = rawHeader.cast<String>();
     String command(String h) => h.substring(2).split(':').first.trim();
+    final commands = <String>{};
+    for (final h in header) {
+      if (h.startsWith('=>')) {
+        final name = command(h);
+        if (!{'drive', 'turn', 'gun', 'fire'}.contains(name) ||
+            !commands.add(name)) {
+          throw FormatException('unknown or duplicate command "$name"');
+        }
+      } else if (!h.startsWith('#') && !sensors.containsKey(h)) {
+        throw FormatException('unknown sensor "$h"');
+      }
+    }
+    if (commands.length != 4) {
+      throw const FormatException(
+        'table must define drive, turn, gun and fire',
+      );
+    }
     final rules = <Rule>[];
     for (final raw in table.skip(1)) {
+      if (raw is Map &&
+          ((raw['when'] != null && raw['when'] is! Map) ||
+              (raw['then'] != null && raw['then'] is! Map))) {
+        throw const FormatException(
+          'rule when and then fields must be objects',
+        );
+      }
       final row = switch (raw) {
         List l => l.map((c) => '$c').toList(),
         Map m => [
@@ -176,13 +206,26 @@ class Robot {
         if (h.startsWith('=>')) {
           switch (command(h)) {
             case 'drive':
+              if (!commandValues['drive']!.contains(row[i])) {
+                throw FormatException('invalid drive command "${row[i]}"');
+              }
               rule.drive = row[i];
             case 'turn':
+              if (!commandValues['turn']!.contains(row[i])) {
+                throw FormatException('invalid turn command "${row[i]}"');
+              }
               rule.turn = row[i];
             case 'gun':
+              if (!commandValues['gun']!.contains(row[i])) {
+                throw FormatException('invalid gun command "${row[i]}"');
+              }
               rule.gun = row[i];
             case 'fire':
-              rule.fire = num.tryParse(row[i]) ?? 0;
+              final fire = num.tryParse(row[i]);
+              if (fire == null || !fire.isFinite || fire < 0 || fire > 3) {
+                throw FormatException('invalid fire power "${row[i]}"');
+              }
+              rule.fire = fire;
             default:
               throw FormatException('unknown command "${command(h)}"');
           }

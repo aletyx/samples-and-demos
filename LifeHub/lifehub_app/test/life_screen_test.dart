@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:lifehub_app/main.dart';
 class FakeStepper implements GenerationStepper {
   final asked = <Map<String, Object?>>[];
   Object? failWith;
+  Completer<void>? holdNext;
 
   static final catalogue = {
     canonicalShape(cellsOf('oo/oo')): ('block', 'still_life'),
@@ -52,7 +54,7 @@ class FakeStepper implements GenerationStepper {
     final population = cellsWhere((i) => situations.keys.elementAt(i).alive);
     final survivors = cellsWhere((i) => fates[i] == 'survives');
     final births = cellsWhere((i) => fates[i] == 'is_born');
-    return GenerationOutcome(
+    final outcome = GenerationOutcome(
       Generation.fromJson({
         'generation': generation,
         'next_generation': generation + 1,
@@ -89,6 +91,12 @@ class FakeStepper implements GenerationStepper {
       tookMs: 7,
       inputTokens: 100,
     );
+    final hold = holdNext;
+    if (hold != null) {
+      holdNext = null;
+      await hold.future;
+    }
+    return outcome;
   }
 }
 
@@ -176,6 +184,31 @@ void main() {
     await tester.pump(const Duration(seconds: 9));
   });
 
+  testWidgets('a pending answer cannot replace a cleared board', (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final hold = Completer<void>();
+    final stepper = FakeStepper()..holdNext = hold;
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+    await tester.tapAt(view.center + const Offset(7, 7));
+    await tester.pump();
+
+    await tester.tap(find.text('Step'));
+    await tester.pump();
+    expect(stepper.asked, hasLength(1));
+    await tester.tap(find.text('Clear'));
+    await tester.pump();
+    hold.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('Generation 0 · 0 cells'), findsOneWidget);
+    expect(find.text('Generation 0 → 1'), findsNothing);
+    await tester.pump(const Duration(seconds: 9));
+  });
+
   testWidgets('Play runs generations at the acceleration until paused', (
     tester,
   ) async {
@@ -205,6 +238,48 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     expect(stepper.asked.length, asked);
     expect(find.text('Play'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 9));
+  });
+
+  testWidgets('pause and replay share one pending loop at maximum speed', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final first = Completer<void>();
+    final second = Completer<void>();
+    final stepper = FakeStepper()..holdNext = first;
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+    for (final x in [-1, 0, 1]) {
+      await tester.tapAt(view.center + Offset(x * 14.0 + 7, 7));
+    }
+    await tester.pump();
+    await tester.drag(find.byType(Slider), const Offset(500, 0));
+    await tester.pump();
+    expect(tester.widget<Slider>(find.byType(Slider)).value, closeTo(5, 0.2));
+
+    await tester.tap(find.text('Play'));
+    await tester.pump();
+    expect(stepper.asked, hasLength(1));
+    await tester.tap(find.text('Pause'));
+    await tester.pump();
+    stepper.holdNext = second;
+    await tester.tap(find.text('Play'));
+    await tester.pump();
+    expect(stepper.asked, hasLength(1));
+
+    first.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(stepper.asked, hasLength(2));
+    await tester.tap(find.text('Pause'));
+    await tester.pump();
+    second.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(stepper.asked, hasLength(2));
     await tester.pump(const Duration(seconds: 9));
   });
 

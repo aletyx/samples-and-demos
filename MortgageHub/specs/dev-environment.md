@@ -147,14 +147,14 @@
   organization policy can forbid public ports, in which case the port
   stays private. The READMEs tell the user to check the port's visibility
   in the Ports panel and set it to Public by hand if needed.
-- **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`
-  alone under `secrets`, so GitHub asks the person creating a codespace
+- **Codespaces secrets**: `devcontainer.json` declares `AITYX_API_KEY`
+  and optional `AITYX_URL` under `secrets`, so GitHub asks the person creating a codespace
   for their own key, keeps it against their account and passes it in as an
   environment variable. It is required: without it the app runs but the
-  regulatory check cannot. Nothing else is asked for, because `AITYX_URL`
+  regulatory check cannot. `AITYX_URL`
   defaults to `https://api.aityx.ai` and `ASSUMED_RATE` to 6.5; both are
-  overridden in `.env` when needed (a stage key, for instance, works only
-  against `https://console-stage.aityx.ai`). The repository ships no key.
+  overridden in `.env` when needed (or set the optional URL secret in a
+  codespace; a stage key uses `https://api-stage.aityx.ai`). The repository ships no key.
   A local dev container uses `.env`, which the scripts already fall back
   to.
 - **Launch link**: the [README](../README.md#run-it-in-a-codespace) has an

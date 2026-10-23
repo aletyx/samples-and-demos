@@ -73,6 +73,7 @@ class BattleController extends ChangeNotifier {
   bool _disposed = false;
   bool _fetching = false;
   bool _roundEnds = false;
+  int _battleId = 0;
   Timer? _timer;
 
   int get buffered => _buffer.length;
@@ -98,9 +99,11 @@ class BattleController extends ChangeNotifier {
   }
 
   void _reset() {
+    _battleId++;
     _stopTimer();
     state = BattleState.setup;
     round = 0;
+    _roundEnds = false;
     world = _startWorld();
     previous = null;
     _buffer.clear();
@@ -214,10 +217,10 @@ class BattleController extends ChangeNotifier {
     if (n <= 0) return;
     _fetching = true;
     final started = DateTime.now();
-    final roundAtStart = round;
+    final battleAtStart = _battleId;
     try {
       final turns = await _api.turns(robots, from, n);
-      if (_disposed || round != roundAtStart || state == BattleState.setup) {
+      if (_disposed || battleAtStart != _battleId || state == BattleState.setup) {
         return;
       }
       final ms = DateTime.now().difference(started).inMilliseconds;
@@ -233,6 +236,7 @@ class BattleController extends ChangeNotifier {
         }
       }
     } on BattleException catch (e) {
+      if (battleAtStart != _battleId) return;
       error = e.message;
       if (state == BattleState.running) state = BattleState.paused;
     } finally {
@@ -242,10 +246,12 @@ class BattleController extends ChangeNotifier {
   }
 
   Future<void> _endRound(World last) async {
+    final battleAtStart = _battleId;
     state = BattleState.scoring;
     notifyListeners();
     try {
       final score = await _api.score(last);
+      if (_disposed || battleAtStart != _battleId) return;
       roundScores.add(score);
       lastRequest = score.request;
       lastResponse = score.response;
@@ -260,10 +266,15 @@ class BattleController extends ChangeNotifier {
       }
       if (score.winner case final w?) totals[w]?.firsts += 1;
     } on BattleException catch (e) {
+      if (battleAtStart != _battleId) return;
       error = 'Scoring failed: ${e.message}';
     }
     await Future<void>.delayed(const Duration(milliseconds: 1500));
-    if (_disposed || state != BattleState.scoring) return;
+    if (_disposed ||
+        battleAtStart != _battleId ||
+        state != BattleState.scoring) {
+      return;
+    }
     if (round >= rounds) {
       state = BattleState.over;
       _stopTimer();

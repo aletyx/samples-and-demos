@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -74,6 +75,17 @@ class FakeApi implements BattleApi {
   }
 }
 
+class DeferredApi extends FakeApi {
+  final requests = <Completer<Turns>>[];
+
+  @override
+  Future<Turns> turns(List<Robot> robots, World world, int turns) {
+    final request = Completer<Turns>();
+    requests.add(request);
+    return request.future;
+  }
+}
+
 void main() {
   BattleController battle(FakeApi api) =>
       BattleController(api: api, factory: RobotFactory(Random(1)))
@@ -98,6 +110,34 @@ void main() {
     // r2 died on turn 10 each round: the round stopped there.
     expect(c.world!.tick, 10);
     expect(c.world!.bots[1].alive, isFalse);
+    final turnCalls = api.turnCalls;
+    c.start();
+    expect(c.state, BattleState.running);
+    expect(api.turnCalls, greaterThan(turnCalls));
+    c.dispose();
+  });
+
+  testWidgets('a response from before restart cannot fill the new battle', (
+    tester,
+  ) async {
+    final api = DeferredApi();
+    final c = battle(api);
+    c.start();
+    final oldWorld = c.world!;
+    expect(api.requests, hasLength(1));
+
+    c.stop();
+    c.start();
+    api.requests.first.complete(await FakeApi().turns(c.robots, oldWorld, 1));
+    await tester.pump();
+    expect(c.world!.tick, 0);
+    expect(c.buffered, 0);
+
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(api.requests, hasLength(2));
+    api.requests.last.complete(await FakeApi().turns(c.robots, c.world!, 1));
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(c.world!.tick, 1);
     c.dispose();
   });
 

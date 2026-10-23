@@ -39,7 +39,7 @@
   // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai
   // and ASSUMED_RATE to 6.5, so neither needs setting; override them in
   // MortgageHub/.env if you need to (a stage key, for instance, works
-  // only against https://console-stage.aityx.ai).
+  // only against https://api-stage.aityx.ai).
   "secrets": {
     "AITYX_API_KEY": {
       "description": "Required. Your own aityx.ai API key, from the console's API keys page.",

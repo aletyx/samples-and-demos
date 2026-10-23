@@ -124,7 +124,16 @@ Future<void> _handle(
       ..set('Access-Control-Allow-Headers', 'Content-Type');
   }
   try {
-    if (request.method == 'POST' && request.uri.path == '/api/step') {
+    final isGeneration =
+        request.method == 'POST' && request.uri.path == '/api/step';
+    if (isGeneration &&
+        origin != null &&
+        !origins.contains(origin) &&
+        request.headers.value('sec-fetch-site') != 'same-origin') {
+      _json(response, 403, {'error': 'origin not allowed'});
+      return;
+    }
+    if (isGeneration) {
       await _step(request, aityx);
     } else {
       final answer = route(
@@ -149,6 +158,9 @@ Future<void> _handle(
 /// POST /api/step: the board's situations → aityx → the next generation.
 Future<void> _step(HttpRequest request, _Aityx aityx) async {
   final response = request.response;
+  if (request.headers.contentType?.mimeType != 'application/json') {
+    return _json(response, 415, {'error': 'expected application/json'});
+  }
   if (aityx.key.isEmpty) {
     return _json(response, 503, {'error': 'aityx is not set up'});
   }

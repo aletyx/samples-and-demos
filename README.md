@@ -8,6 +8,7 @@ sample with its own documentation.
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Cellfie](Cellfie/) | Conway's Game of Life on an infinite board, with the rules and pattern catalogue as an aityx decision model: one call per generation, with the board and every request and response shown in the app | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Life Hub](LifeHub/) | Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FLifeHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
@@ -31,25 +32,27 @@ from the root of this repository with [Devbox](https://www.jetify.com/devbox):
 and then prints where to open each app once its web app and API answer;
 the first start compiles each app, which takes a few minutes. A demo
 that already answers on its port, started by hand or with Docker
-Compose, is left as it is. Each demo reads its aityx settings from its
-own `.env` (see each folder's `.env.example`): `AITYX_API_KEY`, the key,
-and `AITYX_URL`, the endpoint, `https://api.aityx.ai` unless set; a
-stage key needs `AITYX_URL=https://api-stage.aityx.ai`. Watch one demo's
-services with
+Compose, is left as it is. The script checks for `AITYX_API_KEY` and
+warns if it is missing; the apps still open, but their aityx-backed
+features won't work. It passes `AITYX_API_KEY` and `AITYX_URL` from the
+environment to each API service. API scripts prefer those values and
+fall back to that demo's `.env` (see each folder's `.env.example`).
+`AITYX_URL` defaults to `https://api.aityx.ai`; a stage key needs
+`AITYX_URL=https://api-stage.aityx.ai`. Watch one demo's services with
 `devbox services attach -c <demo>`; [stop-all.sh](stop-all.sh) runs
 `devbox services stop` in each folder that is running.
 
 The same, in a codespace: the repository's default dev container,
 [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json),
 builds every demo's toolchain and runs `./start-all.sh` on each start.
-It needs your own `AITYX_API_KEY` Codespaces secret (see
-[Launching it](#launching-it) below) and the 8-core machine, since six
-apps compile at once.
+It needs your own `AITYX_API_KEY` Codespaces secret and, optionally, an
+`AITYX_URL` secret (see [Launching it](#launching-it) below) and the
+8-core machine, since six apps compile at once.
 
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
 Once it starts, the index page opens on port **8800** and shows each
-demo as it comes up, with a link to it; the apps' ports (8880 to 8920)
+demo as it comes up, with a link to it; the apps' ports (8880 to 8930)
 are in the **Ports** panel too, made public so the links can be shared.
 Every step of the start goes to `startup.log` at the root. The other
 dev containers in the list, one per demo, start only that demo.
@@ -72,18 +75,21 @@ model on [aityx.ai](https://aityx.ai).
 
 ### Launching it
 
-**You need your own [aityx.ai](https://aityx.ai) API key, and it is
-required.** No key ships with this repository. Without one the codespace
-still starts and the app still opens, but the regulatory check — the point
-of the demo — cannot run.
+**You need your own [aityx.ai](https://aityx.ai) API key.** No key ships
+with this repository. Without one the codespace still starts and the app
+still opens, but the regulatory check — the point of the demo — cannot run.
 
 Add it before launching: go to
 [github.com/settings/codespaces](https://github.com/settings/codespaces),
 choose **New secret** under *Codespaces secrets*, name it exactly
-`AITYX_API_KEY`, and give it access to this repository. If you skip this,
-GitHub asks for it on the codespace creation page. The
+`AITYX_API_KEY`, paste your own key, and give it access to this repository.
+For a non-default endpoint, add an `AITYX_URL` secret and set it to
+`https://api-stage.aityx.ai` for a stage key; leave it unset to use
+`https://api.aityx.ai`. Give it access to this repository too. The
 [Mortgage Hub README](MortgageHub/README.md#run-it-in-a-codespace) shows
-both screens, the secret form and the creation page.
+the secret setup and codespace creation. The all-demos launcher passes
+both values to each API service; they are not written to disk or logged.
+The same secrets can be used for every demo.
 
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
@@ -143,6 +149,30 @@ Both serve the app at http://localhost:8890/app/, so it runs alongside
 Mortgage Hub. The badge above opens it in a codespace, which uses the same
 `AITYX_API_KEY` Codespaces secret as Mortgage Hub. See the
 [Contact Hub README](ContactHub/README.md).
+
+## Cellfie
+
+[Cellfie/](Cellfie/) plays Conway's Game of Life on an infinite board,
+with the rules and pattern catalogue run as an aityx decision model.
+Each generation is one aityx call: the app sends the board's situations
+and clusters, displays the next generation, labels recognized patterns,
+and shows the full request and response in a side panel. Choose a random
+soup, islands, a glider fleet, a pattern zoo or a methuselah, then play
+at a chosen acceleration or step one generation at a time. The rule
+switches include Conway, HighLife and Life without death.
+
+Put your `AITYX_API_KEY` in `Cellfie/.env` for local use (see
+[Cellfie/.env.example](Cellfie/.env.example)), or use the Codespaces
+secrets described above. To start it locally from the repository root:
+
+```bash
+devbox services up -c Cellfie --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f Cellfie/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:8930/app/, alongside the other
+samples. See the [Cellfie README](Cellfie/README.md).
 
 ## RoboRules
 

@@ -50,13 +50,15 @@
   // demo's scripts read before falling back to <demo>/.env. Change it at
   // https://github.com/settings/codespaces.
   //
-  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai;
-  // override it in each demo's .env if you need to (a stage key, for
-  // instance, works only against https://api-stage.aityx.ai).
+  // AITYX_URL is optional: it defaults to https://api.aityx.ai. Set it
+  // when using a different endpoint, for example with a stage key.
   "secrets": {
     "AITYX_API_KEY": {
       "description": "Required. Your own aityx.ai API key, from the console's API keys page; every demo runs its decisions on aityx with it.",
       "documentationUrl": "https://aityx.ai/docs"
+    },
+    "AITYX_URL": {
+      "description": "Optional. API endpoint shared by every demo; leave unset for https://api.aityx.ai, or set https://api-stage.aityx.ai for a stage key."
     }
   },
   // The image's flutter and dart on the PATH of every terminal.
@@ -90,7 +92,7 @@
   // public, which devcontainer.json cannot. Only the index opens a
   // browser tab: it is up in seconds and shows the demos as they compile,
   // with a link to each (the forwarded URL, in a codespace).
-  "forwardPorts": [8800, 8880, 8890, 8900, 8910, 8920],
+  "forwardPorts": [8800, 8880, 8890, 8900, 8910, 8920, 8930],
   "portsAttributes": {
     "8800": {
       "label": "Index: every demo on one page",
@@ -119,6 +121,11 @@
     },
     "8920": {
       "label": "RoboRules web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "8930": {
+      "label": "Cellfie web app",
       "protocol": "http",
       "onAutoForward": "silent"
     }

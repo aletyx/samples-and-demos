@@ -121,6 +121,30 @@ void main() {
     );
   });
 
+  test('malformed nested values and commands are refused', () {
+    final header = ['=> drive', '=> turn', '=> gun', '=> fire'];
+    Map<String, Object?> modelFor(Object row) => {
+      'decisions': {
+        'action': {
+          'table': [header, row],
+        },
+      },
+    };
+
+    for (final model in [
+      {'decisions': 'junk'},
+      modelFor({'when': 'junk', 'then': {}}),
+      modelFor(['fly', 'none', 'hold', '0']),
+      modelFor(['ahead', 'none', 'hold', 'not a number']),
+      modelFor(['ahead', 'none', 'hold', '4']),
+    ]) {
+      expect(
+        () => Robot.fromModel(model, color: spinner.color),
+        throwsFormatException,
+      );
+    }
+  });
+
   group('random robots', () {
     final factory = RobotFactory(Random(42));
 

@@ -130,6 +130,16 @@ Future<void> _handle(
   }
   try {
     final path = request.uri.path;
+    final isBattleCall =
+        request.method == 'POST' &&
+        (path == '/api/battle/turns' || path == '/api/battle/score');
+    if (isBattleCall &&
+        origin != null &&
+        !origins.contains(origin) &&
+        request.headers.value('sec-fetch-site') != 'same-origin') {
+      _json(response, 403, {'error': 'origin not allowed'});
+      return;
+    }
     if (request.method == 'POST' && path == '/api/battle/turns') {
       await _post(request, aityx, _turns);
     } else if (request.method == 'POST' && path == '/api/battle/score') {
@@ -158,6 +168,9 @@ Future<void> _post(
   _Call Function(Map<String, Object?> body, _Aityx aityx) build,
 ) async {
   final response = request.response;
+  if (request.headers.contentType?.mimeType != 'application/json') {
+    return _json(response, 415, {'error': 'expected application/json'});
+  }
   if (aityx.key.isEmpty) {
     return _json(response, 503, {'error': 'aityx is not set up'});
   }

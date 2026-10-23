@@ -54,6 +54,9 @@ class _LifeScreenState extends State<LifeScreen> {
   final Map<String, bool> _rules = defaultRules;
   bool _playing = false;
   bool _stepping = false;
+  Future<void>? _stepInFlight;
+  int _boardRevision = 0;
+  int _playbackId = 0;
   int _acceleration = 2;
   final _calls = <CallRecord>[];
   final _notes = <PatternNote>[];
@@ -83,23 +86,38 @@ class _LifeScreenState extends State<LifeScreen> {
 
   Future<void> _play() async {
     if (_playing) return;
+    final playbackId = ++_playbackId;
     setState(() => _playing = true);
-    while (_playing && mounted) {
+    while (_playing && mounted && playbackId == _playbackId) {
       final started = DateTime.now();
       await _step();
-      if (!_playing || !mounted) break;
+      if (!_playing || !mounted || playbackId != _playbackId) break;
       final wait = _interval - DateTime.now().difference(started);
       if (wait > Duration.zero) await Future<void>.delayed(wait);
     }
   }
 
-  void _pause() => setState(() => _playing = false);
+  void _pause() {
+    _playbackId++;
+    if (_playing) setState(() => _playing = false);
+  }
 
   /// One generation: the board's situations and clusters go to the API,
   /// and the answer becomes the next board, a call in the panel, and the
   /// patterns noticed.
-  Future<void> _step() async {
-    if (_stepping) return;
+  Future<void> _step() {
+    final inFlight = _stepInFlight;
+    if (inFlight != null) return inFlight;
+    final revision = _boardRevision;
+    late final Future<void> tracked;
+    tracked = _runStep(revision).whenComplete(() {
+      if (identical(_stepInFlight, tracked)) _stepInFlight = null;
+    });
+    _stepInFlight = tracked;
+    return tracked;
+  }
+
+  Future<void> _runStep(int revision) async {
     final board = _board;
     if (board.alive.isEmpty) {
       _pause();
@@ -121,7 +139,7 @@ class _LifeScreenState extends State<LifeScreen> {
         clusters,
       );
     } on GenerationException catch (error) {
-      if (!mounted) return;
+      if (!mounted || revision != _boardRevision) return;
       setState(() {
         _stepping = false;
         _playing = false;
@@ -131,7 +149,7 @@ class _LifeScreenState extends State<LifeScreen> {
       );
       return;
     }
-    if (!mounted) return;
+    if (!mounted || revision != _boardRevision) return;
     var next = board.next(groups, outcome.generation.aliveNext);
     for (final MapEntry(key: cell, value: alive) in _editsInFlight.entries) {
       if (alive != next.alive.contains(cell)) next = next.toggled(cell);
@@ -203,8 +221,13 @@ class _LifeScreenState extends State<LifeScreen> {
   }
 
   void _reset(Board board) {
+    _boardRevision++;
+    _playbackId++;
+    _stepInFlight = null;
     setState(() {
       _board = board;
+      _playing = false;
+      _stepping = false;
       _labels = const [];
       _patternCounts = const {};
       _editsInFlight.clear();

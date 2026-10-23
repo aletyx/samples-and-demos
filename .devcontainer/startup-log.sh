@@ -43,7 +43,11 @@ startup_facts() {
     if [[ -n "${!name:-}" ]]; then set=set; else set="not set"; fi
     echo "$name: $set"
   done
-  echo "AITYX_URL: ${AITYX_URL:-default}"
+  if [[ -n "${AITYX_URL:-}" ]]; then
+    echo "AITYX_URL: set"
+  else
+    echo "AITYX_URL: default"
+  fi
   echo "devbox: $(command -v devbox || echo missing) $(devbox version 2>/dev/null)"
   echo "nix: $(nix --version 2>/dev/null || echo missing)"
   for demo in $(startup_demos); do

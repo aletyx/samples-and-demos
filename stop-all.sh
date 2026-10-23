@@ -32,7 +32,12 @@ for demo in $(demos "$@"); do
   fi
   # `devbox services ls` lists running processes with a PID and a status
   # (on stderr). Read whole: grep -q would close the pipe on devbox.
-  status="$(cd "$dir" && devbox services ls 2>&1)"
+  if ! status="$(cd "$dir" && devbox services ls 2>&1)"; then
+    echo "✗ $demo: could not read service status" >&2
+    [[ -n "$status" ]] && printf '%s\n' "$status" >&2
+    failed=1
+    continue
+  fi
   if ! grep -q 'Running\|Pending\|Restarting' <<<"$status"; then
     echo "· $demo is not running"
     continue

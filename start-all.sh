@@ -19,6 +19,15 @@
 set -uo pipefail
 
 root="$(cd "$(dirname "$0")" && pwd)"
+# These Codespaces secrets are inherited by each API process. Empty values
+# leave the per-demo .env fallback available for local development.
+export AITYX_API_KEY="${AITYX_API_KEY:-}"
+export AITYX_URL="${AITYX_URL:-}"
+
+if [[ -z "$AITYX_API_KEY" ]]; then
+  echo "AITYX_API_KEY is not set; apps will start, but aityx-backed features won't work." >&2
+fi
+
 # How long to wait for the demos to answer, in seconds (0: don't wait).
 WAIT="${WAIT:-600}"
 
@@ -35,9 +44,15 @@ demos() {
   done
 }
 
-# port <demo> <VARIABLE>: the port the demo's process-compose.yaml
-# defaults VARIABLE to (FLUTTER_WEB_PORT, API_PORT).
+# port <demo> <VARIABLE>: the environment override, else the demo's
+# process-compose.yaml default for FLUTTER_WEB_PORT or API_PORT.
 port() {
+  local variable="$2"
+  local override="${!variable:-}"
+  if [[ -n "$override" ]]; then
+    printf '%s\n' "$override"
+    return
+  fi
   sed -n "s/.*\${$2:-\([0-9]*\)}.*/\1/p" "$root/$1/process-compose.yaml" | head -1
 }
 

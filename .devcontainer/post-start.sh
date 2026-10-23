@@ -7,7 +7,8 @@
 #
 # start-all.sh runs `devbox services up -b` in each demo's folder: the web
 # app and the API of Mortgage Hub (8880), Contact Hub (8890), Life Hub
-# (8900), PokerFace (8910) and RoboRules (8920), and the index on 8800.
+# (8900), PokerFace (8910), RoboRules (8920) and Cellfie (8930), plus the
+# index on 8800.
 # The first start compiles the six apps, which takes a few minutes. Watch
 # one with `devbox services attach -c <demo>`; stop them with
 # ./stop-all.sh.

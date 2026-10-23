@@ -49,7 +49,7 @@ spec.
    DTI limits) and wrote them as an aityx decision model. Added the API
    (`mortgagehub_api`, a Dart server holding the key) and the summary's
    [regulatory check](regulatory-check.md) section. Found the stage key's
-   API host (`console-stage.aityx.ai`; production answers 401) and
+   API host (`api-stage.aityx.ai`; production answers 401) and
    verified the check end to end.
 8. **Add tooltips to the uncommon form fields.** ⓘ icons with an
    explanation on the less common fields of the

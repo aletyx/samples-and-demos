@@ -22,7 +22,7 @@ The [regulatory check](regulatory-check.md) uses it, through the API
   (`scripts/api.sh` exports it to the server's own environment only).
 - **Base URL:** `AITYX_URL`, by default `https://api.aityx.ai`, the one
   the docs name. The stage key works only on stage: `.env` sets
-  `AITYX_URL=https://console-stage.aityx.ai`, the origin the stage
+  `AITYX_URL=https://api-stage.aityx.ai`, the API endpoint for stage
   console itself calls (production answers 401 to it).
 - **Check:** [scripts/aityx-check.sh](../scripts/aityx-check.sh) runs the
   docs' cancellation example on System One (deterministic, the cheapest
