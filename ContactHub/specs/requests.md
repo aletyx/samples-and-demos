@@ -135,3 +135,13 @@ The feature files hold the current specification; see the
     copies all of it. The sample menu is wider, so its second lines fit.
     A marked part stays selected when the page rebuilds (the review found
     it lost its color on a resize). See [Routing](routing.md#the-aityx-call).
+
+## 2026-10-23
+
+13. **Use custom favicons for each sample, in the same style and colors
+    as aityx but related to each demo.** The tab now shows
+    `web/favicon.svg`, the speech bubble with the route cut into it as a
+    flat orange glyph with no background, the chosen node a larger
+    cutout, as aityx.ai's own favicon is drawn; the PNG tile stays as the
+    fallback and the app icons keep it. See
+    [App icon](app-icon.md#favicon).
