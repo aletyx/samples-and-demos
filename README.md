@@ -9,7 +9,6 @@ sample with its own documentation.
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Cellfie](Cellfie/) | The cells take a picture of themselves every generation, and aityx says who's in it: Conway's Game of Life on an infinite board, with the rules and pattern catalogue as an aityx decision model; one call per generation, with the board and every request and response shown in the app | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
-| [Life Hub](LifeHub/) | Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FLifeHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Index](Index/) | One page linking every demo, in the aityx palette; `./start-all.sh` starts it with the rest on http://localhost:8800/ | `./start-all.sh`, or [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
@@ -194,27 +193,6 @@ docker compose -f RoboRules/compose.yaml up --build
 and open http://localhost:8920/app/. Its ports are its own, so it runs at
 the same time as Mortgage Hub (8880) and Contact Hub (8890). See the
 [RoboRules README](RoboRules/README.md).
-
-## Life Hub
-
-[LifeHub/](LifeHub/) plays Conway's Game of Life on an infinite board,
-with the rules and pattern catalogue as an aityx decision model. Its
-Flutter app draws the board (drag, zoom, tap to draw, **Random start**,
-**Play** and an **Acceleration** control), and its Dart API runs each
-generation as one aityx call. The app labels patterns on the board,
-notifies when one appears, and shows every call, request and response
-in a side panel. HighLife's birth with six neighbours and Life without
-death can be switched on. Put your key in `LifeHub/.env` (see
-[.env.example](LifeHub/.env.example)), then, from the root:
-
-```bash
-devbox services up -c LifeHub --pcflags "--tui=false"
-# or, with Docker alone
-docker compose -f LifeHub/compose.yaml up --build
-```
-
-The app serves at http://localhost:8900/app/. See the
-[Life Hub README](LifeHub/README.md).
 
 ## PokerFace
 
