@@ -8,9 +8,31 @@ sample with its own documentation.
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Life Hub](LifeHub/) | Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FLifeHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
+
+## Run all the demos
+
+The demos that run as services, Mortgage Hub, Contact Hub and any other
+folder with a `devbox.json` and a `process-compose.yaml`, start together
+from the root of this repository with [Devbox](https://www.jetify.com/devbox):
+
+```bash
+./start-all.sh              # every demo, detached; waits until each answers
+./start-all.sh ContactHub   # only the ones named
+./stop-all.sh               # stops them all; ./stop-all.sh ContactHub only one
+```
+
+[start-all.sh](start-all.sh) runs `devbox services up -b` in each folder
+and then prints where to open each app once its web app and API answer;
+the first start compiles each app, which takes a few minutes. A demo
+that already answers on its port, started by hand or with Docker
+Compose, is left as it is. Each demo reads its aityx key from its own
+`.env` (see each folder's `.env.example`). Watch one demo's services with
+`devbox services attach -c <demo>`; [stop-all.sh](stop-all.sh) runs
+`devbox services stop` in each folder that is running.
 
 ## Mortgage Hub
 
@@ -121,6 +143,35 @@ docker compose -f RoboRules/compose.yaml up --build
 and open http://localhost:8920/app/. Its ports are its own, so it runs at
 the same time as Mortgage Hub (8880) and Contact Hub (8890). See the
 [RoboRules README](RoboRules/README.md).
+
+## Life Hub
+
+[LifeHub/](LifeHub/) plays Conway's Game of Life on an infinite board,
+with the rules of the game as a decision model on aityx. Built like
+Contact Hub: a Flutter app draws the board (drag, zoom, tap to draw,
+**Random start**, **Play** and an **Acceleration** control from half a
+generation a second to as fast as aityx answers), and a Dart API runs
+each generation as one aityx call, in which a decision table decides the
+fate of every situation on the board, with a why on every row, and a
+pattern catalogue names the well-known patterns (still lifes,
+oscillators, spaceships, methuselahs) among the clusters of live cells.
+The app labels the patterns on the board, notifies when one appears, and
+shows every call, request and response, in a side panel. Conway's rules
+are on at the start; HighLife's birth with six neighbours and Life without
+death can be switched on. Put your key in `LifeHub/.env` (see
+[.env.example](LifeHub/.env.example)), then, from the root of this
+repository:
+
+```bash
+devbox services up -c LifeHub --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f LifeHub/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:8900/app/, so it runs alongside
+the other two. The badge above opens it in a codespace, which uses the
+same `AITYX_API_KEY` Codespaces secret. See the
+[Life Hub README](LifeHub/README.md).
 
 ## Payroll
 

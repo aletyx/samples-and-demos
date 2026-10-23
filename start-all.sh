@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# Starts every demo that runs as services: each folder with a devbox.json
+# and a process-compose.yaml (Mortgage Hub, Contact Hub, ...), detached,
+# with `devbox services up -b`, then waits until each one's web app and
+# API answer and prints where to open them. A demo whose web port already
+# answers (started by hand, or with Docker Compose) is left as it is.
+#
+#   ./start-all.sh              # every demo
+#   ./start-all.sh ContactHub   # only these
+#   WAIT=0 ./start-all.sh       # start, don't wait
+#
+# Each demo's key goes in its own .env (see <demo>/.env.example): without
+# it the app runs, but it can't call aityx. The first start of a demo
+# compiles its app, a minute or two; watch one with
+# `devbox services attach -c <demo>`. Stop them with ./stop-all.sh.
+set -uo pipefail
+
+root="$(cd "$(dirname "$0")" && pwd)"
+# How long to wait for the demos to answer, in seconds (0: don't wait).
+WAIT="${WAIT:-600}"
+
+# demos [names...]: the demos to act on, as folder names: the ones named,
+# else every folder with a devbox.json and a process-compose.yaml.
+demos() {
+  if [[ $# -gt 0 ]]; then
+    printf '%s\n' "$@"
+    return
+  fi
+  for config in "$root"/*/devbox.json; do
+    dir="$(dirname "$config")"
+    [[ -f "$dir/process-compose.yaml" ]] && basename "$dir"
+  done
+}
+
+# port <demo> <VARIABLE>: the port the demo's process-compose.yaml
+# defaults VARIABLE to (FLUTTER_WEB_PORT, API_PORT).
+port() {
+  sed -n "s/.*\${$2:-\([0-9]*\)}.*/\1/p" "$root/$1/process-compose.yaml" | head -1
+}
+
+# answers <url>: whether the URL answers 2xx.
+answers() {
+  curl -fs -o /dev/null --max-time 3 "$1"
+}
+
+started=()
+failed=0
+for demo in $(demos "$@"); do
+  dir="$root/$demo"
+  if [[ ! -f "$dir/devbox.json" || ! -f "$dir/process-compose.yaml" ]]; then
+    echo "✗ $demo: no devbox.json and process-compose.yaml in $dir" >&2
+    failed=1
+    continue
+  fi
+  web="$(port "$demo" FLUTTER_WEB_PORT)"
+  if [[ -n "$web" ]] && answers "http://localhost:$web/app/"; then
+    echo "· $demo already answers at http://localhost:$web/app/: left as it is"
+    continue
+  fi
+  echo "▶ $demo: starting (devbox services up -b, in $dir)"
+  if (cd "$dir" && devbox services up -b --pcflags "--tui=false" >/dev/null); then
+    started+=("$demo")
+  else
+    echo "✗ $demo: devbox services up failed; see devbox services attach -c $demo" >&2
+    failed=1
+  fi
+done
+
+if [[ ${#started[@]} -eq 0 ]]; then
+  echo "Nothing started."
+  exit $failed
+fi
+
+if [[ "$WAIT" -le 0 ]]; then
+  echo "Started: ${started[*]}. Not waiting; check them with ./start-all.sh later."
+  exit $failed
+fi
+
+echo "Waiting up to $WAIT s for ${started[*]} to answer (the first start compiles the app)..."
+deadline=$((SECONDS + WAIT))
+pending=("${started[@]}")
+while [[ ${#pending[@]} -gt 0 && $SECONDS -lt $deadline ]]; do
+  sleep 5
+  still=()
+  for demo in "${pending[@]}"; do
+    web="$(port "$demo" FLUTTER_WEB_PORT)"
+    api="$(port "$demo" API_PORT)"
+    # The API through the app's origin: the dev server proxies /api/ to it.
+    if answers "http://localhost:$web/app/" && answers "http://localhost:$web/api/health"; then
+      echo "✅ $demo is up: http://localhost:$web/app/ (API: http://localhost:$api/api/health)"
+    else
+      still+=("$demo")
+    fi
+  done
+  pending=("${still[@]+"${still[@]}"}")
+done
+
+for demo in "${pending[@]+"${pending[@]}"}"; do
+  web="$(port "$demo" FLUTTER_WEB_PORT)"
+  echo "✗ $demo did not answer at http://localhost:$web/app/ within $WAIT s; see devbox services attach -c $demo" >&2
+  failed=1
+done
+exit $failed
