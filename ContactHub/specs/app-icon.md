@@ -24,6 +24,17 @@ still reads at 16 px as an orange bubble with a lit dot.
   - **iOS:** the whole `AppIcon.appiconset`, with alpha removed.
 - **Linux** keeps no icon of its own, as in Mortgage Hub.
 
+## Favicon
+
+The browser tab shows [web/favicon.svg](../contacthub_app/web/favicon.svg): the
+same art as the icon, in [aityx.ai](https://aityx.ai)'s own favicon
+style, one flat orange (`#E36742`) glyph with no background, the cutouts
+transparent, so it sits beside aityx's tab like one of its family and
+reads on light and dark tab strips. `index.html` links it first, as
+`image/svg+xml`, and keeps `favicon.png`, the dark tile, for a browser
+that can't show an SVG favicon. The app icons (the manifest's, Android's
+and iOS's) keep the tile: a launcher icon needs its background.
+
 ## Known limitations
 
 - The Android and iOS icons haven't been seen on a device.

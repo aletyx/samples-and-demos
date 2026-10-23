@@ -257,3 +257,12 @@ spec.
     every platform. The palette is in
     [theme-colors.txt](theme-colors.txt). See [Theme](theme.md) and
     [App icon](app-icon.md).
+
+## 2026-10-23
+
+35. **Use custom favicons for each sample, in the same style and colors
+    as aityx but related to each demo.** The tab now shows
+    `web/favicon.svg`, the house with the dollar sign as a flat orange
+    glyph with no background, as aityx.ai's own favicon is drawn; the
+    PNG tile stays as the fallback and the app icons keep it. See
+    [App icon](app-icon.md#favicon).

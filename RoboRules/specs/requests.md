@@ -29,3 +29,11 @@ The requests that shaped RoboRules, oldest first, each with what changed.
    scoring** instead of being left out of the totals; the editor's JSON is
    checked as the battle checks robots, with an error instead of a crash;
    `make` builds only the web app, the only platform.
+
+3. **Use custom favicons for each sample, in the same style and colors
+   as aityx but related to each demo.** RoboRules had Flutter's default
+   icons. It now has a tank seen from above: `web/favicon.svg`, a flat
+   orange glyph with no background as aityx.ai's own favicon is drawn,
+   first in `index.html`; and the tile, orange on the dark background,
+   rendered from `assets/icon/icon.svg` as `favicon.png` and the
+   manifest's icons. See [App icon](app-icon.md).
