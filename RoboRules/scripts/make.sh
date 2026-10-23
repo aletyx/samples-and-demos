@@ -2,11 +2,9 @@
 # Builds the app binaries. Run through the Makefile (`make`, `make web`, ...)
 # or directly: `bash scripts/make.sh <target>...`.
 #
-# Targets: web, android, ios, linux, all (every platform this host can
-# build), clean. Settings, from the environment or `make VAR=value`:
+# Targets: web (the only platform: RoboRules is a web app), all (the
+# same), clean. Settings, from the environment or `make VAR=value`:
 #   MODE          release (default), profile or debug
-#   IOS_CODESIGN  1 to sign the iOS build (needs a signing team in Xcode);
-#                 unsigned by default
 #   API_BASE_URL  the API the app calls to play turns
 #                 (default http://localhost:8921; empty: the app's origin)
 #   WEB_BASE_HREF the web build's base href, e.g. /app/ to serve it where the
@@ -31,60 +29,19 @@ BUILD_ARGS=(--build-name "$VERSION" --build-number "$BUILD_NUMBER"
   --dart-define="ROBORULES_VERSION=$VERSION"
   --dart-define="API_BASE_URL=${API_BASE_URL-http://localhost:8921}")
 
-# can_build <target>: whether this host's OS can build the target.
-can_build() {
-  case "$1" in
-    ios) [[ "$(uname -s)" == Darwin ]] ;;
-    linux) [[ "$(uname -s)" == Linux ]] ;;
-    *) return 0 ;;
-  esac
-}
-
-build() {
-  local target="$1"
-  if ! can_build "$target"; then
-    echo "error: $target can't be built on $(uname -s)" >&2
-    return 1
-  fi
-  echo "==> $target ($MODE, version $VERSION, build $BUILD_NUMBER)"
-  case "$target" in
-    web)
-      local base=()
-      [[ -n "${WEB_BASE_HREF:-}" ]] && base=(--base-href "$WEB_BASE_HREF")
-      flutter build web "--$MODE" ${base[@]+"${base[@]}"} "${BUILD_ARGS[@]}"
-      echo "==> web: roborules_app/build/web/"
-      ;;
-    android)
-      flutter build apk "--$MODE" "${BUILD_ARGS[@]}"
-      echo "==> android: roborules_app/build/app/outputs/flutter-apk/app-$MODE.apk"
-      ;;
-    ios)
-      local sign=--no-codesign
-      [[ "${IOS_CODESIGN:-}" == 1 ]] && sign=--codesign
-      flutter build ios "--$MODE" "$sign" "${BUILD_ARGS[@]}"
-      echo "==> ios: roborules_app/build/ios/iphoneos/Runner.app"
-      ;;
-    linux)
-      flutter build linux "--$MODE" "${BUILD_ARGS[@]}"
-      echo "==> linux: roborules_app/build/linux/*/$MODE/bundle/"
-      ;;
-  esac
+build_web() {
+  local base=()
+  [[ -n "${WEB_BASE_HREF:-}" ]] && base=(--base-href "$WEB_BASE_HREF")
+  echo "==> web ($MODE, version $VERSION, build $BUILD_NUMBER)"
+  flutter build web "--$MODE" ${base[@]+"${base[@]}"} "${BUILD_ARGS[@]}"
+  echo "==> web: roborules_app/build/web/"
 }
 
 [[ $# -gt 0 ]] || set -- all
 for arg in "$@"; do
   case "$arg" in
-    web | android | ios | linux) build "$arg" ;;
-    all)
-      for target in web android ios linux; do
-        if can_build "$target"; then
-          build "$target"
-        else
-          echo "==> skipping $target: can't be built on $(uname -s)"
-        fi
-      done
-      ;;
+    web | all) build_web ;;
     clean) flutter clean ;;
-    *) echo "error: unknown target '$arg' (web, android, ios, linux, all, clean)" >&2; exit 2 ;;
+    *) echo "error: unknown target '$arg' (web, all, clean: RoboRules is web only)" >&2; exit 2 ;;
   esac
 done

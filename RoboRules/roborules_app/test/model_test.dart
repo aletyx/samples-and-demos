@@ -121,6 +121,62 @@ void main() {
     );
   });
 
+  test('a broken model says what is wrong instead of crashing', () {
+    Map<String, Object?> withRow(List<Object?> row) => {
+      'decisions': {
+        'action': {
+          'table': [
+            ['=> drive', '=> turn', '=> gun', '=> fire', '# why'],
+            row,
+          ],
+        },
+      },
+    };
+    expect(
+      () => Robot.fromModel({'decisions': []}, color: spinner.color),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => Robot.fromModel(
+        withRow(['sideways', 'none', 'aim', '0', 'x']),
+        color: spinner.color,
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('rule 1: drive must be one of'),
+        ),
+      ),
+    );
+    expect(
+      () => Robot.fromModel(
+        withRow(['ahead', 'none', 'aim', '5', 'x']),
+        color: spinner.color,
+      ),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => Robot.fromModel({
+        'decisions': {
+          'action': {
+            'table': [
+              ['=> drive', '=> turn', '=> fire'],
+              ['ahead', 'none', '0'],
+            ],
+          },
+        },
+      }, color: spinner.color),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('no "=> gun" column'),
+        ),
+      ),
+    );
+  });
+
   group('random robots', () {
     final factory = RobotFactory(Random(42));
 

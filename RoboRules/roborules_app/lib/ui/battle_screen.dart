@@ -583,6 +583,12 @@ class _Controls extends StatelessWidget {
         runSpacing: 6,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
+          if (c.canRetryScore)
+            ClassicButton(
+              label: 'Retry scoring',
+              icon: Icons.refresh,
+              onPressed: c.retryScore,
+            ),
           ClassicButton(
             label: c.state == BattleState.setup || c.state == BattleState.over
                 ? 'Start'

@@ -1,11 +1,8 @@
-# Builds the app binaries. Every target delegates to scripts/make.sh, which
-# documents the settings, e.g. `make android MODE=debug`.
+# Builds the web app. Every target delegates to scripts/make.sh, which
+# documents the settings, e.g. `make web MODE=debug`.
 #
-#   make           every platform this host can build
+#   make           the web app (RoboRules is web only)
 #   make web       roborules_app/build/web/
-#   make android   release APK
-#   make ios       Runner.app (macOS only; unsigned unless IOS_CODESIGN=1)
-#   make linux     Linux bundle (Linux only)
 #   make clean     flutter clean
 
 # One build time for every target in a run, so they share a version (see
@@ -14,9 +11,9 @@ ifndef BUILD_NUMBER
 BUILD_NUMBER := $(shell date -u +%s)
 endif
 
-export MODE IOS_CODESIGN WEB_BASE_HREF API_BASE_URL BUILD_NUMBER VERSION_Z
+export MODE WEB_BASE_HREF API_BASE_URL BUILD_NUMBER VERSION_Z
 
-.PHONY: all web android ios linux clean
+.PHONY: all web clean
 
-all web android ios linux clean:
+all web clean:
 	@bash scripts/make.sh $@

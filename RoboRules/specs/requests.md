@@ -22,3 +22,10 @@ The requests that shaped RoboRules, oldest first, each with what changed.
    from 1 to 60 turns a second, or as fast as aityx plays them. Ports
    8920/8921: Life Hub and Poker Hub in this folder already use 8900/8901
    and 8910/8911.
+2. **Fix what the code review found.** A battle started after a finished
+   one now plays (the round-end flag is cleared on reset); a reply still
+   in flight when a battle is restarted or stopped is dropped, not applied
+   to the new one; a round aityx fails to score waits with **Retry
+   scoring** instead of being left out of the totals; the editor's JSON is
+   checked as the battle checks robots, with an error instead of a crash;
+   `make` builds only the web app, the only platform.

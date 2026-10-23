@@ -64,6 +64,8 @@ for a model it can't run come back as `detail`.
 
 The app asks for 20 turns a call and fetches the next batch while it
 shows this one; a round ends with one robot left, or after 1,500 turns.
+Each battle has a number, and a reply that comes back after a Restart or
+Stop belongs to an earlier one and is dropped.
 
 ### Verified
 

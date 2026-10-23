@@ -75,8 +75,16 @@ class BattleController extends ChangeNotifier {
   bool _roundEnds = false;
   Timer? _timer;
 
+  /// Which battle this is: replies to an earlier one, still in flight when
+  /// it was restarted, are dropped.
+  int _battle = 0;
+
+  /// A finished round aityx couldn't score yet: [retryScore] tries again.
+  World? _unscored;
+
   int get buffered => _buffer.length;
   bool get waitingForAityx => _fetching && _buffer.isEmpty;
+  bool get canRetryScore => _unscored != null && state == BattleState.scoring;
 
   /// [n] new robots with random rules.
   void randomRobots(int n) {
@@ -99,6 +107,10 @@ class BattleController extends ChangeNotifier {
 
   void _reset() {
     _stopTimer();
+    _battle++;
+    _fetching = false;
+    _roundEnds = false;
+    _unscored = null;
     state = BattleState.setup;
     round = 0;
     world = _startWorld();
@@ -214,12 +226,12 @@ class BattleController extends ChangeNotifier {
     if (n <= 0) return;
     _fetching = true;
     final started = DateTime.now();
+    final battle = _battle;
     final roundAtStart = round;
+    bool stale() => _disposed || battle != _battle || round != roundAtStart;
     try {
       final turns = await _api.turns(robots, from, n);
-      if (_disposed || round != roundAtStart || state == BattleState.setup) {
-        return;
-      }
+      if (stale()) return;
       final ms = DateTime.now().difference(started).inMilliseconds;
       aityxTurnsPerSecond = n * 1000 / max(ms, 1);
       lastRequest = turns.request;
@@ -233,19 +245,33 @@ class BattleController extends ChangeNotifier {
         }
       }
     } on BattleException catch (e) {
+      if (stale()) return;
       error = e.message;
       if (state == BattleState.running) state = BattleState.paused;
     } finally {
-      _fetching = false;
+      if (battle == _battle) _fetching = false;
       notifyListeners();
     }
   }
 
+  /// Scores the finished round again, after aityx failed to.
+  void retryScore() {
+    final last = _unscored;
+    if (last != null && state == BattleState.scoring) {
+      unawaited(_endRound(last));
+    }
+  }
+
   Future<void> _endRound(World last) async {
+    final battle = _battle;
+    bool stale() => _disposed || battle != _battle;
     state = BattleState.scoring;
+    _unscored = null;
+    error = null;
     notifyListeners();
     try {
       final score = await _api.score(last);
+      if (stale()) return;
       roundScores.add(score);
       lastRequest = score.request;
       lastResponse = score.response;
@@ -260,10 +286,16 @@ class BattleController extends ChangeNotifier {
       }
       if (score.winner case final w?) totals[w]?.firsts += 1;
     } on BattleException catch (e) {
+      if (stale()) return;
+      // Keep the round until it's scored: moving on would leave it out of
+      // the totals and could change the ranking.
       error = 'Scoring failed: ${e.message}';
+      _unscored = last;
+      notifyListeners();
+      return;
     }
     await Future<void>.delayed(const Duration(milliseconds: 1500));
-    if (_disposed || state != BattleState.scoring) return;
+    if (stale() || state != BattleState.scoring) return;
     if (round >= rounds) {
       state = BattleState.over;
       _stopTimer();

@@ -21,4 +21,4 @@ ports:
 - **Dev container** ([.devcontainer/RoboRules/](../../.devcontainer/RoboRules)),
   named **RoboRules**, forwarding 8920 and asking for the same
   `AITYX_API_KEY` Codespaces secret as the other samples.
-- The app is web only.
+- The app is web only: `make` (or `make web`) builds it; `make clean`.

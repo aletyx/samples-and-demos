@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -14,10 +15,17 @@ class FakeApi implements BattleApi {
   int turnCalls = 0;
   int scoreCalls = 0;
   Object? failNext;
+  Object? failScore;
+
+  /// When set, the next turns call waits for it.
+  Completer<void>? hold;
 
   @override
   Future<Turns> turns(List<Robot> robots, World world, int turns) async {
     turnCalls++;
+    final wait = hold;
+    hold = null;
+    if (wait != null) await wait.future;
     if (failNext case final e?) {
       failNext = null;
       throw e;
@@ -61,6 +69,10 @@ class FakeApi implements BattleApi {
   @override
   Future<RoundScore> score(World last) async {
     scoreCalls++;
+    if (failScore case final e?) {
+      failScore = null;
+      throw e;
+    }
     return const RoundScore([
       Score(
         id: 'r1',
@@ -99,6 +111,73 @@ void main() {
     expect(c.world!.tick, 10);
     expect(c.world!.bots[1].alive, isFalse);
     c.dispose();
+  });
+
+  testWidgets('a battle after a finished one plays again', (tester) async {
+    final api = FakeApi();
+    final c = battle(api)..rounds = 1;
+    c.start();
+    for (var i = 0; i < 200 && c.state != BattleState.over; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(c.state, BattleState.over);
+    c.start();
+    for (var i = 0; i < 50 && c.world!.tick == 0; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(c.world!.tick, greaterThan(0));
+    c.dispose();
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets("a restarted battle drops the old battle's late reply", (
+    tester,
+  ) async {
+    final api = FakeApi()..hold = Completer<void>();
+    // Slow, so what arrives stays in the buffer to be counted.
+    final c = battle(api)..turnsPerSecond = 1;
+    final held = api.hold!;
+    c.start(); // the first call waits
+    await tester.pump(const Duration(milliseconds: 20));
+    c.start(); // restart: a new battle, a new call
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    held.complete(); // the old battle's 20 frames arrive late
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    // Dropped: the turns shown and buffered are the new battle's round
+    // alone, which ends on turn 10 (an old reply would add 10 more).
+    expect(c.world!.tick + c.buffered, 10);
+    expect(api.turnCalls, 2);
+    c.dispose();
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('a round aityx fails to score waits for a retry', (tester) async {
+    final api = FakeApi()
+      ..failScore = const BattleException('aityx answered HTTP 503');
+    final c = battle(api);
+    c.start();
+    for (var i = 0; i < 200 && !c.canRetryScore; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(c.canRetryScore, isTrue);
+    expect(c.error, contains('Scoring failed'));
+    await tester.pump(const Duration(seconds: 3));
+    expect(c.round, 1, reason: 'it does not move on unscored');
+    expect(c.roundScores, isEmpty);
+
+    c.retryScore();
+    for (var i = 0; i < 200 && c.round == 1; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(c.roundScores, hasLength(1));
+    expect(c.round, 2);
+    expect(c.error, isNull);
+    c.dispose();
+    await tester.pump(const Duration(seconds: 3));
   });
 
   testWidgets('a death makes a big explosion', (tester) async {

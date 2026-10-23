@@ -42,8 +42,9 @@ robot's name and color, and three tabs:
   or down, delete it, **Add rule** (before the fallback), **Randomize
   rules**.
 - **aityx model (JSON)**: the robot's model, one rule per line, editable;
-  **Apply** reads it back (an error says why it isn't a robot model),
-  **Copy**.
+  **Apply** reads it back, checking it as the battle would: the four
+  command columns, each command one of its values, a fire power from 0 to
+  3, known sensors; an error says what's wrong. **Copy**.
 - **Sensors**: what each sensor means and how to write conditions.
 
 **OK** keeps the changes; the battle uses them from its next batch of turns.

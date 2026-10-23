@@ -141,55 +141,91 @@ class Robot {
   }
 
   /// A robot from an aityx model as [toModel] writes it; throws
-  /// [FormatException] when it isn't one.
+  /// [FormatException], saying what's wrong, when it isn't one: every
+  /// command column present, every command value one the battle knows, a
+  /// fire power from 0 to 3, only known sensors.
   static Robot fromModel(Object? model, {required Color color}) {
-    if (model is! Map) throw const FormatException('not a JSON object');
-    final table = ((model['decisions'] as Map?)?['action'] as Map?)?['table'];
-    if (table is! List || table.length < 2 || table.first is! List) {
+    T field<T>(Object? map, String key, String what) {
+      final value = map is Map ? map[key] : null;
+      if (value is! T) throw FormatException('$what is missing or wrong');
+      return value;
+    }
+
+    final decisions = field<Map>(model, 'decisions', 'decisions');
+    final action = field<Map>(decisions, 'action', 'decisions.action');
+    final table = field<List>(action, 'table', 'decisions.action.table');
+    if (table.length < 2 || table.first is! List) {
       throw const FormatException(
         'decisions.action.table needs a header and at least one rule',
       );
     }
     final header = (table.first as List).map((h) => '$h').toList();
     String command(String h) => h.substring(2).split(':').first.trim();
+    final commands = [
+      for (final h in header)
+        if (h.startsWith('=>')) command(h),
+    ];
+    for (final c in ['drive', 'turn', 'gun', 'fire']) {
+      if (!commands.contains(c)) {
+        throw FormatException('the table has no "=> $c" column');
+      }
+    }
     final rules = <Rule>[];
     for (final raw in table.skip(1)) {
+      final n = rules.length + 1;
       final row = switch (raw) {
         List l => l.map((c) => '$c').toList(),
         Map m => [
           for (final h in header)
             if (h.startsWith('=>'))
-              '${(m['then'] as Map?)?[command(h)] ?? '-'}'
+              '${(m['then'] is Map ? m['then'] as Map : const {})[command(h)] ?? '-'}'
             else if (h.startsWith('#'))
               '${m['why'] ?? ''}'
             else
-              '${(m['when'] as Map?)?[h] ?? '-'}',
+              '${(m['when'] is Map ? m['when'] as Map : const {})[h] ?? '-'}',
         ],
-        _ => throw const FormatException('a rule must be a list or object'),
+        _ => throw FormatException('rule $n must be a list or an object'),
       };
       if (row.length != header.length) {
-        throw const FormatException('a rule has the wrong number of cells');
+        throw FormatException(
+          'rule $n has ${row.length} cells for ${header.length} columns',
+        );
       }
       final rule = Rule();
       for (var i = 0; i < header.length; i++) {
         final h = header[i];
+        final cell = row[i].trim();
         if (h.startsWith('=>')) {
-          switch (command(h)) {
+          final c = command(h);
+          if (c == 'fire') {
+            final power = num.tryParse(cell);
+            if (power == null || power < 0 || power > 3) {
+              throw FormatException(
+                'rule $n: fire must be a power from 0 to 3, not "$cell"',
+              );
+            }
+            rule.fire = power;
+            continue;
+          }
+          final allowed = commandValues[c];
+          if (allowed == null) throw FormatException('unknown command "$c"');
+          if (!allowed.contains(cell)) {
+            throw FormatException(
+              'rule $n: $c must be one of ${allowed.join(', ')}, not "$cell"',
+            );
+          }
+          switch (c) {
             case 'drive':
-              rule.drive = row[i];
+              rule.drive = cell;
             case 'turn':
-              rule.turn = row[i];
+              rule.turn = cell;
             case 'gun':
-              rule.gun = row[i];
-            case 'fire':
-              rule.fire = num.tryParse(row[i]) ?? 0;
-            default:
-              throw FormatException('unknown command "${command(h)}"');
+              rule.gun = cell;
           }
         } else if (h.startsWith('#')) {
           rule.why = row[i];
         } else if (sensors.containsKey(h)) {
-          if (row[i].trim() != '-') rule.when[h] = row[i];
+          if (cell != '-' && cell.isNotEmpty) rule.when[h] = cell;
         } else {
           throw FormatException('unknown sensor "$h"');
         }
@@ -197,7 +233,7 @@ class Robot {
       rules.add(rule);
     }
     return Robot(
-      name: '${model['name'] ?? 'Robot'}',
+      name: '${(model as Map)['name'] ?? 'Robot'}',
       color: color,
       rules: rules,
     );
