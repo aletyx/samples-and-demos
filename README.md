@@ -195,25 +195,6 @@ and open http://localhost:8920/app/. Its ports are its own, so it runs at
 the same time as Mortgage Hub (8880) and Contact Hub (8890). See the
 [RoboRules README](RoboRules/README.md).
 
-## Cellfie
-
-[Cellfie/](Cellfie/) plays Conway's Game of Life on an infinite board:
-each generation, the cells take a picture of themselves and aityx says
-who's in it. Its decision model applies the rules and recognizes known
-patterns. The Flutter app draws the board, labels patterns, and shows
-each request and response; the Dart API makes one aityx call per
-generation. Put your key in `Cellfie/.env` (see
-[.env.example](Cellfie/.env.example)), then, from the root:
-
-```bash
-devbox services up -c Cellfie --pcflags "--tui=false"
-# or, with Docker alone
-docker compose -f Cellfie/compose.yaml up --build
-```
-
-The app serves at http://localhost:8930/app/. The badge above opens it
-in a Codespace. See the [Cellfie README](Cellfie/README.md).
-
 ## Life Hub
 
 [LifeHub/](LifeHub/) plays Conway's Game of Life on an infinite board,
