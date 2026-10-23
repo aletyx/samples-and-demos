@@ -8,7 +8,7 @@ sample with its own documentation.
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
-| [Cellfie](Cellfie/) | Conway's Game of Life on an infinite board, with the rules and pattern catalogue as an aityx decision model: one call per generation, with the board and every request and response shown in the app | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Cellfie](Cellfie/) | The cells take a picture of themselves every generation, and aityx says who's in it: Conway's Game of Life on an infinite board, with the rules and pattern catalogue as an aityx decision model; one call per generation, with the board and every request and response shown in the app | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Life Hub](LifeHub/) | Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FLifeHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
@@ -195,23 +195,36 @@ and open http://localhost:8920/app/. Its ports are its own, so it runs at
 the same time as Mortgage Hub (8880) and Contact Hub (8890). See the
 [RoboRules README](RoboRules/README.md).
 
+## Cellfie
+
+[Cellfie/](Cellfie/) plays Conway's Game of Life on an infinite board:
+each generation, the cells take a picture of themselves and aityx says
+who's in it. Its decision model applies the rules and recognizes known
+patterns. The Flutter app draws the board, labels patterns, and shows
+each request and response; the Dart API makes one aityx call per
+generation. Put your key in `Cellfie/.env` (see
+[.env.example](Cellfie/.env.example)), then, from the root:
+
+```bash
+devbox services up -c Cellfie --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f Cellfie/compose.yaml up --build
+```
+
+The app serves at http://localhost:8930/app/. The badge above opens it
+in a Codespace. See the [Cellfie README](Cellfie/README.md).
+
 ## Life Hub
 
 [LifeHub/](LifeHub/) plays Conway's Game of Life on an infinite board,
-with the rules of the game as a decision model on aityx. Built like
-Contact Hub: a Flutter app draws the board (drag, zoom, tap to draw,
-**Random start**, **Play** and an **Acceleration** control from half a
-generation a second to as fast as aityx answers), and a Dart API runs
-each generation as one aityx call, in which a decision table decides the
-fate of every situation on the board, with a why on every row, and a
-pattern catalogue names the well-known patterns (still lifes,
-oscillators, spaceships, methuselahs) among the clusters of live cells.
-The app labels the patterns on the board, notifies when one appears, and
-shows every call, request and response, in a side panel. Conway's rules
-are on at the start; HighLife's birth with six neighbours and Life without
+with the rules and pattern catalogue as an aityx decision model. Its
+Flutter app draws the board (drag, zoom, tap to draw, **Random start**,
+**Play** and an **Acceleration** control), and its Dart API runs each
+generation as one aityx call. The app labels patterns on the board,
+notifies when one appears, and shows every call, request and response
+in a side panel. HighLife's birth with six neighbours and Life without
 death can be switched on. Put your key in `LifeHub/.env` (see
-[.env.example](LifeHub/.env.example)), then, from the root of this
-repository:
+[.env.example](LifeHub/.env.example)), then, from the root:
 
 ```bash
 devbox services up -c LifeHub --pcflags "--tui=false"
@@ -219,9 +232,7 @@ devbox services up -c LifeHub --pcflags "--tui=false"
 docker compose -f LifeHub/compose.yaml up --build
 ```
 
-Both serve the app at http://localhost:8900/app/, so it runs alongside
-the other two. The badge above opens it in a codespace, which uses the
-same `AITYX_API_KEY` Codespaces secret. See the
+The app serves at http://localhost:8900/app/. See the
 [Life Hub README](LifeHub/README.md).
 
 ## PokerFace

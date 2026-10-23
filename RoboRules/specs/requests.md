@@ -22,3 +22,18 @@ The requests that shaped RoboRules, oldest first, each with what changed.
    from 1 to 60 turns a second, or as fast as aityx plays them. Ports
    8920/8921: Life Hub and Poker Hub in this folder already use 8900/8901
    and 8910/8911.
+2. **Fix what the code review found.** A battle started after a finished
+   one now plays (the round-end flag is cleared on reset); a reply still
+   in flight when a battle is restarted or stopped is dropped, not applied
+   to the new one; a round aityx fails to score waits with **Retry
+   scoring** instead of being left out of the totals; the editor's JSON is
+   checked as the battle checks robots, with an error instead of a crash;
+   `make` builds only the web app, the only platform.
+
+3. **Use custom favicons for each sample, in the same style and colors
+   as aityx but related to each demo.** RoboRules had Flutter's default
+   icons. It now has a tank seen from above: `web/favicon.svg`, a flat
+   orange glyph with no background as aityx.ai's own favicon is drawn,
+   first in `index.html`; and the tile, orange on the dark background,
+   rendered from `assets/icon/icon.svg` as `favicon.png` and the
+   manifest's icons. See [App icon](app-icon.md).

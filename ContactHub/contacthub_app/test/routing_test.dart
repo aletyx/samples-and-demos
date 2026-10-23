@@ -4,8 +4,7 @@ import 'dart:io';
 import 'package:contacthub_app/main.dart';
 import 'package:contacthub_app/routing/json_layout.dart';
 import 'package:contacthub_app/routing/routing.dart';
-import 'package:contacthub_app/routing/routing_screen.dart'
-    show routingDecision;
+import 'package:contacthub_app/routing/routing_screen.dart' show decisionDigest;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -34,9 +33,9 @@ class FakeRouter implements RequestRouter {
   }
 }
 
-/// The single pane's rows for [o], as the routing screen lays them out.
+/// The pane's rows for [o], as the routing screen lays them out.
 CallLayout _pane(RoutingOutcome o) =>
-    layoutCall(o.aityxRequest, routingDecision(o.aityxResponse));
+    layoutCall(o.aityxRequest, decisionDigest(o.aityxResponse));
 
 /// How far the call's pane is scrolled.
 double _offset(WidgetTester tester) =>
@@ -54,11 +53,13 @@ void main() {
     expect(r.responseHours, 24);
     expect(r.needsReview, isFalse);
     expect(r.topic, 'customer_service');
+    expect(r.topicConfidence, 1);
     expect(r.topicProbabilities['customer_service'], 1);
+    expect(r.requestKind, 'return_refund');
     expect(r.policy!.resolution, 'refund');
     expect(r.policy!.rule, 16);
     expect(r.policy!.refundAmount, 279.65);
-    expect(r.policy!.refundBy, DateTime(2026, 10, 26));
+    expect(r.policy!.refundBy, DateTime(2026, 10, 28));
     expect(r.policy!.daysSinceDelivery, 20);
     expect(r.policy!.order!.item, 'Tablet');
     expect(r.checks.map((c) => c.id), [
@@ -69,6 +70,34 @@ void main() {
     ]);
     expect(o.aityxRequest, isA<Map>());
     expect(o.aityxResponse, isA<Map>());
+  });
+
+  test('the digest keeps what was read and what decides', () {
+    final o = _outcome();
+    final decision = decisionDigest(o.aityxResponse);
+    final answers = decision['answers'] as Map;
+    expect(answers.keys, contains('topic'));
+    expect(answers.keys, contains('request_kind'));
+    expect(answers.keys, contains('department'));
+    expect(answers.keys, contains('resolution'));
+    expect(answers.keys, isNot(contains('evidence_threshold')));
+    expect((answers['topic'] as Map).keys, isNot(contains('probabilities')));
+    expect(
+      (answers['department'] as Map).keys,
+      isNot(contains('probabilities')),
+    );
+    expect((answers['department'] as Map)['choice'], 'customer_service');
+    final receipt = decision['receipt'] as Map;
+    expect((receipt['decisions'] as Map).keys, [
+      'department',
+      'resolution',
+      'refund_amount',
+      'priority',
+      'response_hours',
+    ]);
+    expect(((receipt['decisions'] as Map)['department'] as Map)['rule'], 3);
+    expect((receipt['provenance'] as Map)['topic'], 'jev');
+    expect((receipt['provenance'] as Map)['order'], 'state');
   });
 
   group('ApiRequestRouter', () {
@@ -139,6 +168,20 @@ void main() {
       expect(find.text('Goes straight to the department'), findsOneWidget);
     });
 
+    testWidgets('shows what aityx read', (tester) async {
+      await pump(tester, FakeRouter());
+
+      expect(find.text("aityx's reading of the message"), findsOneWidget);
+      expect(
+        find.textContaining('aityx chose Customer Service, 100% confident'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('What the customer wants: A return or a refund'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a rule link lands exactly on the row that fired', (
       tester,
     ) async {
@@ -157,6 +200,27 @@ void main() {
         find.textContaining('The row of the department table that fired'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a question is shown as wrapped prose, and lands exactly', (
+      tester,
+    ) async {
+      final outcome = _outcome();
+      await pump(tester, FakeRouter(outcome));
+
+      await tester.tap(find.text('Question').first);
+      await tester.pumpAndSettle();
+      final pane = _pane(outcome);
+      final question = pane.range('request', 'questions.urgent_probability')!;
+      expect(_offset(tester), 8 + (question.first - 1) * 22.0);
+      expect(find.textContaining('A yes/no question (noul)'), findsOneWidget);
+      // The question's instructions wrap onto an unnumbered row.
+      final instructions = pane.range(
+        'request',
+        'questions.urgent_probability.instructions',
+      )!;
+      expect(instructions.last, greaterThan(instructions.first));
+      expect(pane.rows[instructions.last].line!.continuation, isTrue);
     });
 
     testWidgets('the jumped-to part stays selected when the page rebuilds', (
@@ -183,7 +247,7 @@ void main() {
       await pump(tester, FakeRouter(outcome));
 
       expect(find.text('Refund'), findsOneWidget);
-      expect(find.text(r'$279.65, paid by Oct 26, 2026'), findsOneWidget);
+      expect(find.text(r'$279.65, paid by Oct 28, 2026'), findsOneWidget);
       expect(find.text('Order 120-5150 · Tablet'), findsOneWidget);
       expect(find.textContaining('(20 days ago)'), findsOneWidget);
 
@@ -231,22 +295,25 @@ void main() {
       );
     });
 
-    testWidgets('the response shows just the routing decision', (tester) async {
+    testWidgets('the response shows what was read and what decides', (
+      tester,
+    ) async {
       final outcome = _outcome();
       await pump(tester, FakeRouter(outcome));
 
-      final decision = routingDecision(outcome.aityxResponse);
-      expect((decision['answers'] as Map).keys, ['department']);
-      expect(((decision['receipt'] as Map)['decisions'] as Map).keys, [
-        'department',
-      ]);
-      // Links to response parts the pane doesn't show are left out...
-      expect(find.text('Hours'), findsNothing);
-      // ...but the request's stay.
+      final decision = decisionDigest(outcome.aityxResponse);
+      expect(
+        (decision['answers'] as Map).keys,
+        isNot(contains('return_window_days')),
+      );
+      // Links to response parts the pane shows stay...
+      expect(find.text('Hours'), findsOneWidget);
       expect(find.text('Hours table'), findsOneWidget);
+      // ...and the pane copies all of the answer.
       expect(find.text('Copy full response'), findsOneWidget);
       // Key parts are labeled in the pane before anything is jumped to.
       expect(find.text('The routing decision'), findsWidgets);
+      expect(find.text('Topic read'), findsWidgets);
     });
 
     testWidgets('fits a phone screen', (tester) async {
@@ -262,6 +329,8 @@ void main() {
 
       // Overflows would have been reported as exceptions.
       expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Rule 3'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Rule 3'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

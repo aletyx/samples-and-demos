@@ -267,3 +267,12 @@ spec.
     web ports forwarded and made public, and `startup.log` at the root.
     The Mortgage Hub badges and the index page's card open it. See
     [Development environment](dev-environment.md).
+
+## 2026-10-23
+
+36. **Use custom favicons for each sample, in the same style and colors
+    as aityx but related to each demo.** The tab now shows
+    `web/favicon.svg`, the house with the dollar sign as a flat orange
+    glyph with no background, as aityx.ai's own favicon is drawn; the
+    PNG tile stays as the fallback and the app icons keep it. See
+    [App icon](app-icon.md#favicon).

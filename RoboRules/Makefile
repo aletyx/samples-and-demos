@@ -1,7 +1,7 @@
-# Builds the app binaries. Every target delegates to scripts/make.sh, which
-# documents the settings, e.g. `make android MODE=debug`.
+# Builds the web app. Every target delegates to scripts/make.sh, which
+# documents the settings, e.g. `make web MODE=debug`.
 #
-#   make           build the web app
+#   make           the web app (RoboRules is web only)
 #   make web       roborules_app/build/web/
 #   make clean     flutter clean
 

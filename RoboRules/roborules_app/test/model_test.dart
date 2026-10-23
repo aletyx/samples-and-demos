@@ -134,15 +134,73 @@ void main() {
     for (final model in [
       {'decisions': 'junk'},
       modelFor({'when': 'junk', 'then': {}}),
+      modelFor({'when': {}, 'then': 'junk'}),
       modelFor(['fly', 'none', 'hold', '0']),
       modelFor(['ahead', 'none', 'hold', 'not a number']),
       modelFor(['ahead', 'none', 'hold', '4']),
+      modelFor(['ahead', 'none', 'hold', 'NaN']),
     ]) {
       expect(
         () => Robot.fromModel(model, color: spinner.color),
         throwsFormatException,
       );
     }
+  });
+
+  test('a broken model says what is wrong instead of crashing', () {
+    Map<String, Object?> withRow(List<Object?> row) => {
+      'decisions': {
+        'action': {
+          'table': [
+            ['=> drive', '=> turn', '=> gun', '=> fire', '# why'],
+            row,
+          ],
+        },
+      },
+    };
+    expect(
+      () => Robot.fromModel({'decisions': []}, color: spinner.color),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => Robot.fromModel(
+        withRow(['sideways', 'none', 'aim', '0', 'x']),
+        color: spinner.color,
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('rule 1: drive must be one of'),
+        ),
+      ),
+    );
+    expect(
+      () => Robot.fromModel(
+        withRow(['ahead', 'none', 'aim', '5', 'x']),
+        color: spinner.color,
+      ),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => Robot.fromModel({
+        'decisions': {
+          'action': {
+            'table': [
+              ['=> drive', '=> turn', '=> fire'],
+              ['ahead', 'none', '0'],
+            ],
+          },
+        },
+      }, color: spinner.color),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('no "=> gun" column'),
+        ),
+      ),
+    );
   });
 
   group('random robots', () {

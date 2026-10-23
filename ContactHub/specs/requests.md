@@ -100,8 +100,8 @@ The feature files hold the current specification; see the
    load ends the dictation with an error instead of a spinner that never
    stops; Android release builds get the internet permission; full screen
    opens where the view was scrolled and keeps room for the code on short
-   windows; the API's 90 s deadline covers aityx's whole answer and aborts
-   the call, and nginx waits 100 s.
+   windows; the API's 100 s deadline covers aityx's whole answer and aborts
+   the call, and nginx waits 120 s.
 10. **Add dates, numbers and figures to the sample requests and to the
     rules, with the usual commerce rules (for example, no automatic refund
     more than a month after the purchase); be creative.** aityx's
@@ -135,3 +135,38 @@ The feature files hold the current specification; see the
     copies all of it. The sample menu is wider, so its second lines fit.
     A marked part stays selected when the page rebuilds (the review found
     it lost its color on a resize). See [Routing](routing.md#the-aityx-call).
+
+## 2026-10-22
+
+13. **Change the app to use a simple, local LLM, such as Ollama with
+    qwen3:1.7b, to parse the contact request, and use aityx only for the
+    System One decision; make the response easy to understand in the
+    app, highlighting the key parts and presenting the JSON in a way
+    that is easy to read.** Then, the next day: **remove the LLM part,
+    just aityx.** The local model was built and measured (qwen3:1.7b
+    read 22 of the 27 samples as labeled in about 0.7 s, qwen3:4b 25 in
+    1.7 s) and then taken out: routing is one aityx call again, Jev
+    answering the questions and the rules deciding, as before. What
+    stays is the readable response: the pane shows a digest of aityx's
+    answer (what Jev read, the answers that decide, each without its
+    probability map, the receipts of the tables that fired and the
+    provenance), with more key parts labeled (what was read, the
+    thresholds, the facts, the provenance); long strings, the questions'
+    instructions and criteria and the rules' reasons, wrap onto
+    unnumbered rows as prose instead of running off the pane; the pane
+    is as high as its rows. **aityx's reading of the message** now also
+    says what the customer wants done with their order, and the API
+    answers `request_kind` at the top level of the routing. A new tool,
+    `dart run tool/route_samples.dart`, routes every sample through a
+    running API and compares the department with the sample's label.
+    See [Routing](routing.md#the-aityx-call).
+
+## 2026-10-23
+
+14. **Use custom favicons for each sample, in the same style and colors
+    as aityx but related to each demo.** The tab now shows
+    `web/favicon.svg`, the speech bubble with the route cut into it as a
+    flat orange glyph with no background, the chosen node a larger
+    cutout, as aityx.ai's own favicon is drawn; the PNG tile stays as the
+    fallback and the app icons keep it. See
+    [App icon](app-icon.md#favicon).

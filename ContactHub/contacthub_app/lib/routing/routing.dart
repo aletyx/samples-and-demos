@@ -176,6 +176,7 @@ class Routing {
     required this.topic,
     required this.topicConfidence,
     required this.topicProbabilities,
+    required this.requestKind,
     required this.checks,
     this.policy,
   });
@@ -200,6 +201,7 @@ class Routing {
             in ((topic['probabilities'] as Map?) ?? const {}).entries)
           '$key': (value as num).toDouble(),
       },
+      requestKind: json['request_kind'] as String?,
       checks: [
         for (final check in (json['checks'] as List?) ?? const [])
           RoutingCheck.fromJson((check as Map).cast<String, Object?>()),
@@ -226,10 +228,14 @@ class Routing {
   final int responseHours;
   final bool needsReview;
 
-  /// aityx's choice of topic, its confidence, and every topic's probability.
+  /// aityx's reading: its choice of topic, its confidence, every topic's
+  /// probability, and what the customer wants done with their order
+  /// (`return_refund`, `cancel_order`..., `none` when the message isn't
+  /// about an order).
   final String? topic;
   final double? topicConfidence;
   final Map<String, double> topicProbabilities;
+  final String? requestKind;
   final List<RoutingCheck> checks;
 
   /// The store's policy for the order the request names, if any.
@@ -287,7 +293,7 @@ class ApiRequestRouter implements RequestRouter {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'message': message}),
           )
-          .timeout(const Duration(seconds: 100));
+          .timeout(const Duration(seconds: 110));
     } catch (_) {
       throw const RoutingException('The API did not answer.');
     }

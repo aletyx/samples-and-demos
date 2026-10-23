@@ -2,8 +2,8 @@
 # Builds the app binaries. Run through the Makefile (`make`, `make web`, ...)
 # or directly: `bash scripts/make.sh <target>...`.
 #
-# Targets: web, all (the web app), clean. Settings, from the environment
-# or `make VAR=value`:
+# Targets: web (the only platform: RoboRules is a web app), all (the
+# same), clean. Settings, from the environment or `make VAR=value`:
 #   MODE          release (default), profile or debug
 #   API_BASE_URL  the API the app calls to play turns
 #                 (default http://localhost:8921; empty: the app's origin)
@@ -29,24 +29,18 @@ BUILD_ARGS=(--build-name "$VERSION" --build-number "$BUILD_NUMBER"
   --dart-define="ROBORULES_VERSION=$VERSION"
   --dart-define="API_BASE_URL=${API_BASE_URL-http://localhost:8921}")
 
-build() {
-  local target="$1"
-  echo "==> $target ($MODE, version $VERSION, build $BUILD_NUMBER)"
-  case "$target" in
-    web)
-      local base=()
-      [[ -n "${WEB_BASE_HREF:-}" ]] && base=(--base-href "$WEB_BASE_HREF")
-      flutter build web "--$MODE" ${base[@]+"${base[@]}"} "${BUILD_ARGS[@]}"
-      echo "==> web: roborules_app/build/web/"
-      ;;
-  esac
+build_web() {
+  local base=()
+  [[ -n "${WEB_BASE_HREF:-}" ]] && base=(--base-href "$WEB_BASE_HREF")
+  echo "==> web ($MODE, version $VERSION, build $BUILD_NUMBER)"
+  flutter build web "--$MODE" ${base[@]+"${base[@]}"} "${BUILD_ARGS[@]}"
+  echo "==> web: roborules_app/build/web/"
 }
 
 [[ $# -gt 0 ]] || set -- all
 for arg in "$@"; do
   case "$arg" in
-    web) build web ;;
-    all) build web ;;
+    web | all) build_web ;;
     clean) flutter clean ;;
     android | ios | linux)
       echo "error: $arg is not supported; RoboRules is a web-only app" >&2

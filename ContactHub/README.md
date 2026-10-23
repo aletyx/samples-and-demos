@@ -175,7 +175,10 @@ Devbox, Nix, the GitHub CLI and Flutter.
 1. Create a branch from an up-to-date `main`.
 2. Make one change per pull request, with its tests. Run `flutter analyze`
    and `flutter test` in `contacthub_app/`, and `dart analyze` and
-   `dart test` in `contacthub_api/`.
+   `dart test` in `contacthub_api/`. After changing the model, `bash
+   scripts/model-test.sh` runs its rules on aityx, and `dart run
+   tool/route_samples.dart` in `contacthub_app/` routes every sample
+   through the running API.
 3. Update the matching feature spec in [specs/](specs/) and add an entry to
    [specs/requests.md](specs/requests.md).
 4. Open a pull request against `main`.

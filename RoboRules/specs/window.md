@@ -25,7 +25,8 @@ Robocode-style battles, every turn played by aityx".
 - **Controls**: Start/Pause/Resume, Next turn, Stop, Restart, New battle…,
   **Speed** (1 to 60 turns a second, or Max), aityx's measured turns a
   second, **aityx call**, and any error (a failed call pauses the battle
-  until Resume).
+  until Resume; a round aityx fails to score waits with **Retry scoring**,
+  since moving on would leave it out of the totals).
 - **Dialogs**: **New Battle** (robots 2–10, two by default; rounds 1–10,
   three by default), **Results** (Rank, Robot Name, Total Score, Survival,
   Surv Bonus, Bullet Dmg, 1sts, the winner highlighted), and **The last
