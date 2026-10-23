@@ -74,7 +74,7 @@ class GameController extends ChangeNotifier {
   /// preset.
   Future<void> load() async {
     try {
-      strategies = await api.strategies();
+      strategies = [...await api.strategies()];
       loadError = null;
       if (game.seats.isEmpty) {
         for (final s in strategies) {

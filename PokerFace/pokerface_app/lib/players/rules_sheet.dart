@@ -441,6 +441,7 @@ class _RulesSheetState extends State<RulesSheet> {
                           child: DropdownButtonFormField<String>(
                             key: Key('condition-column-$i'),
                             initialValue: _conditions[i].$1,
+                            isExpanded: true,
                             isDense: true,
                             decoration: const InputDecoration(
                               isDense: true,

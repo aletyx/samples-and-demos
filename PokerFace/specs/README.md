@@ -22,8 +22,8 @@ added at any time.
 
 - [The table](table.md): the felt, the seats, the board and the pot; the
   rules of the game as the app plays them (blinds, betting rounds, side
-  pots, showdown, rebuys); the controls: play, pause, step, the pace
-  slider, rebuys and reset.
+  pots, showdown, blind levels, eliminations, the winner); the controls:
+  play, pause, step, the pace slider and a new tournament.
 - [The aityx calls](calls.md): the sidebar's list of every decision asked
   of aityx, and the full request and response with the key parts marked;
   the hand log.

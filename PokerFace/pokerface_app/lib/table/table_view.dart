@@ -81,9 +81,9 @@ class TableView extends StatelessWidget {
               if (seats[i].bet > 0 ||
                   (game.button == seats[i] && game.handInProgress))
                 Positioned(
-                  left: w / 2 + _unit(i, n).dx * betRx - 50,
+                  left: w / 2 + _unit(i, n).dx * betRx - 100,
                   top: h / 2 + _unit(i, n).dy * betRy - 14,
-                  width: 100,
+                  width: 200,
                   height: 28,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +94,7 @@ class TableView extends StatelessWidget {
                         const SizedBox(width: 6),
                       ],
                       if (seats[i].bet > 0)
-                        ChipPile(seats[i].bet, chipWidth: 16),
+                        ChipPile(seats[i].bet, chipWidth: 16, maxChips: 14),
                     ],
                   ),
                 ),
@@ -381,8 +381,8 @@ class _SeatView extends StatelessWidget {
             child: ChipPile(
               seat.stack,
               label: false,
-              chipWidth: 12,
-              maxChips: 12,
+              chipWidth: 13,
+              maxChips: 16,
             ),
           ),
       ],

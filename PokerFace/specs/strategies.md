@@ -31,7 +31,7 @@ The inputs of table.json, computed by the app at each turn:
 | `can_check`, `can_raise` | boolean | Whether a check is free, and whether a raise is possible (chips beyond the call and someone left to raise) |
 | `raises` | count | Bets and raises this round before the player's turn (the blinds don't count) |
 | `stack`, `stack_bb` | chips, big blinds | Chips behind |
-| `big_blind` | chips | 10 |
+| `big_blind` | chips | The big blind at the current level |
 | `min_raise`, `max_raise` | chips | The smallest and largest total bet a raise can be made to (all in) |
 | `players_in_hand`, `players_after` | count | Still in the hand (the player included); still to act after the player this round |
 | `random` | 0..1 | Drawn for this decision, so a strategy can mix its play |
