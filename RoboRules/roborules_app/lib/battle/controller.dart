@@ -73,11 +73,8 @@ class BattleController extends ChangeNotifier {
   bool _disposed = false;
   bool _fetching = false;
   bool _roundEnds = false;
+  int _battleId = 0;
   Timer? _timer;
-
-  /// Which battle this is: replies to an earlier one, still in flight when
-  /// it was restarted, are dropped.
-  int _battle = 0;
 
   /// A finished round aityx couldn't score yet: [retryScore] tries again.
   World? _unscored;
@@ -106,8 +103,8 @@ class BattleController extends ChangeNotifier {
   }
 
   void _reset() {
+    _battleId++;
     _stopTimer();
-    _battle++;
     _fetching = false;
     _roundEnds = false;
     _unscored = null;
@@ -226,9 +223,10 @@ class BattleController extends ChangeNotifier {
     if (n <= 0) return;
     _fetching = true;
     final started = DateTime.now();
-    final battle = _battle;
+    final battleAtStart = _battleId;
     final roundAtStart = round;
-    bool stale() => _disposed || battle != _battle || round != roundAtStart;
+    bool stale() =>
+        _disposed || battleAtStart != _battleId || round != roundAtStart;
     try {
       final turns = await _api.turns(robots, from, n);
       if (stale()) return;
@@ -249,7 +247,7 @@ class BattleController extends ChangeNotifier {
       error = e.message;
       if (state == BattleState.running) state = BattleState.paused;
     } finally {
-      if (battle == _battle) _fetching = false;
+      if (battleAtStart == _battleId) _fetching = false;
       notifyListeners();
     }
   }
@@ -263,8 +261,8 @@ class BattleController extends ChangeNotifier {
   }
 
   Future<void> _endRound(World last) async {
-    final battle = _battle;
-    bool stale() => _disposed || battle != _battle;
+    final battleAtStart = _battleId;
+    bool stale() => _disposed || battleAtStart != _battleId;
     state = BattleState.scoring;
     _unscored = null;
     error = null;

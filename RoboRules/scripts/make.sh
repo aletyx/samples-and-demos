@@ -42,6 +42,10 @@ for arg in "$@"; do
   case "$arg" in
     web | all) build_web ;;
     clean) flutter clean ;;
-    *) echo "error: unknown target '$arg' (web, all, clean: RoboRules is web only)" >&2; exit 2 ;;
+    android | ios | linux)
+      echo "error: $arg is not supported; RoboRules is a web-only app" >&2
+      exit 2
+      ;;
+    *) echo "error: unknown target '$arg' (web, all, clean)" >&2; exit 2 ;;
   esac
 done

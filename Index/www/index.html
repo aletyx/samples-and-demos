@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aityx demos</title>
+  <meta name="description" content="Every aityx sample and demo: what it shows, and where to open it.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- Every link opens in a new tab: the index stays open. -->
+  <base target="_blank">
+  <style>
+    :root {
+      --bg0: #151418; --bg: #17161A; --bg1: #201E24; --bg2: #2A272E;
+      --border: #37333C; --dim: #47474D;
+      --fg0: #FFFFFF; --fg: #EFF2F4; --muted: #A9ACB6;
+      --orange: #E36742; --orange-light: #EB7B58;
+      --green: #4CC38A; --amber: #E8B04B; --red: #F0506E;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--fg); }
+    body {
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 0 16px 48px;
+    }
+    a { color: var(--orange-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header {
+      max-width: 1100px; margin: 0 auto; padding: 40px 0 24px;
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand svg { width: 44px; height: 44px; }
+    h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+    .tag { color: var(--muted); margin: 4px 0 0; }
+    .meta { color: var(--muted); font-size: 14px; text-align: right; }
+    .meta a { color: var(--fg); }
+    main { max-width: 1100px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--bg1); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 10px;
+      transition: border-color .15s;
+    }
+    .card:hover { border-color: var(--dim); }
+    .card.up { border-color: rgba(76, 195, 138, .45); }
+    .head { display: flex; align-items: center; gap: 12px; }
+    .icon {
+      width: 40px; height: 40px; border-radius: 10px; flex: none;
+      background: var(--bg2); display: grid; place-items: center;
+    }
+    .icon svg { width: 24px; height: 24px; }
+    .head h2 { margin: 0; font-size: 18px; }
+    .head .what { margin: 0; color: var(--muted); font-size: 13px; }
+    .desc { margin: 0; color: var(--fg); font-size: 14.5px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font-size: 11.5px; color: var(--muted); background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+    }
+    .chip.aityx { color: var(--orange-light); border-color: rgba(227, 103, 66, .5); }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: auto; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dim); flex: none; }
+    .dot.up { background: var(--green); box-shadow: 0 0 8px rgba(76, 195, 138, .6); }
+    .dot.off { background: var(--amber); }
+    .status code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--fg); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 8px; padding: 7px 12px; font-size: 13.5px; font-weight: 600;
+      border: 1px solid var(--border); color: var(--fg); background: var(--bg2);
+    }
+    .btn:hover { text-decoration: none; border-color: var(--dim); }
+    .btn.primary { background: var(--orange); border-color: var(--orange); color: var(--fg0); }
+    .btn.primary:hover { background: var(--orange-light); }
+    .btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+    .btn svg { width: 15px; height: 15px; }
+    h3.section { margin: 36px 0 12px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    footer { max-width: 1100px; margin: 40px auto 0; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--border); padding-top: 18px; }
+    footer code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--fg); }
+    @media (max-width: 600px) { header { padding-top: 24px; } .meta { text-align: left; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <rect width="48" height="48" rx="12" fill="#E36742"/>
+        <path d="M14 33 L24 13 L34 33 M18.5 26 H29.5" fill="none" stroke="#17161A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h1>aityx demos</h1>
+        <p class="tag">Business automation with <a href="https://aityx.ai">aityx</a>: processes, decision models, and the apps around them.</p>
+      </div>
+    </div>
+    <div class="meta">
+      <a href="https://github.com/aletyx/samples-and-demos">github.com/aletyx/samples-and-demos</a><br>
+      <span id="refreshed">Checking which demos are up…</span>
+    </div>
+  </header>
+
+  <main>
+    <h3 class="section">Apps, each with its own aityx models</h3>
+    <div class="grid" id="apps"></div>
+
+    <h3 class="section">Models and processes, no app</h3>
+    <div class="grid" id="models"></div>
+  </main>
+
+  <footer>
+    Every app runs locally on its own port: start them all with <code>./start-all.sh</code> at the
+    root of the repository, stop them with <code>./stop-all.sh</code>. Each needs your own aityx key in its
+    <code>.env</code>. Or open one in a GitHub codespace from its card, or
+    <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&amp;machine=standardLinux32gb">all of them at once</a>.
+  </footer>
+
+  <script>
+    // The demos, in the order shown. "folder" matches the repository's folders
+    // and what /api/demos reports; the ports come from there too.
+    const demos = [
+      {
+        folder: 'MortgageHub', name: 'Mortgage Hub',
+        what: 'A mortgage application, from request to verdict',
+        desc: 'A buyer fills in a proposal request, and a regulatory check says whether a lender can process it under current US rules: Fannie Mae’s eligibility matrix, the 2026 FHFA and FHA limits, FHA, VA and USDA rules and DTI limits, executed as a decision model on aityx.',
+        chips: ['Flutter app', 'Dart API', 'aityx decision model'],
+        // Its own dev container is archived; the default one starts it with the rest.
+        icon: 'home', codespace: true, devcontainer: '.devcontainer/devcontainer.json',
+      },
+      {
+        folder: 'ContactHub', name: 'Contact Hub',
+        what: 'Ask anything, and it reaches the right person',
+        desc: 'A request, typed or dictated on the device, is classified and checked by aityx and routed by a decision model to the department, the person and the priority; for an order, the store’s policy says what is refunded and by when. The app shows why, and the aityx call itself.',
+        chips: ['Flutter app', 'Dart API', 'aityx decision model', 'speech on the device'],
+        icon: 'chat', codespace: true,
+      },
+      {
+        folder: 'LifeHub', name: 'Life Hub',
+        what: 'Conway’s Game of Life, its rules on aityx',
+        desc: 'Life on an infinite board, with the rules of birth and death, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, with the request and the response in a side panel.',
+        chips: ['Flutter app', 'Dart API', 'aityx decision model'],
+        icon: 'grid', codespace: true,
+      },
+      {
+        folder: 'RoboRules', name: 'RoboRules',
+        what: 'Robocode on the web, every turn played by aityx',
+        desc: 'Tanks fight until one is left. Every robot’s behavior is an aityx decision model, its rules a table you can edit, and the whole battle (sensors, moves, bullets, hits, damage, scores) is played by aityx; the app only draws it.',
+        chips: ['Flutter app', 'Dart API', 'aityx decision model'],
+        icon: 'robot', codespace: true,
+      },
+      {
+        folder: 'PokerFace', name: 'PokerFace',
+        what: 'A poker simulator where every player is a set of rules',
+        desc: 'No-limit hold’em at a table of up to nine. At each turn the app works out the player’s situation and one aityx call runs their strategy on it: the action, the amount, and the rule that decided it. Five strategies to read, or write your own; every call in a sidebar; the pace in your hands.',
+        chips: ['Flutter app', 'Dart API', 'aityx decision model', 'strategies as rules'],
+        icon: 'cards', codespace: true,
+      },
+    ];
+    const models = [
+      {
+        folder: 'Payroll', name: 'Payroll',
+        what: 'A large rule base, as payroll and HR systems have',
+        desc: 'A written compensation policy (salary ranges for 138 roles, seniority bands, 68 market indices, modifiers for certifications, relocation, experience and competing offers, and guardrails) turned into 13 executable DMN decision models with worked examples as tests.',
+        chips: ['DMN', 'jbang tests'],
+        icon: 'table', codespace: false,
+        open: 'Open the .dmn files in your editor',
+      },
+      {
+        folder: 'Mortgage_Process', name: 'Mortgage Process',
+        what: 'A loan approval process in BPMN2',
+        desc: 'A getting-started loan approval process with a decision table, business rules and forms: a Maven kjar, built with the KIE Maven plugin, deployed to a KIE Server or opened in Business Central.',
+        chips: ['BPMN2', 'DMN', 'KIE'],
+        icon: 'flow', codespace: false,
+        open: 'Import into Business Central or VS Code',
+      },
+    ];
+
+    const icons = {
+      home: '<path d="M4 11 L12 4 L20 11 V20 H14 V14 H10 V20 H4 Z"/>',
+      chat: '<path d="M4 5 H20 V16 H10 L6 20 V16 H4 Z"/>',
+      grid: '<path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/>',
+      robot: '<path d="M5 9 H19 V19 H5 Z M8 12 H10 V14 H8 Z M14 12 H16 V14 H14 Z M11 4 H13 V9 H11 Z M2 12 H5 V17 H2 Z M19 12 H22 V17 H19 Z"/>',
+      cards: '<path d="M7 3 H17 A2 2 0 0 1 19 5 V19 A2 2 0 0 1 17 21 H7 A2 2 0 0 1 5 19 V5 A2 2 0 0 1 7 3 Z M12 7 C13 9 16 10 16 13 C16 14.5 14.7 15.5 13.4 14.8 L14 17 H10 L10.6 14.8 C9.3 15.5 8 14.5 8 13 C8 10 11 9 12 7 Z" fill-rule="evenodd"/>',
+      table: '<path d="M3 5 H21 V19 H3 Z M3 10 H21 M3 14.5 H21 M9 5 V19 M15 5 V19" fill="none" stroke="currentColor" stroke-width="2"/>',
+      flow: '<path d="M3 6 H8 V11 H3 Z M16 13 H21 V18 H16 Z M8 8.5 H12 V15.5 H16" fill="none" stroke="currentColor" stroke-width="2"/>',
+    };
+    const github = 'https://github.com/aletyx/samples-and-demos/tree/main/';
+    const codespaces = (d) =>
+      'https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=' +
+      encodeURIComponent(d.devcontainer || '.devcontainer/' + d.folder + '/devcontainer.json') +
+      '&machine=standardLinux32gb';
+    // A demo's web app from here: its port on this host or, in a codespace,
+    // whose forwarded URLs are <codespace>-<port>.<domain>, that URL.
+    const forwarded = location.hostname.match(/^(.+)-(\d+)\.(.+\.github\.dev)$/);
+    const appUrl = (port) => forwarded
+      ? 'https://' + forwarded[1] + '-' + port + '.' + forwarded[3] + '/app/'
+      : 'http://' + location.hostname + ':' + port + '/app/';
+    const ext = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg>';
+
+    function card(d, status) {
+      const el = document.createElement('article');
+      el.className = 'card' + (status && status.up ? ' up' : '');
+      el.id = 'demo-' + d.folder;
+      const chips = d.chips.map(c => '<span class="chip' + (c.includes('aityx') ? ' aityx' : '') + '">' + c + '</span>').join('');
+      let statusHtml, openHtml;
+      if (d.open) {
+        statusHtml = '<span>' + d.open + '</span>';
+        openHtml = '';
+      } else if (!status) {
+        statusHtml = '<span class="dot"></span><span>Checking…</span>';
+        openHtml = '<a class="btn primary" aria-disabled="true">Open</a>';
+      } else if (status.up) {
+        const url = appUrl(status.web);
+        const key = status.aityx === false ? ' · no aityx key' : status.aityx === true ? ' · aityx key set' : '';
+        statusHtml = '<span class="dot up"></span><span>Up at <code>' + url + '</code>' + key + '</span>';
+        openHtml = '<a class="btn primary" href="' + url + '">Open ' + ext + '</a>';
+      } else {
+        const port = status.web ? ' (port ' + status.web + ')' : '';
+        statusHtml = '<span class="dot off"></span><span>Not running' + port + ': <code>./start-all.sh ' + d.folder + '</code></span>';
+        openHtml = '<a class="btn primary" aria-disabled="true">Open</a>';
+      }
+      el.innerHTML =
+        '<div class="head"><div class="icon"><svg viewBox="0 0 24 24" fill="currentColor" style="color:#E36742">' + icons[d.icon] + '</svg></div>' +
+        '<div><h2>' + d.name + '</h2><p class="what">' + d.what + '</p></div></div>' +
+        '<p class="desc">' + d.desc + '</p>' +
+        '<div class="chips">' + chips + '</div>' +
+        '<div class="status">' + statusHtml + '</div>' +
+        '<div class="actions">' + openHtml +
+        '<a class="btn" href="' + github + d.folder + '">Source ' + ext + '</a>' +
+        (d.codespace ? '<a class="btn" href="' + codespaces(d) + '">Codespace ' + ext + '</a>' : '') +
+        '</div>';
+      return el;
+    }
+
+    let statuses = null;
+    function render() {
+      const apps = document.getElementById('apps');
+      const mods = document.getElementById('models');
+      apps.replaceChildren(...demos.map(d => card(d, statuses ? statuses[d.folder] || { up: false } : null)));
+      mods.replaceChildren(...models.map(d => card(d, null)));
+    }
+    async function refresh() {
+      try {
+        const r = await fetch('api/demos', { cache: 'no-store' });
+        const json = await r.json();
+        statuses = {};
+        for (const d of json.demos) statuses[d.folder] = d;
+        const up = json.demos.filter(d => d.up).length;
+        document.getElementById('refreshed').textContent =
+          up + ' of ' + demos.length + ' apps up · checked ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        document.getElementById('refreshed').textContent = 'Could not check the demos: ' + e;
+      }
+      render();
+    }
+    render();
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>

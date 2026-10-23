@@ -49,7 +49,7 @@ spec.
    DTI limits) and wrote them as an aityx decision model. Added the API
    (`mortgagehub_api`, a Dart server holding the key) and the summary's
    [regulatory check](regulatory-check.md) section. Found the stage key's
-   API host (`console-stage.aityx.ai`; production answers 401) and
+   API host (`api-stage.aityx.ai`; production answers 401) and
    verified the check end to end.
 8. **Add tooltips to the uncommon form fields.** ⓘ icons with an
    explanation on the less common fields of the
@@ -87,7 +87,7 @@ spec.
     GitHub only looks for dev containers at the repository root, so
     `MortgageHub/.devcontainer/` moved to
     [.devcontainer/MortgageHub/](../../.devcontainer/MortgageHub) and
-    the configuration is now named **Mortgage Hub**, which is
+    the configuration was named **Mortgage Hub** (since archived; see 35), which is
     what the Codespaces configuration list shows in a repository holding
     several samples. The Containerfile no longer assumes the repository is
     the app (its `WORKDIR` named a path that only existed in a standalone
@@ -257,10 +257,20 @@ spec.
     every platform. The palette is in
     [theme-colors.txt](theme-colors.txt). See [Theme](theme.md) and
     [App icon](app-icon.md).
+35. **Archive the Mortgage Hub dev container configuration and create
+    one that starts all demos** (2026-10-23). `.devcontainer/MortgageHub/`
+    moved to `.devcontainer/archive/MortgageHub/`, where GitHub no longer
+    offers it, and the repository's default dev container,
+    `.devcontainer/devcontainer.json` (**All demos**), took its place:
+    the same Containerfile, `devbox install` in every demo's folder on
+    creation, `./start-all.sh` on every start, the index's and the five
+    web ports forwarded and made public, and `startup.log` at the root.
+    The Mortgage Hub badges and the index page's card open it. See
+    [Development environment](dev-environment.md).
 
 ## 2026-10-23
 
-35. **Use custom favicons for each sample, in the same style and colors
+36. **Use custom favicons for each sample, in the same style and colors
     as aityx but related to each demo.** The tab now shows
     `web/favicon.svg`, the house with the dollar sign as a flat orange
     glyph with no background, as aityx.ai's own favicon is drawn; the

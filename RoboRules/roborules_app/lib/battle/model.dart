@@ -145,8 +145,9 @@ class Robot {
   /// command column present, every command value one the battle knows, a
   /// fire power from 0 to 3, only known sensors.
   static Robot fromModel(Object? model, {required Color color}) {
-    T field<T>(Object? map, String key, String what) {
-      final value = map is Map ? map[key] : null;
+    if (model is! Map) throw const FormatException('not a JSON object');
+    T field<T>(Object? container, String key, String what) {
+      final value = container is Map ? container[key] : null;
       if (value is! T) throw FormatException('$what is missing or wrong');
       return value;
     }
@@ -159,20 +160,39 @@ class Robot {
         'decisions.action.table needs a header and at least one rule',
       );
     }
-    final header = (table.first as List).map((h) => '$h').toList();
+    final rawHeader = table.first as List;
+    if (rawHeader.any((h) => h is! String)) {
+      throw const FormatException('table headers must be strings');
+    }
+    final header = rawHeader.cast<String>();
     String command(String h) => h.substring(2).split(':').first.trim();
-    final commands = [
-      for (final h in header)
-        if (h.startsWith('=>')) command(h),
-    ];
-    for (final c in ['drive', 'turn', 'gun', 'fire']) {
-      if (!commands.contains(c)) {
-        throw FormatException('the table has no "=> $c" column');
+    final commands = <String>{};
+    for (final h in header) {
+      if (h.startsWith('=>')) {
+        final name = command(h);
+        if (!{'drive', 'turn', 'gun', 'fire'}.contains(name) ||
+            !commands.add(name)) {
+          throw FormatException('unknown or duplicate command "$name"');
+        }
+      } else if (!h.startsWith('#') && !sensors.containsKey(h)) {
+        throw FormatException('unknown sensor "$h"');
+      }
+    }
+    for (final required in ['drive', 'turn', 'gun', 'fire']) {
+      if (!commands.contains(required)) {
+        throw FormatException('table has no "=> $required" column');
       }
     }
     final rules = <Rule>[];
     for (final raw in table.skip(1)) {
       final n = rules.length + 1;
+      if (raw is Map &&
+          ((raw['when'] != null && raw['when'] is! Map) ||
+              (raw['then'] != null && raw['then'] is! Map))) {
+        throw const FormatException(
+          'rule when and then fields must be objects',
+        );
+      }
       final row = switch (raw) {
         List l => l.map((c) => '$c').toList(),
         Map m => [
@@ -199,7 +219,7 @@ class Robot {
           final c = command(h);
           if (c == 'fire') {
             final power = num.tryParse(cell);
-            if (power == null || power < 0 || power > 3) {
+            if (power == null || !power.isFinite || power < 0 || power > 3) {
               throw FormatException(
                 'rule $n: fire must be a power from 0 to 3, not "$cell"',
               );
@@ -233,7 +253,7 @@ class Robot {
       rules.add(rule);
     }
     return Robot(
-      name: '${(model as Map)['name'] ?? 'Robot'}',
+      name: '${model['name'] ?? 'Robot'}',
       color: color,
       rules: rules,
     );

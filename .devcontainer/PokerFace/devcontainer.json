@@ -1,0 +1,98 @@
+{
+  // ---------------------------------------------------------------------
+  // PokerFace
+  //
+  // A poker simulator where every player is a set of rules run by
+  // aityx.ai: a Flutter app (web, Android, iOS, Linux) plays no-limit
+  // hold'em at a table of up to nine and shows every call, and a Dart
+  // API runs each player's strategy on aityx for each decision.
+  //
+  // Source:  https://github.com/aletyx/samples-and-demos (PokerFace/)
+  // Rules:   https://aityx.ai — decides every turn of every player
+  // Aletyx:  https://aletyx.com
+  //          https://nu01.com
+  //
+  // This repository holds several samples. This dev container is
+  // PokerFace, in PokerFace/ — not Contact Hub, Mortgage Hub, Mortgage_Process or
+  // Payroll.
+  // The name below is what GitHub shows in the "Dev container
+  // configuration" list when you create a codespace.
+  // ---------------------------------------------------------------------
+  "name": "PokerFace",
+  "build": {
+    "dockerfile": "Containerfile",
+    // Nothing is copied into the image, so the build context is just this
+    // folder rather than the whole repository.
+    "context": "."
+  },
+  "remoteUser": "vscode",
+  // The dev servers must listen on every interface for the forwarded
+  // ports to reach them (only the container sees them).
+  "containerEnv": {
+    "POKERFACE_BIND_HOST": "0.0.0.0"
+  },
+  // Your own key, never the repository's: the same AITYX_API_KEY secret as
+  // Mortgage Hub's and Contact Hub's. Codespaces secrets belong to a user
+  // and are granted per repository, so a key already granted to this
+  // repository for either reaches this container too, with nothing to copy. GitHub asks for
+  // it when you create a codespace unless you already hold it, and passes
+  // it in as an environment variable, which the scripts read before
+  // falling back to PokerFace/.env. Change it at
+  // https://github.com/settings/codespaces.
+  //
+  // AITYX_URL is optional and defaults to https://api.aityx.ai. Set the
+  // secret to https://api-stage.aityx.ai when using a stage key.
+  "secrets": {
+    "AITYX_API_KEY": {
+      "description": "Your own aityx.ai API key, from the console's API keys page; the same one Mortgage Hub and Contact Hub use. PokerFace runs every player's strategy on aityx.",
+      "documentationUrl": "https://aityx.ai/docs"
+    },
+    "AITYX_URL": {
+      "description": "Optional. API endpoint; leave unset for https://api.aityx.ai, or set https://api-stage.aityx.ai for a stage key."
+    }
+  },
+  // The image's flutter and dart on the PATH of every terminal.
+  // ${containerEnv:PATH} is the image's own PATH. Inside `devbox shell`
+  // and `devbox services up`, devbox's Flutter, the same version, comes
+  // first.
+  "remoteEnv": {
+    "PATH": "/opt/flutter/bin:${containerEnv:PATH}"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // The Flutter SDK baked into the image (see Containerfile), there
+        // from the moment VS Code attaches. Devbox's own Flutter only
+        // appears once post-create.sh has run `devbox install`, too late
+        // for the Dart extension, which then offers to download one.
+        "dart.flutterSdkPath": "/opt/flutter"
+      },
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ]
+    }
+  },
+  // Only the web app's port. The API (8911) stays inside the container:
+  // the app reaches it through the web server's /api/ proxy. The port's
+  // bare URL redirects to the app at /app/. Plain HTTP, which is what the
+  // dev server speaks; switching a public port to HTTPS makes it private.
+  // post-start.sh makes it public, which devcontainer.json cannot.
+  "forwardPorts": [8910],
+  "portsAttributes": {
+    "8910": {
+      "label": "PokerFace web app",
+      "protocol": "http",
+      "onAutoForward": "openBrowserOnce"
+    }
+  },
+  // Both run from the repository root; the scripts move to PokerFace/
+  // themselves. post-create.sh installs the toolchain once; post-start.sh
+  // starts the services and makes the port public on every start.
+  "postCreateCommand": "bash -lc 'bash .devcontainer/PokerFace/post-create.sh'",
+  "postStartCommand": "bash -lc 'bash .devcontainer/PokerFace/post-start.sh'",
+  // Again each time VS Code attaches: a visibility set at start does not
+  // always stick, and users report it does from here.
+  "postAttachCommand": "bash .devcontainer/PokerFace/public-port.sh"
+}

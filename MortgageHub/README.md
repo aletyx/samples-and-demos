@@ -51,7 +51,7 @@ reload: rebuild after a change.
 1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
 2. For the regulatory check, put your own [aityx](https://aityx.ai) settings in `.env` (see
    [.env.example](.env.example)): `AITYX_API_KEY`, and
-   `AITYX_URL=https://console-stage.aityx.ai` for a stage key. In a
+   `AITYX_URL=https://api-stage.aityx.ai` for a stage key. In a
    codespace GitHub asks for the key instead; see
    [Run it in a codespace](#run-it-in-a-codespace). Check them
    with `bash scripts/aityx-check.sh`, and the mortgage rules with
@@ -120,33 +120,43 @@ Set it once, before launching:
 3. Under **Codespaces secrets**, choose **New secret**.
 4. Name it exactly `AITYX_API_KEY`, paste the key as the value, and give
    it access to the `aletyx/samples-and-demos` repository.
+5. For a non-default endpoint, add an optional `AITYX_URL` Codespaces
+   secret and give it access to the same repository. For a stage key, set
+   it to `https://api-stage.aityx.ai`; otherwise leave it unset to use
+   `https://api.aityx.ai`.
 
 ![The New secret form: name AITYX_API_KEY, the key as the value, and access to aletyx/samples-and-demos](docs/images/codespaces-new-secret.png)
 
 If you skip this, GitHub asks for the key on the codespace creation page,
-because [devcontainer.json](../.devcontainer/MortgageHub/devcontainer.json)
+because [devcontainer.json](../.devcontainer/devcontainer.json)
 lists it as a required secret. Either way GitHub keeps it against your
 account and passes it to the container as an environment variable: it is
 never written to disk there, never committed, and never reaches the Flutter
 app.
 
-Nothing else needs setting. The API URL defaults to `https://api.aityx.ai`
-and the payment estimate's rate to 6.5%. To change either, put `AITYX_URL`
-or `ASSUMED_RATE` in `.env` (see [.env.example](.env.example)) — a stage
-key, for instance, works only against `https://console-stage.aityx.ai`.
+The API URL defaults to `https://api.aityx.ai` and the payment estimate's
+rate to 6.5%. To change either locally, put `AITYX_URL` or `ASSUMED_RATE`
+in `.env` (see [.env.example](.env.example)). In Codespaces, set
+`AITYX_URL` as described above. A stage key works only against
+`https://api-stage.aityx.ai`.
 
 ### 2. Launch it
 
-[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
-That link opens this repository's **Mortgage Hub** dev container on a
-4-core machine (16 GB RAM), which is what the Flutter and Nix builds want.
-To choose for yourself instead, use *Code → Codespaces → New with
-options* and pick **Mortgage Hub** as the dev container configuration —
-the repository holds several samples, so the configuration matters.
+That link opens this repository's default dev container, **All demos**,
+on an 8-core machine (32 GB RAM): Mortgage Hub starts with every other
+demo and the index page that links them, from
+[start-all.sh](../start-all.sh). To choose for yourself instead, use
+*Code → Codespaces → New with options* and keep **All demos** as the dev
+container configuration; the repository holds several samples, and the
+other configurations start one each. Mortgage Hub's own dev container,
+the one these were copied from, is kept in
+[.devcontainer/archive/MortgageHub/](../.devcontainer/archive/MortgageHub).
 
-The creation page should look like this: **Mortgage Hub** as the dev
-container configuration, a 4-core machine, and `AITYX_API_KEY` under
+The creation page should look like this, with **All demos** as the dev
+container configuration (the screenshot still shows the former
+**Mortgage Hub** one), an 8-core machine, and `AITYX_API_KEY` under
 *Recommended secrets*, ticked as associated with the repository. If it is
 not ticked, the secret does not reach this repository; go back to step 1.
 
@@ -155,24 +165,26 @@ not ticked, the secret does not reach this repository; go back to step 1.
 ### 3. Run the app
 
 On first start,
-[post-create.sh](../.devcontainer/MortgageHub/post-create.sh) moves to
-this folder, downloads the locked Nix store paths and runs `devbox
-install`; it also says whether your key arrived. Then, on that and every
-later start,
-[post-start.sh](../.devcontainer/MortgageHub/post-start.sh) starts the
-services in the background and makes port **8880** public. There is
-nothing to run: once the app has compiled, a minute or two on the first
-start, open port 8880 from the **Ports** panel (Codespaces may open it
-in a browser tab for you). Its bare URL redirects to the app at `/app/`.
+[post-create.sh](../.devcontainer/post-create.sh) runs `devbox install`
+in this folder and in every other demo's, downloading the locked Nix
+store paths; it also says whether your key arrived. Then, on that and
+every later start, [post-start.sh](../.devcontainer/post-start.sh) runs
+`./start-all.sh` in the background and makes port **8880** public, with
+the other demos' ports. There is nothing to run: once the app has
+compiled, a few minutes on the first start, open port 8880 from the
+**Ports** panel, or from the Mortgage Hub card on the index page
+(port 8800, which Codespaces opens in a browser tab for you). Its bare
+URL redirects to the app at `/app/`.
 
-Watch the services with `devbox services attach`, restart them with
-`devbox services restart`, and stop them with `devbox services stop`.
+Watch the services with `devbox services attach -c MortgageHub` from
+the repository root, restart them with `devbox services restart` from
+this folder, and stop them with `devbox services stop`.
 
-**If the app doesn't start, send us `MortgageHub/startup.log`.** Every
-step of the codespace's start goes there, timestamped: the install, the
-services' own output, the port's visibility, and a line saying when the
-web app and the API first answered (or, after 15 minutes without, their
-state). Open it from the Explorer, or right-click it and choose
+**If the app doesn't start, send us `startup.log` from the root of the
+repository.** Every step of the codespace's start goes there,
+timestamped: the installs, what `start-all.sh` says as each demo answers
+(or, after 15 minutes without, that it didn't), and the ports'
+visibility. Open it from the Explorer, or right-click it and choose
 **Download**. It holds no secrets: your key and token appear only as
 *set* or *not set*.
 
@@ -194,11 +206,11 @@ private in the **Ports** panel if you don't want that. If
 ## Run it in a dev container locally
 
 Open the repository root in VS Code and choose **Reopen in Container**,
-then **Mortgage Hub**. The dev container lives at the root of the
-repository, in [.devcontainer/MortgageHub/](../.devcontainer/MortgageHub),
-because that is where GitHub looks for one.
+then **All demos**. The dev container lives at the root of the
+repository, in [.devcontainer/](../.devcontainer), because that is where
+GitHub looks for one; it starts every demo, this one among them.
 
-The [Containerfile](../.devcontainer/MortgageHub/Containerfile) starts
+The [Containerfile](../.devcontainer/Containerfile) starts
 from Microsoft's `ubuntu-24.04` devcontainer base image and installs
 pinned, checksum-verified releases of Devbox and Nix.
 
