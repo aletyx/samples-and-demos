@@ -58,19 +58,37 @@ if [[ "${1:-}" != --wait ]]; then
 fi
 
 # Each port on its own, as soon as it is forwarded: up to 20 minutes, the
-# first start of six apps on a shared machine.
-pending=("${ports[@]}")
+# first start of six apps on a shared machine. A port made public can fall
+# back to private, when the visibility is set before Codespaces forwards
+# the port or when it is forwarded again as its app restarts (Mortgage
+# Hub's did), so each pass reads what the codespace reports and sets again
+# every port that is not public, and the work is done only once every port
+# has been reported public on three passes in a row.
+public_ports() {
+  gh codespace ports -c "$CODESPACE_NAME" --json sourcePort,visibility \
+    -q '.[] | select(.visibility == "public") | .sourcePort' 2>/dev/null
+}
+steady=0
 for _ in $(seq 1 120); do
-  still=()
-  for port in "${pending[@]}"; do
-    if gh codespace ports visibility "$port:public" -c "$CODESPACE_NAME"; then
-      echo "public-port: port $port is public"
-    else
-      still+=("$port")
-    fi
+  public=" $(public_ports | tr '\n' ' ') "
+  pending=()
+  for port in "${ports[@]}"; do
+    [[ "$public" == *" $port "* ]] || pending+=("$port")
   done
-  pending=("${still[@]+"${still[@]}"}")
-  [[ ${#pending[@]} -eq 0 ]] && exit 0
+  if [[ ${#pending[@]} -eq 0 ]]; then
+    steady=$((steady + 1))
+    if [[ $steady -ge 3 ]]; then
+      echo "public-port: ports ${ports[*]} are public"
+      exit 0
+    fi
+  else
+    steady=0
+    for port in "${pending[@]}"; do
+      if gh codespace ports visibility "$port:public" -c "$CODESPACE_NAME"; then
+        echo "public-port: port $port set public"
+      fi
+    done
+  fi
   sleep 10
 done
-echo "public-port: could not make ports ${pending[*]} public; set them in the Ports panel"
+echo "public-port: ports ${pending[*]:-} are still not public; set them in the Ports panel"
