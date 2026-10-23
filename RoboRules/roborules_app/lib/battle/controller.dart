@@ -11,6 +11,10 @@ import 'random_robots.dart';
 /// Where a battle is.
 enum BattleState { setup, running, paused, scoring, over }
 
+/// The most robots a battle takes: the colors run out, and the field gets
+/// crowded.
+const maxRobots = 10;
+
 /// A burst drawn where a robot was hit or died.
 class Explosion {
   Explosion(this.x, this.y, this.big, this.at);
@@ -19,6 +23,37 @@ class Explosion {
   final double y;
   final bool big;
   final DateTime at;
+}
+
+/// A call to aityx: what was asked and what it answered. Only the last
+/// few keep their payloads; the rest keep their line in the log.
+class AityxCall {
+  AityxCall({
+    required this.number,
+    required this.what,
+    required this.request,
+    required this.response,
+  });
+
+  final int number;
+
+  /// 'turns 21–40 of round 1' or 'the score of round 1'.
+  final String what;
+  Object? request;
+  Object? response;
+
+  /// Whether what was sent and answered is still here: only the last few
+  /// calls' are.
+  bool kept = true;
+}
+
+/// A line of the battle log: what happened, and the aityx call behind it
+/// when it was one.
+class BattleEvent {
+  const BattleEvent(this.text, {this.call});
+
+  final String text;
+  final AityxCall? call;
 }
 
 /// A robot's totals over the battle's rounds.
@@ -62,9 +97,20 @@ class BattleController extends ChangeNotifier {
   final totals = <String, Totals>{};
   String? error;
 
-  /// The last call to aityx, for the viewer: request and response.
-  Object? lastRequest;
-  Object? lastResponse;
+  /// Everything that happened, oldest first: rule changes, hits, losses,
+  /// rounds and their scores, every call to aityx, errors.
+  final events = <BattleEvent>[];
+
+  /// Every call to aityx this battle, oldest first; the last [keptCalls]
+  /// keep what was sent and answered, for the viewer.
+  final calls = <AityxCall>[];
+  int keptCalls = 10;
+  int maxEvents = 2000;
+
+  /// The last call to aityx, for the viewer.
+  AityxCall? get lastCall => calls.lastOrNull;
+  Object? get lastRequest => lastCall?.request;
+  Object? get lastResponse => lastCall?.response;
 
   /// How fast aityx plays turns, measured.
   double? aityxTurnsPerSecond;
@@ -92,9 +138,71 @@ class BattleController extends ChangeNotifier {
     _reset();
   }
 
+  /// The battle's robots, as New Battle picked them; the battle starts over.
+  void setRobots(List<Robot> picked) {
+    robots = picked.take(maxRobots).toList();
+    _reset();
+  }
+
+  /// Adds [robot] to the battle, which starts over; no more than
+  /// [maxRobots].
+  void addRobot(Robot robot) {
+    if (robots.length >= maxRobots) return;
+    robots = [...robots, robot];
+    _reset();
+  }
+
+  /// Takes robot [index] out of the battle, which starts over.
+  void removeRobot(int index) {
+    if (index < 0 || index >= robots.length) return;
+    robots = [...robots]..removeAt(index);
+    _reset();
+  }
+
   void replaceRobot(int index, Robot robot) {
+    final was = robots[index].name;
     robots[index] = robot;
+    _log(
+      was == robot.name
+          ? "${robot.name}'s rules changed: ${robot.rules.length} rules"
+          : "$was is now ${robot.name}: ${robot.rules.length} rules",
+    );
     notifyListeners();
+  }
+
+  void _log(String text, {AityxCall? call}) {
+    events.add(BattleEvent(text, call: call));
+    if (events.length > maxEvents) events.removeRange(0, events.length ~/ 4);
+  }
+
+  AityxCall _recordCall(String what, Object? request, Object? response) {
+    final call = AityxCall(
+      number: calls.length + 1,
+      what: what,
+      request: request,
+      response: response,
+    );
+    calls.add(call);
+    if (calls.length > keptCalls) {
+      calls[calls.length - keptCalls - 1]
+        ..kept = false
+        ..request = null
+        ..response = null;
+    }
+    return call;
+  }
+
+  /// The rule [b] followed this turn, as the robot's rules are now.
+  Rule? _ruleOf(Bot b) {
+    final i = int.tryParse(b.id.substring(1));
+    if (i == null || i < 1 || i > robots.length) return null;
+    final rules = robots[i - 1].rules;
+    return b.rule >= 1 && b.rule <= rules.length ? rules[b.rule - 1] : null;
+  }
+
+  String _name(String id) {
+    final i = int.tryParse(id.substring(1));
+    return i != null && i >= 1 && i <= robots.length ? robots[i - 1].name : id;
   }
 
   void setSpeed(double tps) {
@@ -115,6 +223,8 @@ class BattleController extends ChangeNotifier {
     _buffer.clear();
     explosions.clear();
     roundScores.clear();
+    events.clear();
+    calls.clear();
     totals
       ..clear()
       ..addAll({for (var i = 0; i < robots.length; i++) 'r${i + 1}': Totals()});
@@ -140,6 +250,11 @@ class BattleController extends ChangeNotifier {
     _reset();
     round = 1;
     state = BattleState.running;
+    _log(
+      'Battle: ${robots.map((r) => r.name).join(', ')}; '
+      '$rounds round${rounds == 1 ? '' : 's'}',
+    );
+    _log('Round 1 begins');
     _startTimer();
     _fetch();
     notifyListeners();
@@ -190,7 +305,7 @@ class BattleController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Shows the next buffered turn: explosions for hits and deaths, and
+  /// Shows the next buffered turn: explosions for hits and losses, and
   /// the round's end when it was its last.
   void _advance() {
     if (_buffer.isEmpty) return;
@@ -199,12 +314,36 @@ class BattleController extends ChangeNotifier {
     previous = before;
     world = next;
     shownAt = DateTime.now();
+    final t = 'Turn ${next.tick}';
+    final hitters = <Bot>[];
     for (final b in next.bots) {
       final was = before?.bots.where((o) => o.id == b.id).firstOrNull;
       if (b.hit) explosions.add(Explosion(b.x, b.y, false, shownAt));
       if (was != null && was.alive && !b.alive) {
         explosions.add(Explosion(b.x, b.y, true, shownAt));
       }
+      if (was == null) continue;
+      if (b.alive && b.rule > 0 && b.rule != was.rule) {
+        final why = _ruleOf(b)?.why ?? '';
+        _log(
+          '$t · ${_name(b.id)} follows rule ${b.rule}'
+          '${why.isEmpty ? '' : ': $why'}',
+        );
+      }
+      if (b.damage > was.damage) hitters.add(b);
+    }
+    for (final b in next.bots) {
+      final was = before?.bots.where((o) => o.id == b.id).firstOrNull;
+      if (was == null) continue;
+      if (b.hit) {
+        final taken = (was.energy - b.energy).toStringAsFixed(1);
+        final by = hitters.length == 1 ? ' by ${_name(hitters.single.id)}' : '';
+        _log(
+          '$t · ${_name(b.id)} is hit$by: −$taken, '
+          '${b.energy.toStringAsFixed(1)} left',
+        );
+      }
+      if (was.alive && !b.alive) _log('$t · ${_name(b.id)} is lost');
     }
     if (_buffer.isEmpty && _roundEnds) unawaited(_endRound(next));
     notifyListeners();
@@ -232,8 +371,15 @@ class BattleController extends ChangeNotifier {
       if (stale()) return;
       final ms = DateTime.now().difference(started).inMilliseconds;
       aityxTurnsPerSecond = n * 1000 / max(ms, 1);
-      lastRequest = turns.request;
-      lastResponse = turns.response;
+      final played = turns.frames.isEmpty
+          ? 'no turns'
+          : 'turns ${from.tick + 1}–${turns.frames.last.tick}';
+      final call = _recordCall(
+        '$played of round $round',
+        turns.request,
+        turns.response,
+      );
+      _log('aityx played $played in $ms ms (call ${call.number})', call: call);
       error = null;
       for (final f in turns.frames) {
         _buffer.add(f);
@@ -245,6 +391,7 @@ class BattleController extends ChangeNotifier {
     } on BattleException catch (e) {
       if (stale()) return;
       error = e.message;
+      _log('The call failed: ${e.message}');
       if (state == BattleState.running) state = BattleState.paused;
     } finally {
       if (battleAtStart == _battleId) _fetching = false;
@@ -263,16 +410,37 @@ class BattleController extends ChangeNotifier {
   Future<void> _endRound(World last) async {
     final battleAtStart = _battleId;
     bool stale() => _disposed || battleAtStart != _battleId;
+    if (state != BattleState.scoring) {
+      final left = last.bots.where((b) => b.alive).map((b) => _name(b.id));
+      _log(
+        'Round $round is over on turn ${last.tick}: '
+        '${left.isEmpty
+            ? 'no robot is left'
+            : left.length == 1
+            ? '${left.single} is the last one standing'
+            : '${left.join(', ')} are still standing'}',
+      );
+    }
     state = BattleState.scoring;
     _unscored = null;
     error = null;
     notifyListeners();
+    final started = DateTime.now();
     try {
       final score = await _api.score(last);
       if (stale()) return;
       roundScores.add(score);
-      lastRequest = score.request;
-      lastResponse = score.response;
+      final call = _recordCall(
+        'the score of round $round',
+        score.request,
+        score.response,
+      );
+      final ms = DateTime.now().difference(started).inMilliseconds;
+      _log(
+        'aityx scored round $round in $ms ms (call ${call.number}): '
+        '${score.scores.map((s) => '${_name(s.id)} ${s.total}').join(', ')}',
+        call: call,
+      );
       for (final s in score.scores) {
         final t = totals[s.id];
         if (t == null) continue;
@@ -288,6 +456,7 @@ class BattleController extends ChangeNotifier {
       // Keep the round until it's scored: moving on would leave it out of
       // the totals and could change the ranking.
       error = 'Scoring failed: ${e.message}';
+      _log('Scoring round $round failed: ${e.message}');
       _unscored = last;
       notifyListeners();
       return;
@@ -296,6 +465,11 @@ class BattleController extends ChangeNotifier {
     if (stale() || state != BattleState.scoring) return;
     if (round >= rounds) {
       state = BattleState.over;
+      final best = ranking.first;
+      _log(
+        'Battle over: ${robots[best].name} wins with '
+        '${totals['r${best + 1}']?.total ?? 0} points',
+      );
       _stopTimer();
       notifyListeners();
       return;
@@ -306,6 +480,7 @@ class BattleController extends ChangeNotifier {
     _roundEnds = false;
     _buffer.clear();
     state = BattleState.running;
+    _log('Round $round begins');
     notifyListeners();
   }
 
