@@ -49,10 +49,10 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 | URL | What |
 |---|---|
-| http://localhost:8900/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
-| http://localhost:8901/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
+| http://localhost:8930/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
+| http://localhost:8931/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
 
-The ports are 8900 and 8901, so Cellfie runs alongside Mortgage Hub
+The ports are 8930 and 8931, so Cellfie runs alongside Mortgage Hub
 (8880, 8881) and Contact Hub (8890, 8891). The first start compiles the
 app, which takes a minute or so. Pick a **Random start** over the cells
 in view (soups of three densities, islands, a glider fleet, a zoo with
@@ -74,7 +74,7 @@ has no key:
 
 ```
 Cellfie is up. Open the app at:
-  http://localhost:8900/app/
+  http://localhost:8930/app/
 Health checks start in 5 s, then every 15 s.
 2026-10-23 12:07:31 🌐 Web ✅ · 🔌 API ✅ · 🤖 aityx ✅
 ```
@@ -126,7 +126,7 @@ devbox, no Flutter), from this folder:
 docker compose up --build
 ```
 
-and open http://localhost:8900/app/. [compose.yaml](compose.yaml) builds
+and open http://localhost:8930/app/. [compose.yaml](compose.yaml) builds
 and starts two services:
 
 | Service | What |
@@ -135,7 +135,8 @@ and starts two services:
 | `api` | The API compiled to a native executable ([cellfie_api/Dockerfile](cellfie_api/Dockerfile)); not published, reached only through `web` |
 
 For the key, copy [.env.example](.env.example) to `.env` and fill in
-`AITYX_API_KEY` (or export it); it goes to the API only. The first build
+`AITYX_API_KEY` (or export it); optionally set `AITYX_URL` for another
+HTTPS endpoint. Both values go to the API only, never the web app. The first build
 takes a few minutes (it downloads Flutter); later ones
 reuse Docker's cache. Set `FLUTTER_WEB_PORT` to change the port; the app
 is bound to 127.0.0.1 unless you set `CELLFIE_BIND_HOST=0.0.0.0`. Stop
@@ -155,6 +156,9 @@ the repository holds several samples, so the configuration matters.
 
 The codespace uses your [aityx](https://aityx.ai) key, the same
 `AITYX_API_KEY` Codespaces secret as Mortgage Hub's and Contact Hub's.
+The optional `AITYX_URL` secret selects a non-default HTTPS endpoint;
+otherwise the API uses `https://api.aityx.ai`. Both settings are passed
+only to the API process, never to Flutter or the web service.
 GitHub keeps Codespaces secrets per user and grants them per repository,
 so if your key already reaches this repository, there is nothing to do.
 Otherwise add it at
@@ -167,8 +171,8 @@ On first start,
 [post-create.sh](../.devcontainer/Cellfie/post-create.sh) moves to
 this folder, says whether your key arrived and runs `devbox install`. Then, on that and every later
 start, [post-start.sh](../.devcontainer/Cellfie/post-start.sh) starts
-the services in the background and makes port **8900** public. There is
-nothing to run: once the app has compiled, open port 8900 from the
+the services in the background and makes port **8930** public. There is
+nothing to run: once the app has compiled, open port 8930 from the
 **Ports** panel (Codespaces may open it in a browser tab for you). Its
 bare URL redirects to the app at `/app/`.
 
@@ -180,7 +184,7 @@ step of the codespace's start goes there, timestamped, including a line
 saying when the web app and the API first answered. It holds no secrets.
 
 **Check the port's visibility.** In the **Ports** panel, the
-*Visibility* column for 8900 should say **Public**. If it says
+*Visibility* column for 8930 should say **Public**. If it says
 **Private**, right-click the port, choose **Port Visibility → Public**
 and reload the app. If `devbox install` fails with HTTP 403, export
 `GITHUB_TOKEN` (for example `export GITHUB_TOKEN=$(gh auth token)`) and

@@ -37,7 +37,7 @@ sent, with `pattern`, `kind`, `rule`, `why` and `about`) and
 Docker image carries the model in `/app/models`.
 
 CORS allows `ALLOWED_ORIGINS` (by default the dev server's,
-`http://localhost:8900` and `http://127.0.0.1:8900`). `server
+`http://localhost:8930` and `http://127.0.0.1:8930`). `server
 healthcheck` asks a running server's `/api/health` and exits 0 when it
 answers ok; it's the Docker health check.
 

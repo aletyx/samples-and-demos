@@ -54,6 +54,11 @@ class _LifeScreenState extends State<LifeScreen> {
   final Map<String, bool> _rules = defaultRules;
   bool _playing = false;
   bool _stepping = false;
+  Future<void>? _activeStep;
+  Timer? _noticeTimer;
+  int _playbackRevision = 0;
+  int _boardRevision = 0;
+  int _nextCallId = 0;
   int _acceleration = 2;
   final _calls = <CallRecord>[];
   final _notes = <PatternNote>[];
@@ -70,6 +75,8 @@ class _LifeScreenState extends State<LifeScreen> {
   @override
   void dispose() {
     _playing = false;
+    _playbackRevision++;
+    _noticeTimer?.cancel();
     _camera.dispose();
     super.dispose();
   }
@@ -83,28 +90,47 @@ class _LifeScreenState extends State<LifeScreen> {
 
   Future<void> _play() async {
     if (_playing) return;
+    final playbackRevision = ++_playbackRevision;
     setState(() => _playing = true);
-    while (_playing && mounted) {
+    while (_playing && playbackRevision == _playbackRevision && mounted) {
       final started = DateTime.now();
       await _step();
-      if (!_playing || !mounted) break;
+      if (!_playing ||
+          playbackRevision != _playbackRevision ||
+          !mounted) {
+        break;
+      }
       final wait = _interval - DateTime.now().difference(started);
       if (wait > Duration.zero) await Future<void>.delayed(wait);
     }
   }
 
-  void _pause() => setState(() => _playing = false);
+  void _pause() {
+    _playbackRevision++;
+    setState(() => _playing = false);
+  }
 
   /// One generation: the board's situations and clusters go to the API,
   /// and the answer becomes the next board, a call in the panel, and the
   /// patterns noticed.
-  Future<void> _step() async {
-    if (_stepping) return;
+  Future<void> _step() {
+    final active = _activeStep;
+    if (active != null) return active;
+    late final Future<void> task;
+    task = _runStep().whenComplete(() {
+      if (identical(_activeStep, task)) _activeStep = null;
+    });
+    _activeStep = task;
+    return task;
+  }
+
+  Future<void> _runStep() async {
     final board = _board;
     if (board.alive.isEmpty) {
       _pause();
       return;
     }
+    final boardRevision = _boardRevision;
     final groups = board.situations;
     final clusters = board.clusters
         .where((c) => c.width <= maxClusterSide && c.height <= maxClusterSide)
@@ -122,6 +148,10 @@ class _LifeScreenState extends State<LifeScreen> {
       );
     } on GenerationException catch (error) {
       if (!mounted) return;
+      if (boardRevision != _boardRevision) {
+        setState(() => _stepping = false);
+        return;
+      }
       setState(() {
         _stepping = false;
         _playing = false;
@@ -132,20 +162,44 @@ class _LifeScreenState extends State<LifeScreen> {
       return;
     }
     if (!mounted) return;
+    if (boardRevision != _boardRevision) {
+      setState(() => _stepping = false);
+      return;
+    }
     var next = board.next(groups, outcome.generation.aliveNext);
     for (final MapEntry(key: cell, value: alive) in _editsInFlight.entries) {
       if (alive != next.alive.contains(cell)) next = next.toggled(cell);
     }
     final patterns = outcome.generation.patterns;
+    final callId = ++_nextCallId;
     final labels = <BoardLabel>[];
     final counts = <String, int>{};
     final about = <String, String?>{};
     for (var i = 0; i < patterns.length && i < clusters.length; i++) {
       final p = patterns[i];
       if (!p.recognized) continue;
-      labels.add(BoardLabel(clusters[i], patternName(p.pattern)));
       counts[p.pattern] = (counts[p.pattern] ?? 0) + 1;
       about[p.pattern] ??= p.about;
+    }
+    final nextClusters = next.clusters;
+    final labeledClusters = <Cluster>{};
+    for (var i = 0; i < patterns.length && i < clusters.length; i++) {
+      final pattern = patterns[i];
+      if (!pattern.recognized) continue;
+      for (final cluster in nextClusters) {
+        final overlapsOrTouches =
+            cluster.maxX >= clusters[i].minX - 1 &&
+            cluster.minX <= clusters[i].maxX + 1 &&
+            cluster.maxY >= clusters[i].minY - 1 &&
+            cluster.minY <= clusters[i].maxY + 1;
+        if (!labeledClusters.contains(cluster) &&
+            overlapsOrTouches &&
+            isPatternPhase(pattern.pattern, cluster.shape)) {
+          labels.add(BoardLabel(cluster, patternName(pattern.pattern)));
+          labeledClusters.add(cluster);
+          break;
+        }
+      }
     }
     final now = DateTime.now();
     final notes = <PatternNote>[];
@@ -155,6 +209,7 @@ class _LifeScreenState extends State<LifeScreen> {
       final name = patternName(id);
       notes.add(
         PatternNote(
+          callId,
           board.generation,
           more == 1
               ? 'A $name appeared'
@@ -170,14 +225,15 @@ class _LifeScreenState extends State<LifeScreen> {
       _lastTookMs = outcome.tookMs;
       _labels = labels;
       _patternCounts = counts;
-      _calls.insert(0, CallRecord(outcome, clusters, now));
+      _calls.insert(0, CallRecord(callId, outcome, clusters, now));
       if (_calls.length > 100) _calls.removeLast();
       _notes.insertAll(0, notes);
       if (_notes.length > 100) _notes.removeRange(100, _notes.length);
     });
     if (notes.isNotEmpty) {
       // Rebuild once the notices have expired, to take them off the board.
-      Future<void>.delayed(noticeFor + const Duration(milliseconds: 100), () {
+      _noticeTimer?.cancel();
+      _noticeTimer = Timer(noticeFor + const Duration(milliseconds: 100), () {
         if (mounted) setState(() {});
       });
     }
@@ -204,6 +260,7 @@ class _LifeScreenState extends State<LifeScreen> {
   }
 
   void _reset(Board board) {
+    _boardRevision++;
     setState(() {
       _board = board;
       _labels = const [];

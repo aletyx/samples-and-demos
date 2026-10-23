@@ -14,22 +14,22 @@ explains the reasons behind each piece.
   - the Flutter web server (`2-flutter-web`, via
     [scripts/flutter-web.sh](../scripts/flutter-web.sh), on the
     `web-server` device, so no Chrome is needed) on
-    http://localhost:8900/app/ (`FLUTTER_WEB_PORT`), bound to 127.0.0.1
+    http://localhost:8930/app/ (`FLUTTER_WEB_PORT`), bound to 127.0.0.1
     (`CELLFIE_BIND_HOST`), with an HTTP readiness probe. On stop, its
     shutdown command kills whatever listens on the port;
   - the API (`3-api`, via [scripts/api.sh](../scripts/api.sh)) on
-    http://localhost:8901 (`API_PORT`), with a readiness probe on
+    http://localhost:8931 (`API_PORT`), with a readiness probe on
     `/api/health`. The script exports `AITYX_API_KEY` and `AITYX_URL` from
     the environment, else `.env`, to the server only. CORS allows the web
     app's origins (`ALLOWED_ORIGINS`);
   - the health monitor (`0-health-check`,
     [scripts/health-check.sh](../scripts/health-check.sh)), once both are
     ready. It first prints where to open the app,
-    `http://localhost:8900/app/` and, in a codespace, the forwarded URL,
+    `http://localhost:8930/app/` and, in a codespace, the forwarded URL,
     and waits 5 s (`HEALTH_CHECK_DELAY`). Then every 15 s
     (`HEALTH_CHECK_INTERVAL`) one line with the time, 🌐 Web, 🔌 API
     (`/api/health`) and 🤖 aityx (✅ the API has its key, ⚪ it doesn't).
-- The ports, 8900 and 8901, differ from Mortgage Hub's (8880, 8881) and
+- The ports, 8930 and 8931, differ from Mortgage Hub's (8880, 8881) and
   Contact Hub's (8890, 8891), so all three can run at once.
 - `devbox run web` runs only the web server, `devbox run api` only the API.
 - The web app calls the API at `API_BASE_URL` (a dart-define). The dev
@@ -37,7 +37,7 @@ explains the reasons behind each piece.
   the dev server proxies to the API (`web_dev_config.yaml`, generated from
   `API_PORT`, git-ignored). It also proxies the bare `/` to the API, which
   redirects it to `/app/`. `scripts/make.sh` passes `API_BASE_URL`, or
-  `http://localhost:8901`.
+  `http://localhost:8931`.
 - `bash scripts/model-test.sh` runs the Life model on aityx (see
   [Generation](generation.md#verified)); run it after changing the model.
   `dart run tool/catalogue.dart` in `cellfie_app/` regenerates the
@@ -52,7 +52,7 @@ explains the reasons behind each piece.
   `linux` (Linux), `all` (what the host can build) and `clean`, with
   `MODE`, `IOS_CODESIGN` and `WEB_BASE_HREF`.
 - **Docker Compose** ([compose.yaml](../compose.yaml)): `docker compose up`
-  runs the app with Docker alone on http://localhost:8900/app/, published
+  runs the app with Docker alone on http://localhost:8930/app/, published
   on 127.0.0.1 unless `CELLFIE_BIND_HOST` says otherwise. `web`
   ([docker/web.Dockerfile](../docker/web.Dockerfile)) builds the release
   web app with the Flutter devbox.lock pins and serves it with nginx under
@@ -73,17 +73,18 @@ explains the reasons behind each piece.
   value) and runs `devbox install`; `post-start.sh` starts
   `devbox services up -b` detached on every start, with a watcher that
   logs when `/app/` and `/api/health` answer; `public-port.sh` makes port
-  8900 public (again on attach). Everything goes to
+  8930 public (again on attach). Everything goes to
   `Cellfie/startup.log`, git-ignored, which holds no secrets. The
-  container sets `CELLFIE_BIND_HOST=0.0.0.0`, forwards port 8900 only,
+  container sets `CELLFIE_BIND_HOST=0.0.0.0`, forwards port 8930 only,
   and adds the Dart and Flutter extensions.
-- **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`,
+- **Codespaces secrets**: `devcontainer.json` declares `AITYX_API_KEY` and
+  optional `AITYX_URL`,
   the same secret as Mortgage Hub's and Contact Hub's. Codespaces secrets
   belong to a user and are granted per repository, so a key granted to
   this repository for either reaches Cellfie too. GitHub asks for it on
   the creation page otherwise. `AITYX_URL` defaults to
-  `https://api.aityx.ai`; `.env` overrides it. A local dev container uses
-  `.env`.
+  `https://api.aityx.ai`; `.env` overrides it. Both values are forwarded
+  only to the API process. A local dev container uses `.env`.
 - **Launch link**: the [README](../README.md#run-it-in-a-codespace) and the
   repository README have an **Open in GitHub Codespaces** badge with
   `devcontainer_path=.devcontainer/Cellfie/devcontainer.json` and

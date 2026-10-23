@@ -5,7 +5,7 @@
 # the Ports panel (or the browser tab Codespaces opens) with nothing to run.
 #
 # `devbox services up -b` runs process-compose in the background: the web
-# app on 8900 and the API on 8901, as in Cellfie/process-compose.yaml.
+# app on 8930 and the API on 8931, as in Cellfie/process-compose.yaml.
 # Its first start compiles the app, which takes a minute or two. Watch it
 # with `devbox services attach`, stop it with `devbox services stop`.
 #
@@ -22,8 +22,8 @@ source "$here/startup-log.sh"
 # --watch: the detached watcher started below.
 if [[ "${1:-}" == --watch ]]; then
   cd "$app" || exit 1
-  web="http://localhost:${FLUTTER_WEB_PORT:-8900}/app/"
-  api="http://localhost:${API_PORT:-8901}/api/health"
+  web="http://localhost:${FLUTTER_WEB_PORT:-8930}/app/"
+  api="http://localhost:${API_PORT:-8931}/api/health"
   started=$SECONDS
   last=""
   while ((SECONDS - started < 900)); do
@@ -34,7 +34,7 @@ if [[ "${1:-}" == --watch ]]; then
     [[ "$state" != "$last" ]] && slog "[watch] $state"
     last=$state
     if [[ "$state" == "web 200, api 200,"* ]]; then
-      slog "[watch] ready after $((SECONDS - started)) s: open port 8900 at /app/"
+      slog "[watch] ready after $((SECONDS - started)) s: open port 8930 at /app/"
       exit 0
     fi
     sleep 5

@@ -1,5 +1,5 @@
 # Cellfie with Docker alone: `docker compose up` from this folder, then
-# open http://localhost:8900/app/. No devbox or Flutter needed on the host.
+# open http://localhost:8930/app/. No devbox or Flutter needed on the host.
 #
 # The aityx settings come from the environment, else this folder's .env
 # (see .env.example), and reach the API only, never the web app.
@@ -10,7 +10,7 @@ services:
     environment:
       AITYX_API_KEY: ${AITYX_API_KEY:-}
       AITYX_URL: ${AITYX_URL:-}
-      API_PORT: "8901"
+      API_PORT: "8931"
       CELLFIE_BIND_HOST: 0.0.0.0
     # Not published: the web service proxies /api/ to it.
     # The image has no shell or curl; the server checks its own /api/health.
@@ -40,5 +40,5 @@ services:
       retries: 3
     # Bound to this host only; set CELLFIE_BIND_HOST=0.0.0.0 to share it.
     ports:
-      - "${CELLFIE_BIND_HOST:-127.0.0.1}:${FLUTTER_WEB_PORT:-8900}:8080"
+      - "${CELLFIE_BIND_HOST:-127.0.0.1}:${FLUTTER_WEB_PORT:-8930}:8080"
     restart: unless-stopped

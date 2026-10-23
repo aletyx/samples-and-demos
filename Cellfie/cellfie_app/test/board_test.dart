@@ -92,6 +92,21 @@ void main() {
     expect(clusters[2].shape, '..o/o.o/.oo');
   });
 
+  test('every penta-decathlon phase is one recognized cluster', () {
+    final seed = seedById('pentadecathlon');
+    var phase = cellsOf(seed.shape);
+    for (var generation = 0; generation < seed.period; generation++) {
+      final clusters = clustersOf(phase);
+      expect(clusters, hasLength(1), reason: 'phase $generation');
+      expect(
+        isPatternPhase(seed.id, clusters.single.shape),
+        isTrue,
+        reason: 'phase $generation',
+      );
+      phase = nextByConway(phase);
+    }
+  });
+
   test('cells of a shape, and back', () {
     const shape = '.oo./o..o/.oo.';
     expect(canonicalShape(cellsOf(shape, x: 4, y: -2)), '.o./o.o/o.o/.o.');

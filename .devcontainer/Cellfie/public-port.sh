@@ -6,7 +6,7 @@
 #
 # devcontainer.json cannot declare a port public; Codespaces only accept it
 # through the API, so this asks `gh`, authenticated by the codespace's own
-# GITHUB_TOKEN. Only 8900 is made public: the API (8901) is not forwarded,
+# GITHUB_TOKEN. Only 8930 is made public: the API (8931) is not forwarded,
 # and the app reaches it through the web server's /api/ proxy. Anyone with
 # the URL can use the app.
 #
@@ -16,7 +16,7 @@
 # the reason is in the log.
 set -uo pipefail
 
-port="${FLUTTER_WEB_PORT:-8900}"
+port="${FLUTTER_WEB_PORT:-8930}"
 # Its progress goes to Cellfie/startup.log (see startup-log.sh).
 # shellcheck source=startup-log.sh
 source "$(dirname "${BASH_SOURCE[0]}")/startup-log.sh"

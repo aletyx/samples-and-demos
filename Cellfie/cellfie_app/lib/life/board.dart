@@ -35,7 +35,8 @@ class Situation {
 }
 
 /// A group of live cells that are close together (within two cells of
-/// each other), with its bounding box and its canonical shape.
+/// each other), or form a penta-decathlon phase, with its bounding box
+/// and its canonical shape.
 class Cluster {
   Cluster(this.cells)
     : minX = cells.map((c) => c.x).reduce(min),
@@ -122,7 +123,9 @@ Map<SituationKey, List<Cell>> situationsOf(Set<Cell> alive) {
 
 /// The clusters of live cells: cells within two steps of each other (so
 /// one empty cell between them, as in a beacon or a pulsar, keeps them
-/// together) are in the same cluster. Top to bottom, left to right.
+/// together) are in the same cluster. Disconnected pieces of a supported
+/// penta-decathlon phase are joined so the catalogue can recognize it.
+/// Top to bottom, left to right.
 List<Cluster> clustersOf(Set<Cell> alive) {
   final seen = <Cell>{};
   final clusters = <Cluster>[];
@@ -145,6 +148,55 @@ List<Cluster> clustersOf(Set<Cell> alive) {
     }
     clusters.add(Cluster(cells));
   }
+  final phases = _patternPhases['pentadecathlon']!;
+  final maxCells = _pentadecathlonCellCounts.reduce(max);
+  bool mergePhase() {
+    for (var i = 0; i < clusters.length; i++) {
+      final chosen = [i];
+      final cells = {...clusters[i].cells};
+      bool findMatch(int start) {
+        if (chosen.length > 1 && phases.contains(canonicalShape(cells))) {
+          clusters[i] = Cluster({...cells});
+          for (final index in chosen.skip(1).toList().reversed) {
+            clusters.removeAt(index);
+          }
+          return true;
+        }
+        for (var j = start; j < clusters.length; j++) {
+          final candidate = clusters[j];
+          if (cells.length + candidate.cells.length > maxCells) continue;
+          final minX = min(
+            clusters[i].minX,
+            min(candidate.minX, cells.map((c) => c.x).reduce(min)),
+          );
+          final maxX = max(
+            clusters[i].maxX,
+            max(candidate.maxX, cells.map((c) => c.x).reduce(max)),
+          );
+          final minY = min(
+            clusters[i].minY,
+            min(candidate.minY, cells.map((c) => c.y).reduce(min)),
+          );
+          final maxY = max(
+            clusters[i].maxY,
+            max(candidate.maxY, cells.map((c) => c.y).reduce(max)),
+          );
+          if (maxX - minX + 1 > 16 || maxY - minY + 1 > 14) continue;
+          chosen.add(j);
+          cells.addAll(candidate.cells);
+          if (findMatch(j + 1)) return true;
+          cells.removeAll(candidate.cells);
+          chosen.removeLast();
+        }
+        return false;
+      }
+
+      if (findMatch(i + 1)) return true;
+    }
+    return false;
+  }
+
+  while (mergePhase()) {}
   clusters.sort((a, b) {
     if (a.minY != b.minY) return a.minY.compareTo(b.minY);
     return a.minX.compareTo(b.minX);
@@ -217,6 +269,28 @@ Set<Cell> nextByConway(Set<Cell> alive) => {
     if (conway(alive: situation.alive, neighbours: situation.neighbours))
       ...cells,
 };
+
+final _patternPhases = {
+  for (final seed in seeds)
+    seed.id: () {
+      var cells = cellsOf(seed.shape);
+      final phases = <String>{};
+      for (var phase = 0; phase < seed.period; phase++) {
+        phases.add(canonicalShape(cells));
+        cells = nextByConway(cells);
+      }
+      return phases;
+    }(),
+};
+
+final _pentadecathlonCellCounts = {
+  for (final shape in _patternPhases['pentadecathlon']!)
+    shape.replaceAll(RegExp(r'[^o]'), '').length,
+};
+
+/// Whether [shape] is a supported phase of the named pattern.
+bool isPatternPhase(String id, String shape) =>
+    _patternPhases[id]?.contains(shape) ?? false;
 
 /// The board: the live cells, the generation, and which cells were born
 /// in it (for the colors).

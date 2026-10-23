@@ -16,10 +16,10 @@
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY      the key (secret)
 ///   AITYX_URL          aityx's base URL (default https://api.aityx.ai)
-///   API_PORT           the port (default 8901)
+///   API_PORT           the port (default 8931)
 ///   CELLFIE_BIND_HOST  the address to bind (default 127.0.0.1)
 ///   ALLOWED_ORIGINS    comma-separated origins allowed by CORS
-///                      (default http://localhost:8900)
+///                      (default http://localhost:8930)
 ///
 /// `server healthcheck` instead asks a running server's /api/health on
 /// 127.0.0.1:API_PORT and exits 0 when it answers ok: the Docker health
@@ -64,9 +64,9 @@ Future<void> main(List<String> args) async {
     stderr.writeln('error: AITYX_URL must be https');
     exit(1);
   }
-  final port = int.parse(env['API_PORT'] ?? '8901');
+  final port = int.parse(env['API_PORT'] ?? '8931');
   final host = env['CELLFIE_BIND_HOST'] ?? '127.0.0.1';
-  final origins = (env['ALLOWED_ORIGINS'] ?? 'http://localhost:8900')
+  final origins = (env['ALLOWED_ORIGINS'] ?? 'http://localhost:8930')
       .split(',')
       .map((origin) => origin.trim())
       .where((origin) => origin.isNotEmpty)
@@ -89,7 +89,7 @@ Future<void> main(List<String> args) async {
 
 /// 0 when the server on this machine answers /api/health with ok, else 1.
 Future<int> _healthcheck() async {
-  final port = int.parse(Platform.environment['API_PORT'] ?? '8901');
+  final port = int.parse(Platform.environment['API_PORT'] ?? '8931');
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
   try {
     final request = await client.getUrl(

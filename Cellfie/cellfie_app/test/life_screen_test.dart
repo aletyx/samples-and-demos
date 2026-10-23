@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ import 'package:cellfie_app/main.dart';
 class FakeStepper implements GenerationStepper {
   final asked = <Map<String, Object?>>[];
   Object? failWith;
+  Completer<void>? waitOn;
+  bool killNext = false;
 
   static final catalogue = {
     canonicalShape(cellsOf('oo/oo')): ('block', 'still_life'),
@@ -31,15 +34,19 @@ class FakeStepper implements GenerationStepper {
     if (failWith case final String message) {
       throw GenerationException(message);
     }
+    if (waitOn case final wait?) await wait.future;
     final fates = [
       for (final key in situations.keys)
-        switch ((key.alive, key.neighbours)) {
-          (true, < 2) => 'dies_lonely',
-          (true, 2 || 3) => 'survives',
-          (true, _) => 'dies_crowded',
-          (false, 3) => 'is_born',
-          _ => 'stays_empty',
-        },
+        if (killNext)
+          key.alive ? 'dies_crowded' : 'stays_empty'
+        else
+          switch ((key.alive, key.neighbours)) {
+            (true, < 2) => 'dies_lonely',
+            (true, 2 || 3) => 'survives',
+            (true, _) => 'dies_crowded',
+            (false, 3) => 'is_born',
+            _ => 'stays_empty',
+          },
     ];
     int cellsWhere(bool Function(int) test) {
       var n = 0;
@@ -80,12 +87,19 @@ class FakeStepper implements GenerationStepper {
               ...c.toJson(),
               'pattern': catalogue[c.shape]?.$1 ?? 'unknown',
               'kind': catalogue[c.shape]?.$2 ?? 'unknown',
-              'about': catalogue.containsKey(c.shape) ? 'A known pattern.' : null,
+              'about': catalogue.containsKey(c.shape)
+                  ? 'A known pattern.'
+                  : null,
             },
         ],
-        'recognized': clusters.where((c) => catalogue.containsKey(c.shape)).length,
+        'recognized': clusters
+            .where((c) => catalogue.containsKey(c.shape))
+            .length,
       }),
-      aityxRequest: {'decision': {'name': 'Life'}, 'state': body},
+      aityxRequest: {
+        'decision': {'name': 'Life'},
+        'state': body,
+      },
       aityxResponse: {'answers': {}},
       tookMs: 7,
       inputTokens: 100,
@@ -115,7 +129,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      MaterialApp(home: LifeScreen(stepper: FakeStepper(), random: Random(3))),
+      MaterialApp(
+        home: LifeScreen(stepper: FakeStepper(), random: Random(3)),
+      ),
     );
 
     await tester.tap(find.text('Random start'));
@@ -160,7 +176,11 @@ void main() {
     expect(stepper.asked, hasLength(1));
     final body = stepper.asked.single;
     expect(body['generation'], 0);
-    expect(body['rules'], {'conway': true, 'highlife': false, 'no_death': false});
+    expect(body['rules'], {
+      'conway': true,
+      'highlife': false,
+      'no_death': false,
+    });
     expect((body['situations'] as List), hasLength(5));
     expect((body['clusters'] as List).single, {
       'cells': 3,
@@ -174,11 +194,97 @@ void main() {
     expect(find.text('+2 born'), findsOneWidget);
     expect(find.text('−2 died'), findsOneWidget);
     expect(find.text('blinker'), findsWidgets);
+    final label = tester
+        .widget<BoardView>(find.byType(BoardView))
+        .labels
+        .single;
+    expect(label.cluster.width, 1);
+    expect(label.cluster.height, 3);
     // A blinker appeared: a notice on the board and in the panel.
     // Over the board, and in the panel.
-    expect(find.textContaining('Generation 0: A blinker appeared'), findsNWidgets(2));
+    expect(
+      find.textContaining('Generation 0: A blinker appeared'),
+      findsNWidgets(2),
+    );
     expect(find.text('Patterns noticed'), findsOneWidget);
     await tester.pump(const Duration(seconds: 9));
+  });
+
+  testWidgets('a reset discards an in-flight generation response', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final stepper = FakeStepper()..waitOn = Completer<void>();
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+    for (final x in [-1, 0, 1]) {
+      await tester.tapAt(view.center + Offset(x * 14.0 + 7, 7));
+    }
+    await tester.pump();
+
+    await tester.tap(find.text('Step'));
+    await tester.pump();
+    await tester.tap(find.text('Clear'));
+    await tester.pump();
+    expect(find.textContaining('Generation 0 · 0 cells'), findsOneWidget);
+
+    stepper.waitOn!.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Generation 0 · 0 cells'), findsOneWidget);
+    expect(find.byType(CallCard), findsNothing);
+  });
+
+  testWidgets('restarting a generation keeps call cards uniquely keyed', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final stepper = FakeStepper();
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+
+    Future<void> drawAndStep() async {
+      for (final x in [-1, 0, 1]) {
+        await tester.tapAt(view.center + Offset(x * 14.0 + 7, 7));
+      }
+      await tester.pump();
+      await tester.tap(find.text('Step'));
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(find.text('Clear'));
+      await tester.pump();
+    }
+
+    await drawAndStep();
+    await drawAndStep();
+    expect(find.text('Generation 0 → 1'), findsNWidgets(2));
+    expect(tester.takeException(), isNull);
+    final cards = tester.widgetList<CallCard>(find.byType(CallCard)).toList();
+    expect(cards.map((card) => card.call.id).toSet(), hasLength(2));
+  });
+
+  testWidgets('patterns that die are not labeled on the next board', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final stepper = FakeStepper()..killNext = true;
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+    for (final x in [-1, 0, 1]) {
+      await tester.tapAt(view.center + Offset(x * 14.0 + 7, 7));
+    }
+    await tester.pump();
+
+    await tester.tap(find.text('Step'));
+    await tester.pump();
+    await tester.pump();
+    expect(tester.widget<BoardView>(find.byType(BoardView)).labels, isEmpty);
   });
 
   testWidgets('tapping a pattern noticed opens the call that noticed it', (
@@ -254,6 +360,36 @@ void main() {
     await tester.pump(const Duration(seconds: 9));
   });
 
+  testWidgets('play waits for a pending manual step at maximum acceleration', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final stepper = FakeStepper()..waitOn = Completer<void>();
+    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: stepper)));
+    final view = tester.getRect(find.byType(BoardView));
+    for (final x in [-1, 0, 1]) {
+      await tester.tapAt(view.center + Offset(x * 14.0 + 7, 7));
+    }
+    await tester.pump();
+    tester.widget<Slider>(find.byType(Slider)).onChanged!(5);
+    await tester.pump();
+
+    await tester.tap(find.text('Step'));
+    await tester.pump();
+    await tester.tap(find.text('Play'));
+    await tester.pump();
+    await tester.tap(find.text('Pause'));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    stepper.waitOn!.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(stepper.asked, hasLength(1));
+  });
+
   testWidgets('the Rules dialog switches rules for the next generation', (
     tester,
   ) async {
@@ -307,7 +443,9 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(MaterialApp(home: LifeScreen(stepper: FakeStepper())));
+    await tester.pumpWidget(
+      MaterialApp(home: LifeScreen(stepper: FakeStepper())),
+    );
 
     expect(find.byType(CallsPanel), findsNothing);
     await tester.tap(find.text('Calls (0)'));

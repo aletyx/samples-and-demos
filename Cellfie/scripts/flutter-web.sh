@@ -5,7 +5,7 @@
 # Uses the web-server device, so no Chrome is needed; open the URL in any browser.
 set -euo pipefail
 
-PORT="${FLUTTER_WEB_PORT:-8900}"
+PORT="${FLUTTER_WEB_PORT:-8930}"
 # 127.0.0.1, not localhost: Dart binds "localhost" to IPv6 [::1] only. The
 # dev container sets CELLFIE_BIND_HOST=0.0.0.0, so its forwarded port
 # reaches the server. Browsers still reach it at http://localhost:$PORT/app/.
@@ -24,9 +24,9 @@ cat > web_dev_config.yaml <<YAML
 server:
   proxy:
     - prefix: "/api/"
-      target: "http://127.0.0.1:${API_PORT:-8901}/"
+      target: "http://127.0.0.1:${API_PORT:-8931}/"
     - regex: "^/\$"
-      target: "http://127.0.0.1:${API_PORT:-8901}/"
+      target: "http://127.0.0.1:${API_PORT:-8931}/"
 YAML
 flutter pub get
 # The welcome screen shows X.Y.Z, Z being when this server started.

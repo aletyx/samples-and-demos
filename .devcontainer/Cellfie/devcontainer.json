@@ -40,12 +40,15 @@
   // falling back to Cellfie/.env. Change it at
   // https://github.com/settings/codespaces.
   //
-  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai;
-  // override it in Cellfie/.env if you need to (a stage key, for
-  // instance, works only against https://console-stage.aityx.ai).
+  // AITYX_URL defaults to https://api.aityx.ai; set the secret to use
+  // another endpoint. Both values are passed only to the API process.
   "secrets": {
     "AITYX_API_KEY": {
       "description": "Your own aityx.ai API key, from the console's API keys page; the same one Mortgage Hub and Contact Hub use. Cellfie runs the rules of Life on aityx.",
+      "documentationUrl": "https://aityx.ai/docs"
+    },
+    "AITYX_URL": {
+      "description": "Optional aityx.ai API endpoint; defaults to https://api.aityx.ai.",
       "documentationUrl": "https://aityx.ai/docs"
     }
   },
@@ -72,14 +75,14 @@
       ]
     }
   },
-  // Only the web app's port. The API (8901) stays inside the container:
+  // Only the web app's port. The API (8931) stays inside the container:
   // the app reaches it through the web server's /api/ proxy. The port's
   // bare URL redirects to the app at /app/. Plain HTTP, which is what the
   // dev server speaks; switching a public port to HTTPS makes it private.
   // post-start.sh makes it public, which devcontainer.json cannot.
-  "forwardPorts": [8900],
+  "forwardPorts": [8930],
   "portsAttributes": {
-    "8900": {
+    "8930": {
       "label": "Cellfie web app",
       "protocol": "http",
       "onAutoForward": "openBrowserOnce"

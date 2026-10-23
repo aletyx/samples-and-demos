@@ -24,7 +24,7 @@ The feature files hold the current specification; see the
    its cells; devbox, process-compose and the health monitor, the
    Makefile, Docker Compose, and the dev container in
    `.devcontainer/Cellfie/`, as Contact Hub has them (see
-   [Development environment](dev-environment.md)). Ports 8900 and 8901,
+   [Development environment](dev-environment.md)). Ports 8930 and 8931,
    so it runs alongside the others. The [theme](theme.md) is the aityx
    palette; the [icon](app-icon.md) a glider. The key was copied into
    `Cellfie/.env` from Contact Hub's (git-ignored), to test against the

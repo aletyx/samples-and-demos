@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the API (cellfie_api/) on http://localhost:${API_PORT:-8901}.
+# Runs the API (cellfie_api/) on http://localhost:${API_PORT:-8931}.
 # Runs via `devbox services up` (see process-compose.yaml) or `devbox run api`.
 # The aityx settings come from the environment, else the repo's .env (see
 # .env.example). They're exported to the server's own environment only:
@@ -14,8 +14,8 @@ for name in AITYX_API_KEY AITYX_URL; do
   fi
 done
 unset value
-export API_PORT="${API_PORT:-8901}"
-export ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-http://localhost:${FLUTTER_WEB_PORT:-8900},http://127.0.0.1:${FLUTTER_WEB_PORT:-8900}}"
+export API_PORT="${API_PORT:-8931}"
+export ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-http://localhost:${FLUTTER_WEB_PORT:-8930},http://127.0.0.1:${FLUTTER_WEB_PORT:-8930}}"
 
 cd "$root/cellfie_api"
 dart pub get >/dev/null

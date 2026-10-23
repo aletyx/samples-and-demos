@@ -8,8 +8,9 @@ import 'call_json_view.dart';
 /// One generation's call to aityx, as the API answered it, with the
 /// clusters that were sent (in the order aityx named them).
 class CallRecord {
-  const CallRecord(this.outcome, this.clusters, this.at);
+  const CallRecord(this.id, this.outcome, this.clusters, this.at);
 
+  final int id;
   final GenerationOutcome outcome;
   final List<Cluster> clusters;
   final DateTime at;
@@ -19,8 +20,15 @@ class CallRecord {
 
 /// A pattern noticed on the board: what appeared, at which generation.
 class PatternNote {
-  const PatternNote(this.generation, this.text, this.about, this.at);
+  const PatternNote(
+    this.callId,
+    this.generation,
+    this.text,
+    this.about,
+    this.at,
+  );
 
+  final int callId;
   final int generation;
 
   /// "A glider appeared", "2 blocks appeared".
@@ -94,14 +102,10 @@ class CallsPanel extends StatefulWidget {
   State<CallsPanel> createState() => _CallsPanelState();
 }
 
-/// A collapsed card's height, to scroll near a call before its card is
-/// built; the jump is then made exact on the card itself.
-const _collapsedCardHeight = 118.0;
-
 class _CallsPanelState extends State<CallsPanel> {
   final _scroll = ScrollController();
 
-  /// The generations whose cards are open, and the one just jumped to.
+  /// The calls whose cards are open, and the one just jumped to.
   final _open = <int>{};
   int? _marked;
   final _cardKeys = <int, GlobalKey>{};
@@ -112,36 +116,45 @@ class _CallsPanelState extends State<CallsPanel> {
     super.dispose();
   }
 
-  GlobalKey _keyFor(int generation) =>
-      _cardKeys.putIfAbsent(generation, GlobalKey.new);
+  GlobalKey _keyFor(int callId) => _cardKeys.putIfAbsent(callId, GlobalKey.new);
 
-  /// Scrolls to the call of [generation], opens it and marks it.
-  void _jumpTo(int generation) {
-    final index = widget.calls.indexWhere(
-      (c) => c.generation.generation == generation,
-    );
+  /// Scrolls to [callId], opens its card and marks it.
+  void _jumpTo(int callId) {
+    final index = widget.calls.indexWhere((call) => call.id == callId);
     if (index < 0) return;
     setState(() {
       _open
         ..clear()
-        ..add(generation);
-      _marked = generation;
+        ..add(callId);
+      _marked = callId;
     });
-    // Near it first, so the card gets built, then exactly onto it.
-    final near = index * _collapsedCardHeight;
-    if (_scroll.hasClients) {
-      _scroll.jumpTo(near.clamp(0.0, _scroll.position.maxScrollExtent));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _revealCall(callId));
+  }
+
+  Future<void> _revealCall(int callId) async {
+    if (!mounted || !_scroll.hasClients) return;
+    final key = _keyFor(callId);
+    _scroll.jumpTo(0);
+    await WidgetsBinding.instance.endOfFrame;
+    while (mounted && _scroll.hasClients && key.currentContext == null) {
+      final position = _scroll.position;
+      if (position.pixels >= position.maxScrollExtent) break;
+      _scroll.jumpTo(
+        (position.pixels + position.viewportDimension * 0.8).clamp(
+          0.0,
+          position.maxScrollExtent,
+        ),
+      );
+      await WidgetsBinding.instance.endOfFrame;
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = _keyFor(generation).currentContext;
-      if (context != null) {
-        Scrollable.ensureVisible(
-          context,
-          alignment: 0,
-          duration: const Duration(milliseconds: 250),
-        );
-      }
-    });
+    final context = key.currentContext;
+    if (context != null && context.mounted) {
+      await Scrollable.ensureVisible(
+        context,
+        alignment: 0,
+        duration: const Duration(milliseconds: 250),
+      );
+    }
   }
 
   @override
@@ -205,15 +218,14 @@ class _CallsPanelState extends State<CallsPanel> {
                       return _NotesCard(notes: notes, onTap: _jumpTo);
                     }
                     final call = calls[i - (notes.isEmpty ? 0 : 1)];
-                    final generation = call.generation.generation;
                     return CallCard(
-                      key: _keyFor(generation),
+                      key: _keyFor(call.id),
                       call: call,
-                      expanded: _open.contains(generation),
-                      marked: _marked == generation,
+                      expanded: _open.contains(call.id),
+                      marked: _marked == call.id,
                       onToggle: () => setState(() {
-                        if (!_open.remove(generation)) _open.add(generation);
-                        if (_marked == generation) _marked = null;
+                        if (!_open.remove(call.id)) _open.add(call.id);
+                        if (_marked == call.id) _marked = null;
                       }),
                     );
                   },
@@ -229,7 +241,7 @@ class _NotesCard extends StatelessWidget {
 
   final List<PatternNote> notes;
 
-  /// Tapping a note: the generation of the call that noticed it.
+  /// Tapping a note: the ID of the call that noticed it.
   final ValueChanged<int> onTap;
 
   @override
@@ -246,7 +258,11 @@ class _NotesCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_awesome_outlined, size: 18, color: Aityx.amber),
+                const Icon(
+                  Icons.auto_awesome_outlined,
+                  size: 18,
+                  color: Aityx.amber,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Patterns noticed',
@@ -259,7 +275,7 @@ class _NotesCard extends StatelessWidget {
             const SizedBox(height: 6),
             for (final note in notes.take(8))
               InkWell(
-                onTap: () => onTap(note.generation),
+                onTap: () => onTap(note.callId),
                 borderRadius: BorderRadius.circular(4),
                 child: Tooltip(
                   message: 'Go to the call that noticed it',
@@ -273,7 +289,9 @@ class _NotesCard extends StatelessWidget {
                             children: [
                               TextSpan(
                                 text: 'Generation ${note.generation}: ',
-                                style: TextStyle(color: scheme.onSurfaceVariant),
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                ),
                               ),
                               TextSpan(
                                 text: note.text,
@@ -344,7 +362,9 @@ class CallCard extends StatelessWidget {
     final g = call.generation;
     final recognized = <String, int>{};
     for (final p in g.patterns) {
-      if (p.recognized) recognized[p.pattern] = (recognized[p.pattern] ?? 0) + 1;
+      if (p.recognized) {
+        recognized[p.pattern] = (recognized[p.pattern] ?? 0) + 1;
+      }
     }
     final facts = [
       '${g.situations.length} situations',
@@ -399,11 +419,15 @@ class CallCard extends StatelessWidget {
                     spacing: 6,
                     runSpacing: 4,
                     children: [
-                      _Pill('${g.population} → ${g.populationNext} cells', scheme.onSurface),
+                      _Pill(
+                        '${g.population} → ${g.populationNext} cells',
+                        scheme.onSurface,
+                      ),
                       _Pill('+${g.births} born', Aityx.green),
                       _Pill('−${g.deaths} died', Aityx.red),
                       _Pill('${g.survivors} live on', Aityx.orange),
-                      for (final MapEntry(key: id, value: n) in recognized.entries)
+                      for (final MapEntry(key: id, value: n)
+                          in recognized.entries)
                         _Pill(
                           n == 1 ? patternName(id) : '${patternName(id)} ×$n',
                           Aityx.amber,
@@ -509,12 +533,17 @@ class _Decided extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      c.recognized ? patternName(c.pattern) : 'not a known pattern',
+                      c.recognized
+                          ? patternName(c.pattern)
+                          : 'not a known pattern',
                       style: small?.copyWith(
-                        color: c.recognized ? Aityx.amber : scheme.onSurfaceVariant,
+                        color: c.recognized
+                            ? Aityx.amber
+                            : scheme.onSurfaceVariant,
                       ),
                     ),
-                    if (c.rule case final rule?) Text('  row $rule', style: muted),
+                    if (c.rule case final rule?)
+                      Text('  row $rule', style: muted),
                   ],
                 ),
               ),
