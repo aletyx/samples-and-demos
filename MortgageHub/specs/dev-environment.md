@@ -71,23 +71,31 @@
   `/api/health` with busybox `wget`. `web` starts once `api` is healthy,
   and `docker compose up --wait` returns once both are. There is no hot
   reload; both restart `unless-stopped`.
-- **Dev container**
-  ([.devcontainer/MortgageHub/](../../.devcontainer/MortgageHub)): at
-  the root of the samples repository, not in this folder, because that is
-  the only place GitHub looks for one. It is named **Mortgage Hub**, so the
-  configuration is identifiable when creating a codespace on a repository
-  that holds several samples, and opens with a header saying what the
-  project is and linking the repository, aityx.ai, aletyx.com and
-  nu01.com. Microsoft's `ubuntu-24.04`
-  base, with Devbox 0.18.1 and Nix 2.35.0 pinned and checked against their
-  published SHA-256.
-  [post-create.sh](../../.devcontainer/MortgageHub/post-create.sh)
-  resolves this folder from its own location and moves there, then runs
-  `devbox install`, which copies the locked store paths from
-  cache.nixos.org, and passes `GITHUB_TOKEN` to Nix so api.github.com
+- **Dev container** ([.devcontainer/](../../.devcontainer)): the
+  samples repository's default one, **All demos**, at the root of the
+  repository, not in this folder, because that is the only place GitHub
+  looks for one. It starts every demo (each folder with a `devbox.json`
+  and a `process-compose.yaml`, this one among them) and the index page
+  with the repository's `start-all.sh`. Mortgage Hub's own dev container,
+  which started only this app and which the other demos' were copied
+  from, is archived in
+  [.devcontainer/archive/MortgageHub/](../../.devcontainer/archive/MortgageHub)
+  and is no longer offered when creating a codespace (GitHub lists only
+  `.devcontainer/devcontainer.json` and `.devcontainer/<name>/`). The
+  default container opens with a header saying what it starts and
+  linking the repository, aityx.ai, aletyx.com and nu01.com. Microsoft's
+  `ubuntu-24.04` base, with Devbox 0.18.1 and Nix 2.35.0 pinned and
+  checked against their published SHA-256; `hostRequirements` asks for
+  8 cores and 32 GB, since six apps compile at once.
+  [post-create.sh](../../.devcontainer/post-create.sh) runs `devbox
+  install` in each demo's folder in turn, which copies the locked store
+  paths from cache.nixos.org (all lock the same Flutter, so the store is
+  filled once), and passes `GITHUB_TOKEN` to Nix so api.github.com
   doesn't rate-limit it. It reports whether `AITYX_API_KEY` arrived,
-  never its value. The container sets `MORTGAGEHUB_BIND_HOST=0.0.0.0`,
-  forwards port 8880 and adds the Dart and Flutter extensions.
+  never its value. The container sets every demo's `*_BIND_HOST` to
+  `0.0.0.0` (`MORTGAGEHUB_BIND_HOST` for this one, `INDEX_BIND_HOST` for
+  the index), forwards 8800 and the five web ports (8880 to 8920), and
+  adds the Dart and Flutter extensions.
 - **The editor's Flutter SDK**: the image carries Flutter 3.47.0, the
   version `devbox.lock` pins, in `/opt/flutter`: on x64 the release
   archive, checked against the SHA-256 in `releases_linux.json`; on arm64,
@@ -102,38 +110,38 @@
   is copied into the image, so the build context is the dev container
   folder alone.
 - **Starts by itself**: `postStartCommand` runs
-  [post-start.sh](../../.devcontainer/MortgageHub/post-start.sh) on
-  every start (after `post-create.sh` on the first), which runs
-  `devbox services up -b` detached, then `public-port.sh`. Port 8880 is
-  forwarded as plain HTTP with `onAutoForward: openBrowserOnce`. The web
-  server proxies the bare `/` to the API, which redirects it to `/app/`
-  (the proxy turns that into `/app`, which serves the same page), so the
-  forwarded port's URL opens the app as it is, as nginx does under Docker
-  Compose.
-- **Start-up log**: `MortgageHub/startup.log` (git-ignored, as every
-  `*.log`), written through
-  [startup-log.sh](../../.devcontainer/MortgageHub/startup-log.sh),
-  which the three scripts source. Each line has a UTC time and a tag:
-  `post-create` (with `devbox install`'s output and duration),
-  `post-start`, `services` (`devbox services up -b`'s output),
-  `public-port`, and `watch`, a detached watcher started by
-  `post-start.sh --watch` that polls the web app's `/app/` and the API's
-  `/api/health` every 5 s and logs each change of state and the time to
-  ready; after 15 minutes without, it logs `devbox services ls` and the
-  tail of process-compose's log. `post-create.sh` and `post-start.sh`
-  first log the facts a failed start comes down to: user, architecture,
-  the codespace, whether `AITYX_API_KEY` and `GITHUB_TOKEN` are set
-  (never their values), `AITYX_URL`, devbox's and Nix's versions, whether
+  [post-start.sh](../../.devcontainer/post-start.sh) on every start
+  (after `post-create.sh` on the first), which runs `./start-all.sh`
+  detached with `WAIT=900`, then `public-port.sh`. Every port is
+  forwarded as plain HTTP; only the index's 8800 has `onAutoForward:
+  openBrowserOnce`, the others are `silent`, since the index is up in
+  seconds and links each app once it answers (with its forwarded URL, in
+  a codespace). The web server proxies the bare `/` to the API, which
+  redirects it to `/app/` (the proxy turns that into `/app`, which
+  serves the same page), so the forwarded port's URL opens the app as it
+  is, as nginx does under Docker Compose.
+- **Start-up log**: `startup.log` at the root of the repository
+  (git-ignored, as every `*.log`), written through
+  [startup-log.sh](../../.devcontainer/startup-log.sh), which the three
+  scripts source. Each line has a UTC time and a tag: `post-create`
+  (with each `devbox install`'s output and duration), `post-start`,
+  `start-all` (`start-all.sh`'s output: each demo's start and the line
+  saying when it answers, or that it didn't within 15 minutes) and
+  `public-port`. `post-create.sh` and `post-start.sh` first log the
+  facts a failed start comes down to: user, architecture, the codespace,
+  whether `AITYX_API_KEY` and `GITHUB_TOKEN` are set (never their
+  values), `AITYX_URL`, devbox's and Nix's versions, whether each demo's
   `.devbox` exists and the free disk. It's in the workspace so a user can
   download it from the Explorer and send it; the README asks them to when
   the app doesn't start.
-- **Public web port**:
-  [public-port.sh](../../.devcontainer/MortgageHub/public-port.sh)
-  in a codespace makes port 8880 public with
-  `gh codespace ports visibility`, retrying in the background (every
-  10 s, for up to 20 minutes) until the port is forwarded. `devcontainer.json` has no setting for it. Only
-  8880 is public: the API's 8881 is not forwarded, and the app reaches it
-  through the web server's `/api/` proxy. It runs again from
+- **Public web ports**:
+  [public-port.sh](../../.devcontainer/public-port.sh) in a codespace
+  makes the index's port and each demo's web port (8880 for this app)
+  public with `gh codespace ports visibility`, each one retried in the
+  background (every 10 s, for up to 20 minutes) until it is forwarded,
+  since the demos come up one by one. `devcontainer.json` has no setting
+  for it. Only the web ports are public: the API's 8881 is not forwarded,
+  and the app reaches it through the web server's `/api/` proxy. It runs again from
   `postAttachCommand`, because a visibility set at start does not always
   stick; a second run while one is still retrying does nothing. An
   organization policy can forbid public ports, in which case the port

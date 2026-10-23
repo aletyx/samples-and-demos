@@ -1,0 +1,206 @@
+# PokerFace
+
+PokerFace is a poker simulator, no-limit Texas hold'em at a table of up
+to nine, where every player is a set of rules. The rules are a decision
+model run on [aityx.ai](https://aityx.ai): at each turn the app works out
+the player's situation (cards, hand, equity, the pot, what it costs to
+call, position, who is still to act, and a random number for strategies
+that mix their play), and one aityx call runs the player's strategy on it
+and answers with the action, the amount, and the rule that decided it,
+with its reason. The table shows the hand like an online poker room, a
+sidebar shows every call to aityx (the request and the response, with the
+key parts marked), and a slider sets the pace, from one step at a time to
+as fast as aityx answers.
+
+Five strategies come with it, each a file of rules: the Rock, the Maniac,
+the Calling Station, the Mathematician and the Shark. Add players with
+any of them, read their rules, or write your own from one and seat it at
+the table.
+
+## Technology
+
+| Part | Technology |
+|---|---|
+| App ([pokerface_app/](pokerface_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase. The table itself (the deal, the betting rounds, side pots, the showdown) runs in the app |
+| API ([pokerface_api/](pokerface_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key, serves the strategies and runs each decision on aityx |
+| Rules ([pokerface_api/models/](pokerface_api/models)) | [table.json](pokerface_api/models/table.json), the situation a player sees, and one [strategy](pokerface_api/models/strategies) per file: the decisions of the model, an action table and a raise expression |
+| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
+
+The toolchain is pinned in [devbox.json](devbox.json) and locked in
+[devbox.lock](devbox.lock): Flutter, GNU Make and curl. It is the same
+lock as Mortgage Hub's and Contact Hub's, so they share one Nix store.
+
+## Run it locally with devbox
+
+1. Install [Devbox](https://www.jetify.com/devbox/docs/installing_devbox/).
+2. Put your [aityx](https://aityx.ai) key in `.env` (copy
+   [.env.example](.env.example)): the same `AITYX_API_KEY` as Mortgage
+   Hub's, for instance `grep '^AITYX_' ../MortgageHub/.env > .env`.
+   Without it the app opens, but nobody can act.
+3. From this folder:
+
+   ```bash
+   devbox services up           # add --pcflags "--tui=false" when not in a terminal
+   ```
+
+That starts, from [process-compose.yaml](process-compose.yaml):
+
+| URL | What |
+|---|---|
+| http://localhost:8910/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
+| http://localhost:8911/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
+
+The ports are 8910 and 8911, so PokerFace runs alongside Mortgage Hub
+(8880) and Contact Hub (8890). The first start compiles the app, which
+takes a minute or so. The table opens with five players, one per
+strategy. Press **Play** and watch; the slider sets the pace, **Step**
+plays one step at a time while paused, **Players** adds and removes
+players and shows the strategies (see [The table](specs/table.md) and
+[Players and strategies](specs/players.md)). The sidebar lists every
+call to aityx; tap one for the whole request and response (see
+[The aityx calls](specs/calls.md)).
+
+Once both are ready, the `health-check` monitor prints where to open the
+app (in a codespace, its forwarded URL too), waits 5 s
+(`HEALTH_CHECK_DELAY`), then logs one line every 15 s
+(`HEALTH_CHECK_INTERVAL`); 🤖 [aityx](https://aityx.ai) is ⚪ when the API
+has no key:
+
+```
+PokerFace is up. Open the app at:
+  http://localhost:8910/app/
+Health checks start in 5 s, then every 15 s.
+2026-10-23 14:02:10 🌐 Web ✅ · 🔌 API ✅ · 🤖 aityx ✅
+```
+
+Stop everything with `devbox services stop`. To run only the app, use
+`devbox run web` (set `FLUTTER_WEB_PORT` to change the port); only the
+API, `devbox run api` (`API_PORT`).
+
+### Testing the strategies on aityx
+
+`bash scripts/model-test.sh` runs every strategy on aityx with fixed
+situations (a premium hand before the flop, a flush draw facing a bet, a
+free flop in the big blind, ...) and checks that each plays in character:
+[model_scenarios_test.dart](pokerface_api/test/model_scenarios_test.dart).
+Run it after changing a model. `dart test` in `pokerface_api/` skips it,
+and checks the API's own logic; `flutter test` in `pokerface_app/` runs
+the table's engine through its paces (hand ranks, side pots, the betting
+rounds) and the screens.
+
+### Building the binaries
+
+The [Makefile](Makefile) builds release binaries through
+[scripts/make.sh](scripts/make.sh):
+
+```bash
+make            # every platform this host can build
+make web        # pokerface_app/build/web/
+make android    # pokerface_app/build/app/outputs/flutter-apk/app-release.apk
+make ios        # pokerface_app/build/ios/iphoneos/Runner.app (macOS, unsigned)
+make linux      # pokerface_app/build/linux/<arch>/release/bundle/ (Linux only)
+make clean
+```
+
+Pass `MODE=profile` or `MODE=debug` for other build modes, and
+`IOS_CODESIGN=1` to sign the iOS build (this needs a signing team in Xcode).
+The version is `X.Y.Z`: X and Y from [version.X.txt](version.X.txt) and
+[version.Y.txt](version.Y.txt), Z the build time (see
+[scripts/version.sh](scripts/version.sh)).
+
+## Run it with Docker Compose
+
+With only [Docker](https://docs.docker.com/get-docker/) installed (no
+devbox, no Flutter), from this folder:
+
+```bash
+docker compose up --build
+```
+
+and open http://localhost:8910/app/. [compose.yaml](compose.yaml) builds
+and starts two services:
+
+| Service | What |
+|---|---|
+| `web` | The app's release web build ([docker/web.Dockerfile](docker/web.Dockerfile)), served by nginx under `/app/`, with `/api/` proxied to the API ([docker/nginx.conf](docker/nginx.conf)) |
+| `api` | The API compiled to a native executable ([pokerface_api/Dockerfile](pokerface_api/Dockerfile)), with the models; not published, reached only through `web` |
+
+For the key, copy [.env.example](.env.example) to `.env` and fill in
+`AITYX_API_KEY` (or export it); it goes to the API only. The first build
+takes a few minutes (it downloads Flutter); later ones reuse Docker's
+cache. Set `FLUTTER_WEB_PORT` to change the port; the app is bound to
+127.0.0.1 unless you set `POKERFACE_BIND_HOST=0.0.0.0`. Stop it with
+`docker compose down`. Both services have health checks, so
+`docker compose up --wait` returns once they are healthy. There is no hot
+reload: rebuild after a change.
+
+## Run it in a codespace
+
+[![Open PokerFace in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb)
+
+That link opens this repository's **PokerFace** dev container on a
+4-core machine (16 GB RAM), which is what the Flutter and Nix builds want.
+To choose for yourself instead, use *Code → Codespaces → New with
+options* and pick **PokerFace** as the dev container configuration —
+the repository holds several samples, so the configuration matters.
+
+The codespace uses your [aityx](https://aityx.ai) key, the same
+`AITYX_API_KEY` Codespaces secret as Mortgage Hub's and Contact Hub's.
+GitHub keeps Codespaces secrets per user and grants them per repository,
+so if your key already reaches this repository, there is nothing to do.
+Otherwise add it at
+[github.com/settings/codespaces](https://github.com/settings/codespaces)
+(**New secret**, name `AITYX_API_KEY`, access to
+`aletyx/samples-and-demos`), or enter it when GitHub asks on the creation
+page. Without it the app opens, but nobody can act.
+
+On first start,
+[post-create.sh](../.devcontainer/PokerFace/post-create.sh) moves to
+this folder, says whether your key arrived and runs `devbox install`.
+Then, on that and every later start,
+[post-start.sh](../.devcontainer/PokerFace/post-start.sh) starts the
+services in the background and makes port **8910** public. There is
+nothing to run: once the app has compiled, open port 8910 from the
+**Ports** panel (Codespaces may open it in a browser tab for you). Its
+bare URL redirects to the app at `/app/`.
+
+Watch the services with `devbox services attach`, restart them with
+`devbox services restart`, and stop them with `devbox services stop`.
+
+**If the app doesn't start, send us `PokerFace/startup.log`.** Every
+step of the codespace's start goes there, timestamped, including a line
+saying when the web app and the API first answered. It holds no secrets.
+
+**Check the port's visibility.** In the **Ports** panel, the
+*Visibility* column for 8910 should say **Public**. If it says
+**Private**, right-click the port, choose **Port Visibility → Public**
+and reload the app. If `devbox install` fails with HTTP 403, export
+`GITHUB_TOKEN` (for example `export GITHUB_TOKEN=$(gh auth token)`) and
+run it again.
+
+## Run it in a dev container locally
+
+Open the repository root in VS Code and choose **Reopen in Container**,
+then **PokerFace**. The dev container lives at the root of the
+repository, in [.devcontainer/PokerFace/](../.devcontainer/PokerFace),
+because that is where GitHub looks for one. Its
+[Containerfile](../.devcontainer/PokerFace/Containerfile) is Mortgage
+Hub's: Microsoft's `ubuntu-24.04` base with pinned, checksum-verified
+Devbox, Nix, the GitHub CLI and Flutter.
+
+## Contributing
+
+1. Create a branch from an up-to-date `main`.
+2. Make one change per pull request, with its tests. Run `flutter analyze`
+   and `flutter test` in `pokerface_app/`, `dart analyze` and `dart test`
+   in `pokerface_api/`, and `bash scripts/model-test.sh` after changing a
+   model.
+3. Update the matching feature spec in [specs/](specs/) and add an entry to
+   [specs/requests.md](specs/requests.md).
+4. Open a pull request against `main`.
+
+## Learn more
+
+- [specs/](specs/README.md): the specification of every feature.
+- [Strategies](specs/strategies.md): what a strategy sees and how its
+  rules are written.

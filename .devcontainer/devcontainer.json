@@ -1,0 +1,134 @@
+{
+  // ---------------------------------------------------------------------
+  // All demos
+  //
+  // Every demo in this repository that runs as services, started
+  // together: Mortgage Hub, Contact Hub, Life Hub, RoboRules, PokerFace,
+  // each a Flutter web app and a Dart API calling aityx.ai, and the
+  // index page (Index/) that links them and says which ones are up.
+  //
+  // Source:  https://github.com/aletyx/samples-and-demos
+  // Rules:   https://aityx.ai — runs every decision in every demo
+  // Aletyx:  https://aletyx.com
+  //          https://nu01.com
+  //
+  // This is the repository's default dev container. The others, one per
+  // demo (.devcontainer/<demo>/), start only that demo; Mortgage Hub's
+  // former one is kept in .devcontainer/archive/ and is not offered. The
+  // name below is what GitHub shows in the "Dev container configuration"
+  // list when you create a codespace.
+  // ---------------------------------------------------------------------
+  "name": "All demos",
+  "build": {
+    "dockerfile": "Containerfile",
+    // Nothing is copied into the image, so the build context is just this
+    // folder rather than the whole repository.
+    "context": "."
+  },
+  "remoteUser": "vscode",
+  // Six Flutter apps compile at once on the first start, so this asks for
+  // the 8-core, 32 GB machine; a smaller one swaps and times out.
+  "hostRequirements": {
+    "cpus": 8,
+    "memory": "32gb"
+  },
+  // The dev servers must listen on every interface for the forwarded
+  // ports to reach them (only the container sees them). One variable per
+  // demo, as its scripts and compose.yaml name it.
+  "containerEnv": {
+    "INDEX_BIND_HOST": "0.0.0.0",
+    "MORTGAGEHUB_BIND_HOST": "0.0.0.0",
+    "CONTACTHUB_BIND_HOST": "0.0.0.0",
+    "LIFEHUB_BIND_HOST": "0.0.0.0",
+    "ROBORULES_BIND_HOST": "0.0.0.0",
+    "POKERFACE_BIND_HOST": "0.0.0.0"
+  },
+  // Your own key, never the repository's: the one AITYX_API_KEY secret
+  // every demo here reads. GitHub asks for it when you create a codespace
+  // unless you already hold it, stores it against your account, and
+  // passes it to the container as an environment variable, which each
+  // demo's scripts read before falling back to <demo>/.env. Change it at
+  // https://github.com/settings/codespaces.
+  //
+  // Only the key is asked for. AITYX_URL defaults to https://api.aityx.ai;
+  // override it in each demo's .env if you need to (a stage key, for
+  // instance, works only against https://api-stage.aityx.ai).
+  "secrets": {
+    "AITYX_API_KEY": {
+      "description": "Required. Your own aityx.ai API key, from the console's API keys page; every demo runs its decisions on aityx with it.",
+      "documentationUrl": "https://aityx.ai/docs"
+    }
+  },
+  // The image's flutter and dart on the PATH of every terminal.
+  // ${containerEnv:PATH} is the image's own PATH. Inside `devbox shell`
+  // and `devbox services up`, devbox's Flutter, the same version, comes
+  // first.
+  "remoteEnv": {
+    "PATH": "/opt/flutter/bin:${containerEnv:PATH}"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // The Flutter SDK baked into the image (see Containerfile), there
+        // from the moment VS Code attaches. Devbox's own Flutter only
+        // appears once post-create.sh has run `devbox install`, too late
+        // for the Dart extension, which then offers to download one.
+        "dart.flutterSdkPath": "/opt/flutter"
+      },
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ]
+    }
+  },
+  // The index page and each demo's web app. The APIs (8881, 8891, ...)
+  // stay inside the container: each app reaches its own through the web
+  // server's /api/ proxy. Each port's bare URL redirects to its app at
+  // /app/. Plain HTTP, which is what the dev servers speak; switching a
+  // public port to HTTPS makes it private. post-start.sh makes them
+  // public, which devcontainer.json cannot. Only the index opens a
+  // browser tab: it is up in seconds and shows the demos as they compile,
+  // with a link to each (the forwarded URL, in a codespace).
+  "forwardPorts": [8800, 8880, 8890, 8900, 8910, 8920],
+  "portsAttributes": {
+    "8800": {
+      "label": "Index: every demo on one page",
+      "protocol": "http",
+      "onAutoForward": "openBrowserOnce"
+    },
+    "8880": {
+      "label": "Mortgage Hub web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "8890": {
+      "label": "Contact Hub web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "8900": {
+      "label": "Life Hub web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "8910": {
+      "label": "PokerFace web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "8920": {
+      "label": "RoboRules web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    }
+  },
+  // Both run from the repository root. post-create.sh installs each
+  // demo's toolchain once; post-start.sh runs ./start-all.sh and makes
+  // the ports public on every start.
+  "postCreateCommand": "bash -lc 'bash .devcontainer/post-create.sh'",
+  "postStartCommand": "bash -lc 'bash .devcontainer/post-start.sh'",
+  // Again each time VS Code attaches: a visibility set at start does not
+  // always stick, and users report it does from here.
+  "postAttachCommand": "bash .devcontainer/public-port.sh"
+}

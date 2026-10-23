@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Starts every demo that runs as services: each folder with a devbox.json
-# and a process-compose.yaml (Mortgage Hub, Contact Hub, ...), detached,
+# and a process-compose.yaml (Mortgage Hub, Contact Hub, ..., and the index
+# page in Index/), detached,
 # with `devbox services up -b`, then waits until each one's web app and
 # API answer and prints where to open them. A demo whose web port already
 # answers (started by hand, or with Docker Compose) is left as it is.
@@ -9,8 +10,10 @@
 #   ./start-all.sh ContactHub   # only these
 #   WAIT=0 ./start-all.sh       # start, don't wait
 #
-# Each demo's key goes in its own .env (see <demo>/.env.example): without
-# it the app runs, but it can't call aityx. The first start of a demo
+# Each demo's aityx settings go in its own .env (see <demo>/.env.example):
+# AITYX_API_KEY, the key, and AITYX_URL, the endpoint (https://api.aityx.ai
+# unless set; a stage key needs https://api-stage.aityx.ai). Without a key
+# the app runs, but it can't call aityx. The first start of a demo
 # compiles its app, a minute or two; watch one with
 # `devbox services attach -c <demo>`. Stop them with ./stop-all.sh.
 set -uo pipefail
@@ -100,4 +103,10 @@ for demo in "${pending[@]+"${pending[@]}"}"; do
   echo "✗ $demo did not answer at http://localhost:$web/app/ within $WAIT s; see devbox services attach -c $demo" >&2
   failed=1
 done
+
+# The index page (Index/), with a card per demo and which ones are up.
+index="$(port Index FLUTTER_WEB_PORT 2>/dev/null)"
+if [[ -n "$index" ]] && answers "http://localhost:$index/"; then
+  echo "🏠 Every demo, on one page: http://localhost:$index/"
+fi
 exit $failed

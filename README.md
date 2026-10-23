@@ -1,15 +1,17 @@
-# Aletyx samples and demos
+# aityx demos
 
-Working examples of business automation with Aletyx: processes, decision
+Working examples of business automation with aityx: processes, decision
 models, and applications built around them. Each folder is a self-contained
 sample with its own documentation.
 
 | Sample | What it shows | Launch |
 |---|---|---|
-| [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Life Hub](LifeHub/) | Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FLifeHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [Index](Index/) | One page linking every demo, in the aityx palette, saying which ones are up; `./start-all.sh` starts it with the rest on http://localhost:8800/ | `./start-all.sh`, or [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -29,10 +31,28 @@ from the root of this repository with [Devbox](https://www.jetify.com/devbox):
 and then prints where to open each app once its web app and API answer;
 the first start compiles each app, which takes a few minutes. A demo
 that already answers on its port, started by hand or with Docker
-Compose, is left as it is. Each demo reads its aityx key from its own
-`.env` (see each folder's `.env.example`). Watch one demo's services with
+Compose, is left as it is. Each demo reads its aityx settings from its
+own `.env` (see each folder's `.env.example`): `AITYX_API_KEY`, the key,
+and `AITYX_URL`, the endpoint, `https://api.aityx.ai` unless set; a
+stage key needs `AITYX_URL=https://api-stage.aityx.ai`. Watch one demo's
+services with
 `devbox services attach -c <demo>`; [stop-all.sh](stop-all.sh) runs
 `devbox services stop` in each folder that is running.
+
+The same, in a codespace: the repository's default dev container,
+[.devcontainer/devcontainer.json](.devcontainer/devcontainer.json),
+builds every demo's toolchain and runs `./start-all.sh` on each start.
+It needs your own `AITYX_API_KEY` Codespaces secret (see
+[Launching it](#launching-it) below) and the 8-core machine, since six
+apps compile at once.
+
+[![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
+
+Once it starts, the index page opens on port **8800** and shows each
+demo as it comes up, with a link to it; the apps' ports (8880 to 8920)
+are in the **Ports** panel too, made public so the links can be shared.
+Every step of the start goes to `startup.log` at the root. The other
+dev containers in the list, one per demo, start only that demo.
 
 ## Mortgage Hub
 
@@ -65,20 +85,21 @@ GitHub asks for it on the codespace creation page. The
 [Mortgage Hub README](MortgageHub/README.md#run-it-in-a-codespace) shows
 both screens, the secret form and the creation page.
 
-[![Open Mortgage Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
-That opens the **Mortgage Hub** dev container on a 4-core machine (16 GB
-RAM), which is what the Flutter and Nix builds want. This repository holds
-several samples, so if you create the codespace yourself through *Code →
-Codespaces → New with options*, pick **Mortgage Hub** as the dev container
-configuration.
+That opens the repository's default dev container, **All demos**, on an
+8-core machine (32 GB RAM): it starts Mortgage Hub with every other demo
+and the index page. If you create the codespace yourself through *Code →
+Codespaces → New with options*, keep **All demos** as the dev container
+configuration; the others start one demo each.
 
-Once it starts, the app starts too: when it has compiled, a minute or
-two on the first start, open port **8880** from the **Ports** panel.
-Check that its visibility says **Public**, so the link can be shared; if
-it says Private, right-click it and choose **Port Visibility → Public**.
-The full
-instructions, including running it without a codespace, are in the
+Once it starts, the apps start too: when Mortgage Hub has compiled, a
+few minutes on the first start, open port **8880** from the **Ports**
+panel, or from its card on the index page (port **8800**, opened for
+you). Check that the port's visibility says **Public**, so the link can
+be shared; if it says Private, right-click it and choose **Port
+Visibility → Public**. The full instructions, including running it
+without a codespace, are in the
 [Mortgage Hub README](MortgageHub/README.md).
 
 ### Running it locally
@@ -172,6 +193,32 @@ Both serve the app at http://localhost:8900/app/, so it runs alongside
 the other two. The badge above opens it in a codespace, which uses the
 same `AITYX_API_KEY` Codespaces secret. See the
 [Life Hub README](LifeHub/README.md).
+
+## PokerFace
+
+[PokerFace/](PokerFace/) is a poker simulator, no-limit Texas hold'em at
+a table of up to nine, where every player is a set of rules: a decision
+model run on [aityx.ai](https://aityx.ai) at each turn, on the player's
+situation as the app computes it (cards, hand, equity, pot odds,
+position, a random number for mixed play). Five strategies come with it,
+the Rock, the Maniac, the Calling Station, the Mathematician and the
+Shark, each a file of rules; add players with any of them, read the
+rules, or write your own. The table plays like an online poker room, a
+sidebar shows every call to aityx with its request and response, and a
+slider sets the pace. Put your key in `PokerFace/.env` (see
+[.env.example](PokerFace/.env.example)), then, from the root of this
+repository:
+
+```bash
+devbox services up -c PokerFace --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f PokerFace/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:8910/app/, alongside the other
+samples. The badge above opens it in a codespace, with the same
+`AITYX_API_KEY` Codespaces secret. See the
+[PokerFace README](PokerFace/README.md).
 
 ## Payroll
 

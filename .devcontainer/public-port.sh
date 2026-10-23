@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Run by post-start.sh each time the codespace starts, and again each time
+# VS Code attaches (postAttachCommand), since a visibility set at start
+# does not always stick: makes the index page's and each web app's
+# forwarded port public, so their URLs open without a GitHub sign-in and
+# can be shared for a demo.
+#
+# devcontainer.json cannot declare a port public; Codespaces only accept it
+# through the API, so this asks `gh`, authenticated by the codespace's own
+# GITHUB_TOKEN. Only the web ports are made public: the APIs are not
+# forwarded, and each app reaches its own through the web server's /api/
+# proxy. Anyone with a URL can use that app, and so run its decisions on
+# your aityx key.
+#
+# A port is forwarded only once something listens on it, and the demos
+# come up one by one as they compile, so this retries each port in the
+# background for a while rather than holding up the start. An organization
+# can forbid public ports; then they stay private and the reason is in the
+# log.
+set -uo pipefail
+
+# The index's port and each demo's web port (the FLUTTER_WEB_PORT default
+# in its process-compose.yaml), the same way start-all.sh reads them.
+# Its progress goes to startup.log at the root (see startup-log.sh).
+# shellcheck source=startup-log.sh
+source "$(dirname "${BASH_SOURCE[0]}")/startup-log.sh"
+log=$startup_log
+ports=()
+for demo in $(startup_demos); do
+  port="$(sed -n 's/.*\${FLUTTER_WEB_PORT:-\([0-9]*\)}.*/\1/p' "$startup_root/$demo/process-compose.yaml" | head -1)"
+  [[ -n "$port" ]] && ports+=("$port")
+done
+# Run on its own (postAttachCommand), not from post-start.sh: log it too.
+[[ "${1:-}" == --wait || -n "${STARTUP_LOG_CAPTURED:-}" ]] ||
+  startup_capture public-port
+pidfile=/tmp/public-port.pid
+
+if [[ -z "${CODESPACE_NAME:-}" ]]; then
+  exit 0 # not a codespace: nothing to make public
+fi
+if ! command -v gh >/dev/null; then
+  echo "public-port: gh not found; ports ${ports[*]} stay private" >&2
+  exit 0
+fi
+
+if [[ "${1:-}" != --wait ]]; then
+  if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+    echo "public-port: already making ports ${ports[*]} public (log: startup.log)"
+    exit 0
+  fi
+  # Detached, so it outlives postStartCommand.
+  setsid nohup bash -c 'bash "$1" --wait 2>&1 | while IFS= read -r line; do
+    printf "%s [public-port] %s\n" "$(date -u "+%Y-%m-%d %H:%M:%S")" "$line"
+  done >>"$0"' "$log" "$0" </dev/null >/dev/null 2>&1 &
+  echo $! >"$pidfile"
+  echo "public-port: making ports ${ports[*]} public in the background (log: startup.log)"
+  exit 0
+fi
+
+# Each port on its own, as soon as it is forwarded: up to 20 minutes, the
+# first start of six apps on a shared machine.
+pending=("${ports[@]}")
+for _ in $(seq 1 120); do
+  still=()
+  for port in "${pending[@]}"; do
+    if gh codespace ports visibility "$port:public" -c "$CODESPACE_NAME"; then
+      echo "public-port: port $port is public"
+    else
+      still+=("$port")
+    fi
+  done
+  pending=("${still[@]+"${still[@]}"}")
+  [[ ${#pending[@]} -eq 0 ]] && exit 0
+  sleep 10
+done
+echo "public-port: could not make ports ${pending[*]} public; set them in the Ports panel"

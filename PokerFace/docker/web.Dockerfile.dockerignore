@@ -1,0 +1,10 @@
+*
+!docker/nginx.conf
+!scripts/make.sh
+!scripts/version.sh
+!version.X.txt
+!version.Y.txt
+!pokerface_app/
+pokerface_app/build/
+pokerface_app/.dart_tool/
+pokerface_app/web_dev_config.yaml

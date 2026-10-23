@@ -87,7 +87,7 @@ spec.
     GitHub only looks for dev containers at the repository root, so
     `MortgageHub/.devcontainer/` moved to
     [.devcontainer/MortgageHub/](../../.devcontainer/MortgageHub) and
-    the configuration is now named **Mortgage Hub**, which is
+    the configuration was named **Mortgage Hub** (since archived; see 35), which is
     what the Codespaces configuration list shows in a repository holding
     several samples. The Containerfile no longer assumes the repository is
     the app (its `WORKDIR` named a path that only existed in a standalone
@@ -257,3 +257,13 @@ spec.
     every platform. The palette is in
     [theme-colors.txt](theme-colors.txt). See [Theme](theme.md) and
     [App icon](app-icon.md).
+35. **Archive the Mortgage Hub dev container configuration and create
+    one that starts all demos** (2026-10-23). `.devcontainer/MortgageHub/`
+    moved to `.devcontainer/archive/MortgageHub/`, where GitHub no longer
+    offers it, and the repository's default dev container,
+    `.devcontainer/devcontainer.json` (**All demos**), took its place:
+    the same Containerfile, `devbox install` in every demo's folder on
+    creation, `./start-all.sh` on every start, the index's and the five
+    web ports forwarded and made public, and `startup.log` at the root.
+    The Mortgage Hub badges and the index page's card open it. See
+    [Development environment](dev-environment.md).
