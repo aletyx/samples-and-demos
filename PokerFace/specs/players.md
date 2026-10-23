@@ -6,11 +6,37 @@ dialog with three parts.
 
 ## At the table
 
-One card per seat: the name; the stack, the net result (chips now minus
-chips bought), hands won of hands played, rebuys, and "leaving" when a
-removal waits for the end of the hand; a dropdown to change the
-player's strategy, which counts from their next decision; and a remove
-button. A player removed during a hand leaves after it.
+One card per seat: the name, which opens the player's rules (below); the
+stack, the net result (chips now minus the starting stack), hands won of
+hands played, the place once out, and "leaving" when a removal waits for
+the end of the hand; a dropdown to change the player's strategy, which
+counts from their next decision; and a remove button. A player removed
+during a hand leaves after it.
+
+## A player's rules
+
+Tapping a seat at the table, or a name in the panel, opens the player's
+rules ([rules_sheet.dart](../pokerface_app/lib/players/rules_sheet.dart)):
+the strategy's tagline, then its action table one rule a row, numbered,
+each with its conditions as chips (`street = preflop`, `hand in premium,
+strong`, `equity >= 0.5`), its action as a colored badge, and its why; the
+last rule, with no conditions, is "otherwise". Each rule has up, down and
+remove buttons, since the first match wins. **Add a rule** takes any
+number of conditions (a name to test, picked from the table's columns,
+the strategy's own decisions and the situation's inputs, and the
+condition: a value, alternatives, a range or an expression), the action
+and the why; the new rule goes in above the "otherwise" rule. Below, the
+raise expression can be edited, and the strategy's other decisions are
+listed with their expressions. **Try it on aityx** runs the rules as
+they stand on the sample situation; **As JSON** opens the editor;
+**Remove <name>** takes the player off the table.
+
+**Save** keeps the changes for that player only: the first save gives
+them a strategy of their own, "<Name>'s <Strategy>" (Rocky's Rock),
+based on the one they played and marked "yours" in the strategies list,
+and the preset stays as it is; later saves change it in place. The sheet
+says which of the two will happen. A strategy whose action is an
+expression rather than a table can only be edited as JSON.
 
 ## Add a player
 

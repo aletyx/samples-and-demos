@@ -47,7 +47,16 @@ The sidebar's second tab, **Hand log**
 hands' story newest first: each hand's header (number, button, blinds)
 in orange, the deal and the streets in amber, every action in plain
 text, the showdown and who won what in green, and players sitting down,
-leaving or buying in again in gray.
+leaving, busting out, new levels and the tournament's end in gray. An
+action's line has an arrow and expands when tapped into why the player
+did it: the strategy and the rule that fired with its why; the rule's
+conditions, each with the value the situation had for it (`equity >=
+0.5 ← 0.78`); the table's note when the decision was made legal; the
+situation as chips (cards and board, street and position, hand class,
+made hand, draws, equity, pot, to call and pot odds, bet and raises,
+stack, minimum and maximum raise, players in hand and after, the random
+number); the strategy's own decisions with their values; and **The whole
+call**, which opens the viewer above.
 
 ## Known limitations
 

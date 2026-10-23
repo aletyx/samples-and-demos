@@ -1,21 +1,25 @@
 # PokerFace
 
-PokerFace is a poker simulator, no-limit Texas hold'em at a table of up
-to nine, where every player is a set of rules. The rules are a decision
+PokerFace is a poker simulator, a no-limit Texas hold'em tournament at
+a table of up to nine, where every player is a set of rules. The rules are a decision
 model run on [aityx.ai](https://aityx.ai): at each turn the app works out
 the player's situation (cards, hand, equity, the pot, what it costs to
 call, position, who is still to act, and a random number for strategies
 that mix their play), and one aityx call runs the player's strategy on it
 and answers with the action, the amount, and the rule that decided it,
-with its reason. The table shows the hand like an online poker room, a
-sidebar shows every call to aityx (the request and the response, with the
-key parts marked), and a slider sets the pace, from one step at a time to
-as fast as aityx answers.
+with its reason. The table shows the hand like an online poker room,
+avatars, chips and all; the blinds go up every ten hands, there are no
+rebuys, and when one player has every chip the winner and their strategy
+are announced. A sidebar shows every call to aityx (the request and the
+response, with the key parts marked) and the hand log, where every action
+expands into the rule that fired and the situation behind it. A slider
+sets the pace, from one step at a time to as fast as aityx answers.
 
 Five strategies come with it, each a file of rules: the Rock, the Maniac,
 the Calling Station, the Mathematician and the Shark. Add players with
-any of them, read their rules, or write your own from one and seat it at
-the table.
+any of them, tap a player to read their rules and add, remove or reorder
+them for that player, or write a strategy of your own from one and seat
+it at the table.
 
 ## Technology
 
@@ -54,9 +58,10 @@ The ports are 8910 and 8911, so PokerFace runs alongside Mortgage Hub
 (8880) and Contact Hub (8890). The first start compiles the app, which
 takes a minute or so. The table opens with five players, one per
 strategy. Press **Play** and watch; the slider sets the pace, **Step**
-plays one step at a time while paused, **Players** adds and removes
-players and shows the strategies (see [The table](specs/table.md) and
-[Players and strategies](specs/players.md)). The sidebar lists every
+plays one step at a time while paused, a tap on a seat shows and edits
+that player's rules, **Players** adds and removes players and shows the
+strategies (see [The table](specs/table.md) and [Players and
+strategies](specs/players.md)). The sidebar lists every
 call to aityx; tap one for the whole request and response (see
 [The aityx calls](specs/calls.md)).
 

@@ -308,13 +308,20 @@ void main() {
       g.next();
       g.next();
       g.apply(const PlayerAction(ActionKind.allIn));
-      g.next();
-      g.apply(const PlayerAction(ActionKind.call));
-      while (g.next() is! HandOver) {}
+      while (true) {
+        final step = g.next();
+        if (step is NeedsAction) {
+          g.apply(const PlayerAction(ActionKind.call));
+        } else if (step is HandOver) {
+          break;
+        }
+      }
       expect(chips(g), g.seats.fold(0, (s, x) => s + x.bought));
       final out = g.seats.where((s) => s.status == SeatStatus.out).toList();
+      expect(out, isNotEmpty);
+      final left = g.seats.length - out.length;
       for (final s in out) {
-        expect(s.place, 3 - out.length + 1 + out.length - 1);
+        expect(s.place, left + out.length);
       }
       // Everyone but one busts: the tournament is over.
       final leader = g.seats.firstWhere((s) => s.stack > 0);
@@ -392,7 +399,8 @@ void main() {
       final r = Random(3);
       var hands = 0;
       var steps = 0;
-      while (hands < 30 && steps < 5000) {
+      var over = false;
+      while (hands < 30 && steps < 5000 && !over) {
         final step = g.next();
         steps++;
         if (step is NeedsAction) {
@@ -401,9 +409,17 @@ void main() {
         } else if (step is HandOver) {
           hands++;
           expect(chips(g), g.seats.fold(0, (s, x) => s + x.bought));
+        } else if (step is TournamentOver) {
+          over = true;
+          expect(step.winner.stack, 6000);
+          expect(step.standings.first, step.winner);
+          expect(step.standings.map((s) => s.place), everyElement(isNotNull));
         }
       }
-      expect(hands, 30);
+      // Random play goes all in often: the tournament ends well before
+      // 30 hands, with the chips accounted for.
+      expect(over || hands == 30, isTrue);
+      expect(hands, greaterThan(0));
     });
   });
 }

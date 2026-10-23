@@ -37,3 +37,37 @@ The feature files hold the current specification; see the
    and strategies](players.md)). The [theme](theme.md) is the aityx
    palette with a green felt; the [app icon](app-icon.md) an orange ace of
    spades with a chip.
+
+## 2026-10-23 (later)
+
+2. **When a player name is clicked, present its strategy (rules), and
+   let users add or remove them.** Tapping a seat, or a name in the
+   players panel, opens the player's rules: the action table one rule a
+   row with its conditions, action and why, each removable and movable;
+   a form to add a rule (conditions on any input or decision, the
+   action, the why); the raise expression; **Try it on aityx**; and
+   **Remove <name>**. Saving gives the player a strategy of their own,
+   "<Name>'s <Strategy>", so presets stay as they are. See [Players and
+   strategies](players.md#a-players-rules).
+3. **No rebuys; casino tournament rules; show the winner and its
+   strategy when the tournament ends.** The table plays a tournament:
+   everyone starts with 1000 chips, the blinds go up every 10 hands
+   through 14 levels, a player out of chips is out with a place, and
+   when one player has every chip a dialog announces the winner, their
+   strategy and the standings, with the winner's rules a tap away and
+   **New tournament**. The rebuy switch is gone; **Reset** became **New
+   tournament**. See [The table](table.md).
+4. **Show the chip piles as the game goes, and little avatars, like the
+   popular poker sites.** Bets, the pot and each stack are piles of
+   chips in casino colors, one column per denomination; each seat has an
+   avatar, the strategy's face in a ring of the seat's color, lit while
+   deciding, amber when winning, gray when out; the cards fan beside it
+   and the name, strategy, stack and last action sit on a plate below.
+   See [The table](table.md).
+5. **In the hand log, when an event is clicked, expand it to explain why
+   it was decided that way: the rule that fired and the game data that
+   led to it.** Every action line in the hand log expands into the rule
+   that fired with its why, its conditions with the situation's values,
+   the whole situation, the strategy's own decisions, and a link to the
+   whole call. See [The aityx calls](calls.md#the-hand-log).
+
