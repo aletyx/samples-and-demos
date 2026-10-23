@@ -40,7 +40,11 @@ explains the reasons behind each piece.
   `http://localhost:8891`.
 - `bash scripts/model-test.sh` runs the routing model's rules on aityx at
   the policy's limits (see [Order policy](order-policy.md#verified)); run
-  it after changing the model.
+  it after changing the model. `dart run tool/route_samples.dart` in
+  `contacthub_app/` routes every sample through a running API (`--api`,
+  default `http://localhost:8891`) and says where each went against its
+  label; `--save DIR` keeps each answer, which is how the app's test
+  fixture is made.
 - **Version**: `X.Y.Z`, X and Y from `version.X.txt` and `version.Y.txt`
   (0.1 today), Z the build time as `YYYYMMDDHHMM` UTC; the build number is
   the same time in Unix seconds
