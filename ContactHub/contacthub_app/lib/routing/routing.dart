@@ -293,7 +293,7 @@ class ApiRequestRouter implements RequestRouter {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'message': message}),
           )
-          .timeout(const Duration(seconds: 100));
+          .timeout(const Duration(seconds: 110));
     } catch (_) {
       throw const RoutingException('The API did not answer.');
     }

@@ -20,7 +20,7 @@ The API reads `AITYX_API_KEY` and `AITYX_URL` (default
 
 `POST /api/route` refuses, with 400 and `{"error": ...}`, a body over
 16 KB, invalid JSON, or a `message` that's missing, empty or over 2000
-characters; without a key it answers 503. It calls aityx with a 90 s
+characters; without a key it answers 503. It calls aityx with a 100 s
 timeout (504 when it runs out) and answers 502 when aityx answers an
 error, a `decision_error` or no routing. `routing` holds the department
 (`id`, `name`, `person`, `role`, `email`), `reason` and `department_rule`,

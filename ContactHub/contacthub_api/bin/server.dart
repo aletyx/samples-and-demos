@@ -9,7 +9,7 @@
 ///                      the routing model picks the department, on aityx's
 ///                      /v1/systemone; with the body sent to aityx and its
 ///                      answer under "aityx" (the key, a header, is in
-///                      neither); 504 after 90 s
+///                      neither); 504 after 100 s
 ///
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY         the key (secret)
@@ -33,9 +33,9 @@ import 'package:contacthub_api/routing.dart';
 
 const _maxBody = 16 * 1024;
 
-/// How long a routing waits for aityx; docker/nginx.conf's proxy waits
-/// longer.
-const _aityxDeadline = Duration(seconds: 90);
+/// The API's total routing budget; the app and nginx allow time to return it.
+const _aityxDeadline = Duration(seconds: 100);
+const _healthcheckDeadline = Duration(seconds: 3);
 
 /// What a routing call needs: the key, where aityx is, the model and a
 /// client.
@@ -87,17 +87,27 @@ Future<void> main(List<String> args) async {
 /// 0 when the server on this machine answers /api/health with ok, else 1.
 Future<int> _healthcheck() async {
   final port = int.parse(Platform.environment['API_PORT'] ?? '8891');
-  final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
+  final client = HttpClient()..connectionTimeout = _healthcheckDeadline;
+  HttpClientRequest? activeRequest;
   try {
-    final request = await client.getUrl(
-      Uri.parse('http://127.0.0.1:$port/api/health'),
+    return await () async {
+      activeRequest = await client.getUrl(
+        Uri.parse('http://127.0.0.1:$port/api/health'),
+      );
+      final response = await activeRequest!.close();
+      final body = await response.transform(utf8.decoder).join();
+      final json = jsonDecode(body);
+      return response.statusCode == 200 && json is Map && json['ok'] == true
+          ? 0
+          : 1;
+    }().timeout(
+      _healthcheckDeadline,
+      onTimeout: () {
+        activeRequest?.abort(TimeoutException('health check timed out'));
+        client.close(force: true);
+        return 1;
+      },
     );
-    final response = await request.close().timeout(const Duration(seconds: 3));
-    final body = await response.transform(utf8.decoder).join();
-    final json = jsonDecode(body);
-    return response.statusCode == 200 && json is Map && json['ok'] == true
-        ? 0
-        : 1;
   } catch (error) {
     stderr.writeln('healthcheck: $error');
     return 1;
@@ -159,20 +169,22 @@ Future<void> _route(HttpRequest request, _Aityx aityx) async {
   }
 
   final sent = routingRequest(aityx.model, message);
-  final call = await aityx.client.postUrl(aityx.url.resolve('/v1/systemone'));
+  final clock = Stopwatch()..start();
+  final call = await aityx.client
+      .postUrl(aityx.url.resolve('/v1/systemone'))
+      .timeout(_aityxDeadline);
   call.headers
     ..set('Authorization', 'Bearer ${aityx.key}')
     ..contentType = ContentType.json;
   call.write(jsonEncode(sent));
-  // One deadline for the whole answer, body included; when it runs out
-  // the call to aityx is aborted, not left running.
+  // The remaining budget covers sending and reading the whole answer.
   final HttpClientResponse answer;
   final String text;
   try {
     (answer, text) = await () async {
       final answer = await call.close();
       return (answer, await answer.transform(utf8.decoder).join());
-    }().timeout(_aityxDeadline);
+    }().timeout(_aityxDeadline - clock.elapsed);
   } on TimeoutException {
     call.abort(TimeoutException('aityx did not answer in time'));
     return _json(response, 504, {'error': 'aityx did not answer in time'});

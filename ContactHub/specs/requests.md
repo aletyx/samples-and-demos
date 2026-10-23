@@ -100,8 +100,8 @@ The feature files hold the current specification; see the
    load ends the dictation with an error instead of a spinner that never
    stops; Android release builds get the internet permission; full screen
    opens where the view was scrolled and keeps room for the code on short
-   windows; the API's 90 s deadline covers aityx's whole answer and aborts
-   the call, and nginx waits 100 s.
+   windows; the API's 100 s deadline covers aityx's whole answer and aborts
+   the call, and nginx waits 120 s.
 10. **Add dates, numbers and figures to the sample requests and to the
     rules, with the usual commerce rules (for example, no automatic refund
     more than a month after the purchase); be creative.** aityx's
