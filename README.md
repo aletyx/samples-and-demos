@@ -12,7 +12,7 @@ sample with its own documentation.
 | [Life Hub](LifeHub/) | Conway's Game of Life on an infinite board, with the rules, and a catalogue of its patterns, as an aityx decision model: one aityx call per generation, shown request and response in a side panel; a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FLifeHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
-| [Index](Index/) | One page linking every demo, in the aityx palette, saying which ones are up; `./start-all.sh` starts it with the rest on http://localhost:8800/ | `./start-all.sh`, or [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
+| [Index](Index/) | One page linking every demo, in the aityx palette; `./start-all.sh` starts it with the rest on http://localhost:8800/ | `./start-all.sh`, or [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -51,8 +51,8 @@ It needs your own `AITYX_API_KEY` Codespaces secret and, optionally, an
 
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
-Once it starts, the index page opens on port **8800** and shows each
-demo as it comes up, with a link to it; the apps' ports (8880 to 8930)
+Once it starts, the index page opens on port **8800** and links each
+demo (an app opens once it has compiled, a few minutes on the first start); the apps' ports (8880 to 8930)
 are in the **Ports** panel too, made public so the links can be shared.
 Every step of the start goes to `startup.log` at the root. The other
 dev containers in the list, one per demo, start only that demo.
