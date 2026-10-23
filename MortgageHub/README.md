@@ -145,7 +145,7 @@ in `.env` (see [.env.example](.env.example)). In Codespaces, set
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
 That link opens this repository's default dev container, **All demos**,
-a 4-core machine (16 GB RAM): Mortgage Hub starts with every other
+on a 4-core machine (16 GB RAM): Mortgage Hub starts with every other
 demo and the index page that links them, from
 [start-all.sh](../start-all.sh). To choose for yourself instead, use
 *Code → Codespaces → New with options* and keep **All demos** as the dev
