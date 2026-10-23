@@ -1,6 +1,6 @@
-# Aletyx samples and demos
+# aityx demos
 
-Working examples of business automation with Aletyx: processes, decision
+Working examples of business automation with aityx: processes, decision
 models, and applications built around them. Each folder is a self-contained
 sample with its own documentation.
 

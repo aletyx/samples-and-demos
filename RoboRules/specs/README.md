@@ -23,6 +23,8 @@ rules win.
   the speed, the dialogs, the aityx call viewer.
 - [Development environment](dev-environment.md): devbox, ports, Docker
   Compose, the dev container, the tests.
+- [App icon](app-icon.md): a tank seen from above, orange on the dark
+  background; the favicon in aityx\'s style, and the web icons.
 
 ## Workflow
 
