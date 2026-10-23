@@ -1,6 +1,6 @@
-# Aletyx samples and demos
+# aityx demos
 
-Working examples of business automation with Aletyx: processes, decision
+Working examples of business automation with aityx: processes, decision
 models, and applications built around them. Each folder is a self-contained
 sample with its own documentation.
 
@@ -8,6 +8,7 @@ sample with its own documentation.
 |---|---|---|
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FMortgageHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -99,6 +100,27 @@ Both serve the app at http://localhost:8890/app/, so it runs alongside
 Mortgage Hub. The badge above opens it in a codespace, which uses the same
 `AITYX_API_KEY` Codespaces secret as Mortgage Hub. See the
 [Contact Hub README](ContactHub/README.md).
+
+## RoboRules
+
+[RoboRules/](RoboRules/) is a web take on the old Robocode, in its look:
+tanks fight on a dark battlefield until one is left. Each robot's behavior
+is an aityx decision model, a table of rules over what it senses (the
+nearest enemy's distance and bearing, walls, energy, its gun) that sets how
+it drives, turns, aims and fires; select a robot to change its rules. The
+battle itself is played by aityx: one call plays up to 50 turns of sensing,
+every robot's rules, Robocode's motion, bullets, collisions and damage, and
+another scores each round. Put your key in `RoboRules/.env`, then:
+
+```bash
+devbox services up -c RoboRules --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f RoboRules/compose.yaml up --build
+```
+
+and open http://localhost:8920/app/. Its ports are its own, so it runs at
+the same time as Mortgage Hub (8880) and Contact Hub (8890). See the
+[RoboRules README](RoboRules/README.md).
 
 ## Payroll
 

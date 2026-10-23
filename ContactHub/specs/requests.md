@@ -160,3 +160,13 @@ The feature files hold the current specification; see the
     `dart run tool/route_samples.dart`, routes every sample through a
     running API and compares the department with the sample's label.
     See [Routing](routing.md#the-aityx-call).
+
+## 2026-10-23
+
+14. **Use custom favicons for each sample, in the same style and colors
+    as aityx but related to each demo.** The tab now shows
+    `web/favicon.svg`, the speech bubble with the route cut into it as a
+    flat orange glyph with no background, the chosen node a larger
+    cutout, as aityx.ai's own favicon is drawn; the PNG tile stays as the
+    fallback and the app icons keep it. See
+    [App icon](app-icon.md#favicon).
