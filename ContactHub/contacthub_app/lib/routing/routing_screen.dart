@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'aityx_call_view.dart';
+import 'call_view.dart';
 import 'json_layout.dart';
 import 'routing.dart';
 
@@ -22,6 +22,17 @@ const topicNames = {
   'other': 'Other',
 };
 
+/// What the customer wants, as aityx reads it, in words.
+const requestKindNames = {
+  'where_is_order': 'To know where an order is',
+  'return_refund': 'A return or a refund',
+  'damaged_defective': 'A damaged or defective item',
+  'cancel_order': 'To cancel an order',
+  'price_adjustment': 'A price drop refunded',
+  'duplicate_charge': 'A duplicate charge refunded',
+  'none': 'Nothing about an order',
+};
+
 /// Routes [message] once and shows where it went and why, each part with
 /// links to exactly the JSON behind it, then the aityx call itself.
 class RoutingScreen extends StatefulWidget {
@@ -39,7 +50,7 @@ class RoutingScreen extends StatefulWidget {
 class _RoutingScreenState extends State<RoutingScreen> {
   late final RequestRouter _router = widget.router ?? ApiRequestRouter();
   late Future<RoutingOutcome> _outcome = _router.route(widget.message);
-  final _call = AityxCallController();
+  final _call = CallController();
 
   @override
   void dispose() {
@@ -173,28 +184,36 @@ class _JsonLink {
   final String path;
 }
 
+/// The pane's height for a call of [rows] rows: enough for all of them,
+/// up to three quarters of the window (360 to 760 px).
+double _paneHeight(BuildContext context, int rows) {
+  final window = (MediaQuery.sizeOf(context).height * 0.75).clamp(360.0, 760.0);
+  return (rows * 22.0 + 16).clamp(200.0, window);
+}
+
 class _Outcome extends StatelessWidget {
   const _Outcome(this.outcome, this.call);
 
   final RoutingOutcome outcome;
-  final AityxCallController call;
+  final CallController call;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final r = outcome.routing;
     final hasCall = outcome.aityxRequest != null;
-    final decision = routingDecision(outcome.aityxResponse);
-    // Only links to parts the pane shows: the response shows just the
-    // routing decision.
-    final shown = {
-      CallSide.request: layoutJson(outcome.aityxRequest).ranges.keys.toSet(),
-      CallSide.response: layoutJson(decision).ranges.keys.toSet(),
-    };
+    final decision = decisionDigest(outcome.aityxResponse);
+    // Only links to parts the pane shows: the response is a digest.
+    final layout = layoutCall(outcome.aityxRequest, decision);
     Widget links(List<_JsonLink> links) {
       final kept = [
         for (final l in links)
-          if (shown[l.side]!.contains(l.path)) l,
+          if (layout.range(
+                l.side == CallSide.request ? 'request' : 'response',
+                l.path,
+              ) !=
+              null)
+            l,
       ];
       return hasCall && kept.isNotEmpty
           ? _Links(kept, call)
@@ -300,18 +319,7 @@ class _Outcome extends StatelessWidget {
         const SizedBox(height: 12),
         _ChecksCard(r, links: links),
         const SizedBox(height: 12),
-        _TopicCard(
-          r,
-          links: links(const [
-            _JsonLink("aityx's reading", res, 'answers.topic'),
-            _JsonLink('Question', req, 'questions.topic'),
-            _JsonLink(
-              'Confidence input',
-              req,
-              'decision.inputs.topic_confidence',
-            ),
-          ]),
-        ),
+        _TopicCard(r, links: links),
         const SizedBox(height: 24),
         Text('The aityx call', style: theme.textTheme.headlineSmall),
         const SizedBox(height: 4),
@@ -326,19 +334,18 @@ class _Outcome extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (hasCall)
-          AityxCallView(
+          CallView(
+            title: 'The aityx call',
             request: outcome.aityxRequest,
             response: decision,
             fullResponse: outcome.aityxResponse,
+            requestSubtitle: 'POST /v1/systemone, as the API sent it',
             responseSubtitle:
-                'the routing decision: the department, and '
-                'the rule that chose it',
+                'what was read, the answers that decide the route and the '
+                'rules that fired; the probability maps are left out',
             targets: callTargets(r),
             controller: call,
-            height: (MediaQuery.sizeOf(context).height * 0.75).clamp(
-              360.0,
-              760.0,
-            ),
+            height: _paneHeight(context, layout.rows.length),
           )
         else
           const Text('The API did not include the aityx call.'),
@@ -350,9 +357,43 @@ class _Outcome extends StatelessWidget {
 String _capitalize(String s) =>
     s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 
-/// What the pane shows of aityx's [response]: just the routing decision,
-/// the department answer and its receipt (the rule that fired).
-Map<String, Object?> routingDecision(Object? response) {
+/// The answers aityx's response shows in the pane: what aityx read, then
+/// the decisions that make the route, in the order the rules run.
+const _shownAnswers = [
+  'topic',
+  'request_kind',
+  'urgent_probability',
+  'sensitive_data_probability',
+  'abusive_probability',
+  'urgent',
+  'sensitive_data',
+  'abusive',
+  'clear_topic',
+  'department',
+  'days_since_order',
+  'days_since_delivery',
+  'resolution',
+  'refund_amount',
+  'refund_by',
+  'priority',
+  'response_hours',
+  'needs_review',
+];
+
+/// The decisions whose receipt (the rule that fired) the pane shows.
+const _tracedDecisions = [
+  'department',
+  'resolution',
+  'refund_amount',
+  'priority',
+  'response_hours',
+];
+
+/// What the pane shows of aityx's [response]: what it read and the answers
+/// that decide the route, each without its probability map (a dozen zeros
+/// and a one), the receipt of the tables, with the rule that fired in each,
+/// and where every input came from. "Copy full response" has all of it.
+Map<String, Object?> decisionDigest(Object? response) {
   final r = response is Map ? response : const {};
   final answers = r['answers'] is Map ? r['answers'] as Map : const {};
   final receipt = r['receipt'] is Map ? r['receipt'] as Map : const {};
@@ -360,9 +401,20 @@ Map<String, Object?> routingDecision(Object? response) {
       ? receipt['decisions'] as Map
       : const {};
   return {
-    'answers': {'department': answers['department']},
+    'answers': {
+      for (final name in _shownAnswers)
+        if (answers[name] case final Map answer)
+          name: {
+            for (final MapEntry(:key, :value) in answer.entries)
+              if (key != 'probabilities') '$key': value,
+          },
+    },
     'receipt': {
-      'decisions': {'department': decisions['department']},
+      'decisions': {
+        for (final name in _tracedDecisions)
+          if (decisions[name] != null) name: decisions[name],
+      },
+      if (receipt['provenance'] != null) 'provenance': receipt['provenance'],
     },
     if (r['decision_error'] != null) 'decision_error': r['decision_error'],
   };
@@ -410,11 +462,25 @@ List<JsonTarget> callTargets(Routing r) {
     ),
     const JsonTarget(
       req,
+      'questions.request_kind',
+      'Request kind question',
+      'A choice question: what the customer wants done with their order '
+          '(where it is, a return, damage, a cancellation, a price drop, a '
+          'double charge), or none.',
+    ),
+    const JsonTarget(
+      req,
       'decision.inputs',
       'Model inputs',
       "The routing model's inputs: the questions' answers, by name, and "
           'confidence in the topic, bound with from = "jev:/answers/topic/'
           'confidence".',
+    ),
+    const JsonTarget(
+      req,
+      'decision.decisions.evidence_threshold',
+      'Evidence threshold',
+      "A probability from aityx's questions counts as a fact from 0.8 up.",
     ),
     const JsonTarget(
       req,
@@ -438,14 +504,6 @@ List<JsonTarget> callTargets(Routing r) {
         'The row of the department table that fired for this message, with '
             'its reason.',
       ),
-    const JsonTarget(
-      req,
-      'questions.request_kind',
-      'Request kind question',
-      'A choice question: what the customer wants done with their order '
-          '(where it is, a return, damage, a cancellation, a price drop, a '
-          'double charge), or none.',
-    ),
     const JsonTarget(
       req,
       'decision.inputs.order',
@@ -501,19 +559,6 @@ List<JsonTarget> callTargets(Routing r) {
     ),
     const JsonTarget(
       req,
-      'state.order',
-      'The order',
-      'The order on file the API sent, found by the number in the message.',
-    ),
-    const JsonTarget(
-      req,
-      'state.today',
-      'Today',
-      "The request's date, from the API's clock: every window counts from "
-          'it.',
-    ),
-    const JsonTarget(
-      req,
       'decision.decisions.priority',
       'Priority table',
       'How soon the department must answer: high for abuse, sensitive data, '
@@ -536,15 +581,82 @@ List<JsonTarget> callTargets(Routing r) {
     ),
     const JsonTarget(
       req,
+      'state',
+      'The facts',
+      'The state: the message the questions read, today, and the order on '
+          'file the rules decide from.',
+    ),
+    const JsonTarget(
+      req,
+      'state.today',
+      'Today',
+      "The request's date, from the API's clock: every window counts from "
+          'it.',
+    ),
+    const JsonTarget(
+      req,
+      'state.order',
+      'The order',
+      'The order on file the API sent, found by the number in the message.',
+    ),
+    const JsonTarget(
+      req,
       'state.message',
       'The message',
       'The only fact sent: the request as typed or dictated.',
     ),
     const JsonTarget(
       res,
+      'answers.topic',
+      'Topic read',
+      "aityx's choice of topic and its confidence: the department table's "
+          'main input.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.request_kind',
+      'Request kind read',
+      "aityx's reading of what the customer wants: the policy table's "
+          'first column.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.urgent_probability',
+      'Urgency read',
+      'The probability that the message is urgent; a fact from 0.8 up.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.sensitive_data_probability',
+      'Sensitive data read',
+      'The probability that the message itself holds a card number, a '
+          'password or an ID number; a fact from 0.8 up.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.abusive_probability',
+      'Abuse read',
+      'The probability that the message is abusive or threatening; a fact '
+          'from 0.8 up.',
+    ),
+    const JsonTarget(
+      res,
       'answers.department',
       'The routing decision',
-      'The department aityx chose, with its confidence: the routing.',
+      'The department the rules chose: the routing.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.resolution',
+      'Policy resolution',
+      "What the store's policy offers for the order, if the request is "
+          'about one.',
+    ),
+    const JsonTarget(
+      res,
+      'answers.priority',
+      'Priority',
+      'How soon the department must answer: low, normal or high.',
     ),
     const JsonTarget(
       res,
@@ -552,6 +664,13 @@ List<JsonTarget> callTargets(Routing r) {
       'Rule that fired',
       'The department table\'s trace: "rule" is the row that fired, "rows" '
           'and "cells" how each row matched.',
+    ),
+    const JsonTarget(
+      res,
+      'receipt.provenance',
+      'Provenance',
+      "Where each input came from: the questions' answers (jev) or the "
+          'state.',
     ),
     const JsonTarget(
       res,
@@ -566,7 +685,7 @@ class _Links extends StatelessWidget {
   const _Links(this.links, this.call);
 
   final List<_JsonLink> links;
-  final AityxCallController call;
+  final CallController call;
 
   @override
   Widget build(BuildContext context) {
@@ -595,6 +714,106 @@ class _Links extends StatelessWidget {
             label: Text(l.label),
           ),
       ],
+    );
+  }
+}
+
+/// aityx's reading of the message: the topic's probabilities, and what
+/// the customer wants done with their order.
+class _TopicCard extends StatelessWidget {
+  const _TopicCard(this.r, {required this.links});
+
+  final Routing r;
+  final Widget Function(List<_JsonLink>) links;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    const req = CallSide.request;
+    const res = CallSide.response;
+    final top = r.topicProbabilities.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final shown = top.take(4).where((e) => e.value > 0 || e == top.first);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "aityx's reading of the message",
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'aityx chose ${topicNames[r.topic] ?? r.topic ?? 'nothing'}'
+              '${r.topicConfidence == null ? '' : ', ${(r.topicConfidence! * 100).round()}% confident'}.'
+              ' The model routes from this answer, but the rules decide.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            for (final e in shown)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        topicNames[e.key] ?? e.key,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 5,
+                      child: LinearProgressIndicator(
+                        value: e.value,
+                        minHeight: 10,
+                        borderRadius: BorderRadius.circular(5),
+                        color: e.key == r.topic
+                            ? scheme.primary
+                            : scheme.outline,
+                        backgroundColor: scheme.surfaceContainerHighest,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 44,
+                      child: Text(
+                        '${(e.value * 100).round()}%',
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            links(const [
+              _JsonLink('Answer', res, 'answers.topic'),
+              _JsonLink('Question', req, 'questions.topic'),
+              _JsonLink(
+                'Confidence input',
+                req,
+                'decision.inputs.topic_confidence',
+              ),
+            ]),
+            if (r.requestKind case final kind?) ...[
+              const Divider(height: 24),
+              Text(
+                'What the customer wants: ${requestKindNames[kind] ?? kind}',
+                style: theme.textTheme.bodyLarge,
+              ),
+              links(const [
+                _JsonLink('Answer', res, 'answers.request_kind'),
+                _JsonLink('Question', req, 'questions.request_kind'),
+              ]),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -808,7 +1027,7 @@ class _ChecksCard extends StatelessWidget {
                               req,
                               'decision.decisions.clear_topic',
                             ),
-                            _JsonLink('Answer', res, 'answers.clear_topic'),
+                            _JsonLink('Verdict', res, 'answers.clear_topic'),
                           ],
                           final id => [
                             _JsonLink(
@@ -821,6 +1040,8 @@ class _ChecksCard extends StatelessWidget {
                               res,
                               'answers.${id}_probability',
                             ),
+                            _JsonLink('Rule', req, 'decision.decisions.$id'),
+                            _JsonLink('Verdict', res, 'answers.$id'),
                           ],
                         }),
                       ],
@@ -829,83 +1050,6 @@ class _ChecksCard extends StatelessWidget {
                 ],
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TopicCard extends StatelessWidget {
-  const _TopicCard(this.r, {required this.links});
-
-  final Routing r;
-  final Widget links;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final top = r.topicProbabilities.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final shown = top.take(4).where((e) => e.value > 0 || e == top.first);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "aityx's reading of the topic",
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'aityx chose ${topicNames[r.topic] ?? r.topic ?? 'nothing'}'
-              '${r.topicConfidence == null ? '' : ', ${(r.topicConfidence! * 100).round()}% confident'}.'
-              ' The model routes from this answer, but the rules decide.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            for (final e in shown)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        topicNames[e.key] ?? e.key,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 5,
-                      child: LinearProgressIndicator(
-                        value: e.value,
-                        minHeight: 10,
-                        borderRadius: BorderRadius.circular(5),
-                        color: e.key == r.topic
-                            ? scheme.primary
-                            : scheme.outline,
-                        backgroundColor: scheme.surfaceContainerHighest,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 44,
-                      child: Text(
-                        '${(e.value * 100).round()}%',
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            links,
           ],
         ),
       ),

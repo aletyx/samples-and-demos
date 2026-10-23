@@ -163,6 +163,7 @@ void main() {
         _json('test/fixtures/tablet-restocking.json'),
       );
       final policy = routing['policy'] as Map;
+      expect(routing['request_kind'], 'return_refund');
       expect(policy['request_kind'], 'return_refund');
       expect(policy['resolution'], 'refund');
       expect(policy['resolution_rule'], 16);

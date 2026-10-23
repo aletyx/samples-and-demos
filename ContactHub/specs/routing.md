@@ -39,9 +39,10 @@ the message, today and the order it names as the state (see
      data or abuse, or the policy needs a person to approve it;
    - the store's policy for the order: see [Order policy](order-policy.md).
 
-The API reads the department and priority from `answers`, and the reason
-for each from the `# why` of the table row that fired, whose number it
-finds in `receipt.decisions.<decision>.rule`.
+The API reads the department and priority from `answers`, the topic,
+its confidence and the request kind as Jev answered them, and the reason
+for each decision from the `# why` of the table row that fired, whose
+number it finds in `receipt.decisions.<decision>.rule`.
 
 ## Departments
 
@@ -80,42 +81,55 @@ up, with `@contacthub.example` addresses) in the API's directory:
   (whether a person checks it first), side by side, stacked on a phone;
 - **Checks on the message**: urgent, sensitive data, abuse and an unclear
   topic, each with Jev's probability as a bar, flagged in amber;
-- **Jev's reading of the topic**: the top topics' probabilities;
+- **aityx's reading of the message**: the top topics' probabilities, and
+  what the customer wants done with their order, in words;
 - **The aityx call**, below.
 
 Every item has links (with ↗ for the request, ↙ for the response) to
 **exactly** the JSON behind it: the department's answer, the department
 table's row that fired (`decision.decisions.department.table.<rule>`),
 its receipt entry and the whole table; the priority's answer and row;
-each check's question and answer; the topic's answer, question and
-confidence input; the message.
+each check's question, answer, rule and verdict; the topic's answer,
+question and confidence input; the request kind's answer and question;
+the message.
 
 ## The aityx call
 
-[AityxCallView](../contacthub_app/lib/routing/aityx_call_view.dart): one
-pane, as in Mortgage Hub, with the key parts highlighted and labeled:
+[CallView](../contacthub_app/lib/routing/call_view.dart): one pane, as
+in Mortgage Hub, with the key parts highlighted and labeled:
 
 - **One pane**: under a **REQUEST** header, the whole body sent to
-  `POST /v1/systemone`; under a **RESPONSE** header, just the routing
-  decision from aityx's answer: `answers.department` and its receipt,
-  `receipt.decisions.department`, the rule that fired
-  ([routingDecision](../contacthub_app/lib/routing/routing_screen.dart)).
-  Line numbers restart in each section. **Copy request** and **Copy full
-  response** copy the whole of each; **Copy section** the marked part.
+  `POST /v1/systemone`; under a **RESPONSE** header, a digest of aityx's
+  answer ([decisionDigest](../contacthub_app/lib/routing/routing_screen.dart)):
+  what Jev read (the topic, the request kind, the three probabilities),
+  then the answers that decide the route (the checks, the department, the
+  days, the resolution, the amount and date, the priority, the hours, the
+  review), each without its probability map (a dozen zeros and a one);
+  the receipt of the department, resolution, amount, priority and hours
+  tables, with the rule that fired in each; and the provenance of every
+  input (`jev` or `state`). Line numbers restart in each section. **Copy
+  request** and **Copy full response** copy the whole of each; **Copy
+  section** the marked part.
 - **Key parts highlighted**: every part listed in `callTargets` (the
-  questions, the inputs, the tables and the rows that fired, the policy
-  limits, the order, the message, and in the response the decision and its
-  rule) is tinted with its label on its first row, the innermost winning
-  where they nest; a part over 12 rows is tinted on its first row only. A
-  label's tooltip says why it matters.
-- **Larger**: 14 px Roboto Mono (bundled, see
+  model, the questions, the inputs, the thresholds, the tables and the
+  rows that fired, the policy limits, the facts, the order, today, the
+  message; in the response, what was read, the decision, the resolution,
+  the priority, the rule that fired and the provenance) is tinted with
+  its label on its first row, the innermost winning where they nest; a
+  part over 12 rows is tinted on its first row only. A label's tooltip
+  says why it matters.
+- **Readable JSON**: 14 px Roboto Mono (bundled, see
   [assets/fonts](../contacthub_app/assets/fonts/README.md)), 22 px rows,
-  in a pane 75% of the window's height (360 to 760 px), with colors for
-  keys, strings, numbers and literals; short lists, such as a table's
-  rows, stay on one line
+  with colors for keys, strings, numbers and literals; short lists, such
+  as a table's rows, stay on one line; **a long string, or one with line
+  breaks, wraps** at 88 characters, at the last space, and at its line
+  breaks, onto continuation rows, unnumbered and shown as written (no
+  `\n`, no escaped quotes), so a question's instructions, a topic's
+  criteria or a rule's reason read as the prose they are
   ([json_layout.dart](../contacthub_app/lib/routing/json_layout.dart),
-  `layoutCall` for the two sections). **Full screen** opens it in a dialog
-  at the same place.
+  `wrapString`, `JsonLine.continuation`). The copies are exact JSON. The
+  pane is as high as its rows, up to 75% of the window (360 to 760 px).
+  **Full screen** opens it in a dialog at the same place.
 - **Exact navigation**: the layout records every value's first and last
   row on each side; since every row is the same height, a jump scrolls the
   value's first row to the top (one row of context above it), with room
@@ -130,13 +144,15 @@ The API includes the call only if aityx's answer doesn't contain the key.
 
 ### Verified
 
-Against the live API (`api.aityx.ai`): the 13 department samples and the
-two check samples each routed where expected (see
-[Request box](request.md#samples)); in Chrome, the links and chips landed
-on exactly their values (department rule 3, rule 9, the receipt near the
-end of the response), and full screen opened at the marked value. Widget
-tests check the scroll offset of a jump to the pixel, on both sides, and
-that the screen fits a 390 px phone.
+Against the live API (`api.aityx.ai`): in Chrome, the links and chips
+landed on exactly their values (a question's wrapped instructions,
+department rule 3, the topic read and the provenance in the response),
+and full screen opened at the marked value. Widget tests check the
+scroll offset of a jump to the pixel, on both sides, that a question
+wraps onto unnumbered rows, and that the screen fits a 390 px phone.
+`dart run tool/route_samples.dart` in `contacthub_app/` routes every
+sample through a running API and says where each went against its label
+(see [Request box](request.md#samples)).
 
 ## Known limitations
 

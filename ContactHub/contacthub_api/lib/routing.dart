@@ -219,6 +219,7 @@ Map<String, Object?> toRouting(
       'confidence': topic?['confidence'],
       'probabilities': topic?['probabilities'] ?? const {},
     },
+    'request_kind': (answers['request_kind'] as Map?)?['choice'],
     'checks': [
       for (final (id, label) in const [
         ('urgent', 'Urgent'),
