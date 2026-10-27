@@ -26,8 +26,9 @@
     "context": "."
   },
   "remoteUser": "vscode",
-  // The first start compiles six Flutter apps. Request the 4-core, 16 GB
-  // Codespaces machine; the initial builds can take longer.
+  // The 4-core, 16 GB Codespaces machine. Creating a codespace builds
+  // five Flutter apps, one after another (a few minutes); with a prebuild
+  // (see below) that work is already done, and the demos start in seconds.
   "hostRequirements": {
     "cpus": 4,
     "memory": "16gb"
@@ -125,10 +126,24 @@
       "onAutoForward": "silent"
     }
   },
-  // Both run from the repository root. post-create.sh installs each
-  // demo's toolchain once; post-start.sh runs ./start-all.sh and makes
-  // the ports public on every start.
+  // All run from the repository root, in this order. The first two run in
+  // a Codespaces prebuild too (Settings → Codespaces → Set up prebuild),
+  // whose snapshot then holds the toolchains and the builds, so a
+  // codespace created from it only reports the secrets and starts the
+  // demos; post-create.sh never runs in a prebuild, which has no user
+  // secrets. Without a prebuild all three run when the codespace is
+  // created, and the editor attaches after the first (waitFor), while
+  // the builds go on in the background with their progress in startup.log.
+  //   on-create.sh       `devbox install` in each demo's folder
+  //   update-content.sh  ./build-all.sh: each demo's release web build
+  //                      and compiled servers, only what changed
+  //   post-create.sh     whether the aityx secrets arrived
+  // post-start.sh runs ./start-all.sh and makes the ports public on
+  // every start.
+  "onCreateCommand": "bash -lc 'bash .devcontainer/on-create.sh'",
+  "updateContentCommand": "bash -lc 'bash .devcontainer/update-content.sh'",
   "postCreateCommand": "bash -lc 'bash .devcontainer/post-create.sh'",
+  "waitFor": "onCreateCommand",
   "postStartCommand": "bash -lc 'bash .devcontainer/post-start.sh'",
   // Again each time VS Code attaches: a visibility set at start does not
   // always stick, and users report it does from here.

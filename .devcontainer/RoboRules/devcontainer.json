@@ -63,7 +63,7 @@
         "terminal.integrated.defaultProfile.linux": "bash",
         // The Flutter SDK baked into the image (see Containerfile), there
         // from the moment VS Code attaches. Devbox's own Flutter only
-        // appears once post-create.sh has run `devbox install`, too late
+        // appears once on-create.sh has run `devbox install`, too late
         // for the Dart extension, which then offers to download one.
         "dart.flutterSdkPath": "/opt/flutter"
       },
@@ -86,10 +86,25 @@
       "onAutoForward": "openBrowserOnce"
     }
   },
-  // Both run from the repository root; the scripts move to RoboRules/
-  // themselves. post-create.sh installs the toolchain once; post-start.sh
-  // starts the services and makes the port public on every start.
+  // All run from the repository root and move to RoboRules/ themselves, in
+  // this order. The first two run in a Codespaces prebuild too (Settings →
+  // Codespaces → Set up prebuild), whose snapshot then holds the toolchain
+  // and the build, so a codespace created from it only reports the
+  // secrets and starts the app; post-create.sh never runs in a prebuild,
+  // which has no user secrets. Without a prebuild all three run when the
+  // codespace is created, and the editor attaches after the first
+  // (waitFor), while the build goes on in the background with its
+  // progress in RoboRules/startup.log.
+  //   on-create.sh       `devbox install`
+  //   update-content.sh  scripts/build.sh: the release web build and the
+  //                      compiled servers, only what changed
+  //   post-create.sh     whether the aityx secrets arrived
+  // post-start.sh starts the services and makes the port public on every
+  // start.
+  "onCreateCommand": "bash -lc 'bash .devcontainer/RoboRules/on-create.sh'",
+  "updateContentCommand": "bash -lc 'bash .devcontainer/RoboRules/update-content.sh'",
   "postCreateCommand": "bash -lc 'bash .devcontainer/RoboRules/post-create.sh'",
+  "waitFor": "onCreateCommand",
   "postStartCommand": "bash -lc 'bash .devcontainer/RoboRules/post-start.sh'",
   // Again each time VS Code attaches: a visibility set at start does not
   // always stick, and users report it does from here.

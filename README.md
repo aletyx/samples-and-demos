@@ -28,10 +28,13 @@ from the root of this repository with [Devbox](https://www.jetify.com/devbox):
 ```
 
 [start-all.sh](start-all.sh) runs `devbox services up -b` in each folder
-and then prints where to open each app once its web app and API answer;
-the first start compiles each app, which takes a few minutes. A demo
-that already answers on its port, started by hand or with Docker
-Compose, is left as it is. The script checks for `AITYX_API_KEY` and
+and then prints where to open each app once its web app and API answer.
+Each demo serves its app's release build and a compiled API, so a start
+takes seconds once they are built; a demo whose build is missing or
+older than its sources builds it first, a minute or two, one demo at a
+time. [build-all.sh](build-all.sh) builds them all ahead, showing each
+build. A demo that already answers on its port, started by hand or with
+Docker Compose, is left as it is. The script checks for `AITYX_API_KEY` and
 warns if it is missing; the apps still open, but their aityx-backed
 features won't work. It passes `AITYX_API_KEY` and `AITYX_URL` from the
 environment to each API service. API scripts prefer those values and
@@ -43,18 +46,37 @@ fall back to that demo's `.env` (see each folder's `.env.example`).
 
 The same, in a codespace: the repository's default dev container,
 [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json),
-builds every demo's toolchain and runs `./start-all.sh` on each start.
-It needs your own `AITYX_API_KEY` Codespaces secret and, optionally, an
-`AITYX_URL` secret (see [Launching it](#launching-it) below) and the
-4-core, 16 GB machine; the initial build of all six apps can take longer.
+installs every demo's toolchain and builds every demo when the codespace
+is created, and runs `./start-all.sh` on each start. It needs your own
+`AITYX_API_KEY` Codespaces secret and, optionally, an `AITYX_URL` secret
+(see [Launching it](#launching-it) below) and the 4-core, 16 GB machine.
 
 [![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
 
 Once it starts, the index page opens on port **8800** and links each
-demo (an app opens once it has compiled, a few minutes on the first start); the apps' ports (8880 to 8930)
-are in the **Ports** panel too, made public so the links can be shared.
-Every step of the start goes to `startup.log` at the root. The other
-dev containers in the list, one per demo, start only that demo.
+demo; the apps' ports (8880 to 8930) are in the **Ports** panel too, made
+public so the links can be shared. Every step of the start goes to
+`startup.log` at the root. The other dev containers in the list, one per
+demo, start only that demo.
+
+### Prebuilds: a codespace that is ready when it opens
+
+Creating a codespace installs the toolchains (`onCreateCommand`) and
+builds the five apps one after another (`updateContentCommand`, a minute
+or two each on 4 cores); the editor attaches after the first step, and
+the demos start as their builds finish. A **Codespaces prebuild** does
+both ahead of time, on GitHub's side, and keeps the result as a
+snapshot: a codespace created from it opens in well under a minute with
+every demo up a few seconds later. To enable it, in the repository's
+**Settings → Codespaces → Set up prebuild**: branch `main`,
+configuration file `.devcontainer/devcontainer.json`, trigger *Every
+push* (or *On configuration change* plus a schedule, to spend fewer
+Actions minutes: a demo whose sources moved since the snapshot simply
+rebuilds when it starts), and the regions you use (each region's
+snapshot is billed as storage). The machine list then shows **Prebuild
+ready**, and `startup.log` says `created from a prebuild`. The same
+prebuild work applies to the one-demo dev containers, each with its own
+configuration file.
 
 ## Mortgage Hub
 
@@ -98,8 +120,8 @@ and the index page. If you create the codespace yourself through *Code →
 Codespaces → New with options*, keep **All demos** as the dev container
 configuration; the others start one demo each.
 
-Once it starts, the apps start too: when Mortgage Hub has compiled, a
-few minutes on the first start, open port **8880** from the **Ports**
+Once it starts, the apps start too: when Mortgage Hub answers, seconds
+from a prebuild or after its build, open port **8880** from the **Ports**
 panel, or from its card on the index page (port **8800**, opened for
 you). Check that the port's visibility says **Public**, so the link can
 be shared; if it says Private, right-click it and choose **Port
@@ -117,7 +139,7 @@ Put your key in `MortgageHub/.env` (copy
 # With Docker alone: builds the web app and the API, then starts both
 docker compose -f MortgageHub/compose.yaml up --build
 
-# Or with Devbox: the Flutter dev server (hot reload), the API and a health monitor
+# Or with Devbox: the app's release build, the compiled API and a health monitor
 devbox services up -c MortgageHub --pcflags "--tui=false"
 ```
 
