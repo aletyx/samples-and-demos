@@ -42,17 +42,24 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 | URL | What |
 |---|---|
-| http://localhost:8890/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
-| http://localhost:8891/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
+| http://localhost:8890/app/ | The app's release build, served by a small native web server ([scripts/flutter-web.sh](scripts/flutter-web.sh)). The first start builds it (about 20 s on a laptop, a minute or two on a 4-core codespace); later starts reuse it until the app changes |
+| http://localhost:8891/api/health | The API, compiled to a native executable ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the web server's proxy |
+
+That's what Docker Compose serves too, and it keeps the machine free:
+the two servers hold about 35 MB between them. For hot reload while
+working on the app, run the Flutter dev server instead, with
+`WEB_MODE=debug devbox services up`, or on its own with `devbox run web`
+(press `r` in its terminal). `devbox run build` builds the web build and
+the executables ahead of time ([scripts/build.sh](scripts/build.sh)),
+only what changed.
 
 The ports are 8890 and 8891, so Contact Hub runs alongside Mortgage Hub
-(8880 and 8881). The first start compiles the app, which takes a minute
-or so. Type a request, or press the microphone beside the field and say
-it: the browser asks for the microphone the first time, and Chrome or
-Edge install their on-device English pack, while other browsers download
-a small speech model (see [Request box](specs/request.md)). Or pick one
-from **Try a sample**: one for each department, and two for the checks.
-**Send** routes it (see [Routing](specs/routing.md)).
+(8880 and 8881). Type a request, or press the microphone beside the field
+and say it: the browser asks for the microphone the first time, and
+Chrome or Edge install their on-device English pack, while other browsers
+download a small speech model (see [Request box](specs/request.md)). Or
+pick one from **Try a sample**: one for each department, and two for the
+checks. **Send** routes it (see [Routing](specs/routing.md)).
 
 Once both are ready, the `health-check` monitor prints where to open the
 app (in a codespace, its forwarded URL too), waits 5 s
@@ -68,7 +75,8 @@ Health checks start in 5 s, then every 15 s.
 ```
 
 Stop everything with `devbox services stop`. To run only the app, use
-`devbox run web` (set `FLUTTER_WEB_PORT` to change the port); only the
+`devbox run web`, the dev server with hot reload (set `FLUTTER_WEB_PORT`
+to change the port, `WEB_MODE=release` for the release build); only the
 API, `devbox run api` (`API_PORT`).
 
 ### Building the binaries

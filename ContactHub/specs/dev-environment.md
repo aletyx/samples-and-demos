@@ -11,16 +11,39 @@ explains the reasons behind each piece.
   `^3.13.0`.
 - `devbox services up` ([process-compose.yaml](../process-compose.yaml)),
   run in this folder, starts:
-  - the Flutter web server (`2-flutter-web`, via
-    [scripts/flutter-web.sh](../scripts/flutter-web.sh), on the
-    `web-server` device, so no Chrome is needed) on
+  - the web app (`2-flutter-web`, via
+    [scripts/flutter-web.sh](../scripts/flutter-web.sh)) on
     http://localhost:8890/app/ (`FLUTTER_WEB_PORT`), bound to 127.0.0.1
-    (`CONTACTHUB_BIND_HOST`), with an HTTP readiness probe. On stop, its
-    shutdown command kills whatever listens on the port;
+    (`CONTACTHUB_BIND_HOST`), with an HTTP readiness probe of up to 15
+    minutes (a first start builds the app, and when every demo starts at
+    once the builds take turns). In release mode, the default (`WEB_MODE`),
+    it is the app's release build served by
+    [contacthub_api/bin/web_server.dart](../contacthub_api/bin/web_server.dart)
+    ([lib/web_server.dart](../contacthub_api/lib/web_server.dart))
+    compiled to a native executable, `contacthub_api/build/web_server`,
+    about 20 MB resident: `/app/` from `contacthub_app/build/web/`
+    (`WEB_ROOT`) with the right content types (`.wasm` included),
+    `index.html` for the app's own routes, `Cache-Control: no-cache` with
+    `Last-Modified` and 304 so a new build is seen on the next load and an
+    unchanged file isn't downloaded again, and only files inside the
+    build (`..` and escapes are refused); `/api/` and the bare `/` proxied
+    to the API on 127.0.0.1:`API_PORT`, same method, query, headers and
+    body, 502 when the API is down. It serves what nginx serves under
+    Docker Compose, so the two paths show the same app. With
+    `WEB_MODE=debug` it is Flutter's dev server instead (`flutter run` on
+    the `web-server` device, so no Chrome is needed, hot reload with `r`,
+    about 1 GB resident), which proxies `/api/` itself
+    (`web_dev_config.yaml`, generated from `API_PORT`, git-ignored). On
+    stop, its shutdown command kills whatever listens on the port, so
+    neither server keeps serving the old build;
   - the API (`3-api`, via [scripts/api.sh](../scripts/api.sh)) on
-    http://localhost:8891 (`API_PORT`), with a readiness probe on
-    `/api/health`. The script exports `AITYX_API_KEY` and `AITYX_URL` from
-    the environment, else `.env`, to the server only. CORS allows the web app's origins (`ALLOWED_ORIGINS`);
+    http://localhost:8891 (`API_PORT`), `bin/server.dart` compiled to a
+    native executable, `contacthub_api/build/server`, about 15 MB
+    resident and up in a second (it finds its model beside the binary,
+    `build/../models/routing.json`, as in the Docker image), with a
+    readiness probe on `/api/health`. The script exports `AITYX_API_KEY`
+    and `AITYX_URL` from the environment, else `.env`, to the server only.
+    CORS allows the web app's origins (`ALLOWED_ORIGINS`);
   - the health monitor (`0-health-check`,
     [scripts/health-check.sh](../scripts/health-check.sh)), once both are
     ready. It first prints where to open the app,
@@ -31,13 +54,30 @@ explains the reasons behind each piece.
     (`/api/health`) and 🤖 aityx (✅ the API has its key, ⚪ it doesn't).
 - The ports, 8890 and 8891, differ from Mortgage Hub's 8880 and 8881, so
   both can run at once.
-- `devbox run web` runs only the web server, `devbox run api` only the API.
-- The web app calls the API at `API_BASE_URL` (a dart-define). The dev
-  server leaves it empty: the app calls `/api/` on its own origin, which
-  the dev server proxies to the API (`web_dev_config.yaml`, generated from
-  `API_PORT`, git-ignored). It also proxies the bare `/` to the API, which
-  redirects it to `/app/`. `scripts/make.sh` passes `API_BASE_URL`, or
-  `http://localhost:8891`.
+- **Builds for the services**: [scripts/build.sh](../scripts/build.sh)
+  (`devbox run build`; targets `web`, `web_server`, `api`, `all`) builds
+  only what is missing or older than its sources: `web` runs
+  `scripts/make.sh web` with `WEB_BASE_HREF=/app/` and an empty
+  `API_BASE_URL`, compared against `lib/`, `web/`, `assets/`, the
+  pubspecs and the version files, and also when the build's base href
+  isn't `/app/`; `web_server` and `api` run `dart compile exe`, compared
+  against `bin/`, `lib/` and the pubspecs. The two scripts run it before
+  serving, so a start after no change builds nothing and serves in
+  seconds; a first start, or one after a change, takes the build (about
+  20 s on a laptop, a minute or two on a 4-core codespace). One Flutter
+  web build runs at a time across the repository's demos, through a lock
+  directory in the system's temp folder
+  (`aityx-demos-flutter-web-build.lock`, holding the builder's PID; a
+  lock whose process is gone is taken over), so starting every demo at
+  once doesn't thrash a small machine; the API's compiles share a lock of
+  their own. `build/` is git-ignored.
+- `devbox run web` runs only the web app, in debug mode (hot reload)
+  unless `WEB_MODE=release`; `devbox run api` only the API.
+- The web app calls the API at `API_BASE_URL` (a dart-define). The
+  services leave it empty, in both modes: the app calls `/api/` on its own
+  origin, which the web server (or the dev server) proxies to the API,
+  along with the bare `/`, which the API redirects to `/app/`.
+  `scripts/make.sh` passes `API_BASE_URL`, or `http://localhost:8891`.
 - `bash scripts/model-test.sh` runs the routing model's rules on aityx at
   the policy's limits (see [Order policy](order-policy.md#verified)); run
   it after changing the model. `dart run tool/route_samples.dart` in
