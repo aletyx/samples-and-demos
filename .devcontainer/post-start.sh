@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # Runs each time the container starts (postStartCommand), after
-# post-create.sh on the first start: runs ./start-all.sh, which starts
-# every demo and the index page, and, in a codespace, makes their ports
-# public, so each app opens from the Ports panel (or from the index page's
-# browser tab, which Codespaces opens) with nothing to run.
+# on-create.sh, update-content.sh and post-create.sh on the first start:
+# runs ./start-all.sh, which starts every demo and the index page, and, in
+# a codespace, makes their ports public, so each app opens from the Ports
+# panel (or from the index page's browser tab, which Codespaces opens)
+# with nothing to run.
 #
 # start-all.sh runs `devbox services up -b` in each demo's folder: the web
 # app and the API of Mortgage Hub (8880), Contact Hub (8890), PokerFace
 # (8910), RoboRules (8920) and Cellfie (8930), plus the
-# index on 8800.
-# The first start compiles the six apps, which takes a few minutes. Watch
-# one with `devbox services attach -c <demo>`; stop them with
-# ./stop-all.sh.
+# index on 8800. Each demo serves its release build and a compiled API,
+# built by update-content.sh when the codespace was created (or in its
+# prebuild), so they are up in seconds; a demo whose build is missing or
+# older than its sources builds first, a minute or two. Watch one with
+# `devbox services attach -c <demo>`; stop them with ./stop-all.sh.
 #
 # Everything is logged to startup.log at the root (see startup-log.sh),
 # including start-all.sh's own lines saying when each demo answers, or,
@@ -34,7 +36,7 @@ for demo in $(startup_demos); do
 done
 if ! command -v devbox >/dev/null || [[ ${#missing[@]} -gt 0 ]]; then
   echo "post-start: devbox is not installed in ${missing[*]:-any demo} yet (did"
-  echo "post-start: post-create.sh fail? see its lines above); start the"
+  echo "post-start: on-create.sh fail? see its lines above); start the"
   echo "post-start: demos with: ./start-all.sh"
 else
   # Detached, so it outlives postStartCommand. start-all.sh's output, and

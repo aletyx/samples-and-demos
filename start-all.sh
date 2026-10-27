@@ -13,9 +13,12 @@
 # Each demo's aityx settings go in its own .env (see <demo>/.env.example):
 # AITYX_API_KEY, the key, and AITYX_URL, the endpoint (https://api.aityx.ai
 # unless set; a stage key needs https://api-stage.aityx.ai). Without a key
-# the app runs, but it can't call aityx. The first start of a demo
-# compiles its app, a minute or two; watch one with
-# `devbox services attach -c <demo>`. Stop them with ./stop-all.sh.
+# the app runs, but it can't call aityx. Each demo serves its app's
+# release build and a compiled API (see <demo>/scripts/build.sh); a demo
+# whose build is missing or older than its sources builds it first, a
+# minute or two, one demo at a time. ./build-all.sh does that ahead, with
+# each build's output. Watch one with `devbox services attach -c <demo>`.
+# Stop them with ./stop-all.sh.
 set -uo pipefail
 
 root="$(cd "$(dirname "$0")" && pwd)"
@@ -94,7 +97,7 @@ if [[ "$WAIT" -le 0 ]]; then
   exit $failed
 fi
 
-echo "Waiting up to $WAIT s for ${started[*]} to answer (the first start compiles the app)..."
+echo "Waiting up to $WAIT s for ${started[*]} to answer (a first start builds the app)..."
 deadline=$((SECONDS + WAIT))
 pending=("${started[@]}")
 while [[ ${#pending[@]} -gt 0 && $SECONDS -lt $deadline ]]; do
