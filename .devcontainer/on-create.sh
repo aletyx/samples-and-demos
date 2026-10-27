@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Runs once, right after the container is created (onCreateCommand), and in
-# a Codespaces prebuild, whose snapshot keeps its results: installs each
-# demo's toolchain, so that update-content.sh only has to build the apps and
-# post-start.sh's ./start-all.sh only has to start them. It runs before the
+# a Codespaces prebuild, whose snapshot keeps its results: makes the
+# toolchain and the builds ready, so that update-content.sh builds only
+# what changed and post-start.sh's ./start-all.sh only has to start the
+# demos. From the published image (DEMOS_TOOLCHAIN=image), that is copying
+# the image's release web builds into the workspace; on a laptop's dev
+# container with devbox, installing each demo's toolchain. It runs before the
 # codespace is assigned to a user, so it has no Codespaces secrets: anything
 # that needs them is in post-create.sh.
 #
@@ -53,15 +56,26 @@ fail() {
   exit 1
 }
 
-# Each devbox.lock records its packages' store paths, so `devbox install`
-# copies them from cache.nixos.org itself; only nixpkgs comes from GitHub.
 startup_facts
-for demo in $(startup_demos); do
-  echo "on-create: devbox install in $demo/..."
+# shellcheck source=../demos-toolchain.sh
+source "$startup_root/demos-toolchain.sh"
+if [[ "$DEMOS_TOOLCHAIN" == image ]]; then
+  # The image carries Flutter, process-compose and every demo's release
+  # web build: put the builds of the demos that haven't changed since the
+  # image was made into the workspace (see image/restore-builds.sh).
   started=$SECONDS
-  (cd "$demo" && devbox install) || fail "devbox install in $demo"
-  echo "on-create: devbox install in $demo took $((SECONDS - started)) s"
-done
+  bash image/restore-builds.sh || fail "image/restore-builds.sh"
+  echo "on-create: builds restored in $((SECONDS - started)) s"
+else
+  # Each devbox.lock records its packages' store paths, so `devbox install`
+  # copies them from cache.nixos.org itself; only nixpkgs comes from GitHub.
+  for demo in $(startup_demos); do
+    echo "on-create: devbox install in $demo/..."
+    started=$SECONDS
+    (cd "$demo" && devbox install) || fail "devbox install in $demo"
+    echo "on-create: devbox install in $demo took $((SECONDS - started)) s"
+  done
+fi
 
 echo "on-create: done"
 df -h /

@@ -29,7 +29,9 @@ if [[ ! -f scripts/build.sh ]]; then
   exit 0
 fi
 started=$SECONDS
-if devbox run -- bash scripts/build.sh; then
+# shellcheck source=../../demos-toolchain.sh
+source "$app/../demos-toolchain.sh"
+if run_build "$app"; then
   echo "update-content: built in $((SECONDS - started)) s"
 else
   # Not fatal: the app builds again when it starts.

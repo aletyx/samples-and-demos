@@ -19,12 +19,12 @@
   // list when you create a codespace.
   // ---------------------------------------------------------------------
   "name": "All demos",
-  "build": {
-    "dockerfile": "Containerfile",
-    // Nothing is copied into the image, so the build context is just this
-    // folder rather than the whole repository.
-    "context": "."
-  },
+  // The published image (image/Containerfile, built and pushed by
+  // image/build-image.sh): Flutter, the GitHub CLI, process-compose and
+  // every demo's release web build, so nothing is built when a codespace
+  // is created and the demos start in seconds. The organization has
+  // GitHub's prebuilds switched off; this is the next best thing.
+  "image": "ghcr.io/aletyx/samples-and-demos-devcontainer:latest",
   "remoteUser": "vscode",
   // An SSH server, so `gh codespace ssh`, `gh codespace cp` and
   // `gh codespace logs` reach the codespace from a terminal: that is how
@@ -33,9 +33,9 @@
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {}
   },
-  // The 4-core, 16 GB Codespaces machine. Creating a codespace builds
-  // five Flutter apps, one after another (a few minutes); with a prebuild
-  // (see below) that work is already done, and the demos start in seconds.
+  // The 4-core, 16 GB Codespaces machine. The published image carries
+  // the builds, so creating a codespace pulls it and starts the demos; a
+  // demo that changed since the image was made builds itself (a minute).
   "hostRequirements": {
     "cpus": 4,
     "memory": "16gb"
@@ -44,6 +44,9 @@
   // ports to reach them (only the container sees them). One variable per
   // demo, as its scripts and compose.yaml name it.
   "containerEnv": {
+    // The demos run on the image's Flutter and process-compose, not devbox
+    // (see demos-toolchain.sh).
+    "DEMOS_TOOLCHAIN": "image",
     "INDEX_BIND_HOST": "0.0.0.0",
     "MORTGAGEHUB_BIND_HOST": "0.0.0.0",
     "CONTACTHUB_BIND_HOST": "0.0.0.0",
@@ -70,9 +73,7 @@
     }
   },
   // The image's flutter and dart on the PATH of every terminal.
-  // ${containerEnv:PATH} is the image's own PATH. Inside `devbox shell`
-  // and `devbox services up`, devbox's Flutter, the same version, comes
-  // first.
+  // ${containerEnv:PATH} is the image's own PATH.
   "remoteEnv": {
     "PATH": "/opt/flutter/bin:${containerEnv:PATH}"
   },
@@ -80,10 +81,9 @@
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        // The Flutter SDK baked into the image (see Containerfile), there
-        // from the moment VS Code attaches. Devbox's own Flutter only
-        // appears once post-create.sh has run `devbox install`, too late
-        // for the Dart extension, which then offers to download one.
+        // The Flutter SDK in the image (see image/Containerfile), there
+        // from the moment VS Code attaches, so the Dart extension doesn't
+        // offer to download one.
         "dart.flutterSdkPath": "/opt/flutter"
       },
       "extensions": [
@@ -133,15 +133,13 @@
       "onAutoForward": "silent"
     }
   },
-  // All run from the repository root, in this order. The first two run in
-  // a Codespaces prebuild too (Settings → Codespaces → Set up prebuild),
-  // whose snapshot then holds the toolchains and the builds, so a
-  // codespace created from it only reports the secrets and starts the
-  // demos; post-create.sh never runs in a prebuild, which has no user
-  // secrets. Without a prebuild all three run when the codespace is
-  // created, and the editor attaches after the first (waitFor), while
-  // the builds go on in the background with their progress in startup.log.
-  //   on-create.sh       `devbox install` in each demo's folder
+  // All run from the repository root, in this order, when the codespace
+  // is created; the editor attaches after the first (waitFor), while any
+  // build goes on in the background with its progress in startup.log.
+  // (The first two are also what a Codespaces prebuild would snapshot,
+  // were prebuilds allowed for the organization.)
+  //   on-create.sh       the image's release web builds into the workspace
+  //                      (image/restore-builds.sh)
   //   update-content.sh  ./build-all.sh: each demo's release web build
   //                      and compiled servers, only what changed
   //   post-create.sh     whether the aityx secrets arrived

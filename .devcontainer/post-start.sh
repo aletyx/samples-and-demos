@@ -13,7 +13,8 @@
 # built by update-content.sh when the codespace was created (or in its
 # prebuild), so they are up in seconds; a demo whose build is missing or
 # older than its sources builds first, a minute or two. Watch one with
-# `devbox services attach -c <demo>`; stop them with ./stop-all.sh.
+# `process-compose attach -U -u /tmp/aityx-demos-<demo>.sock` (see
+# demos-toolchain.sh); stop them with ./stop-all.sh.
 #
 # Everything is logged to startup.log at the root (see startup-log.sh),
 # including start-all.sh's own lines saying when each demo answers, or,

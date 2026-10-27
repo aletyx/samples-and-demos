@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Runs once, right after the container is created (onCreateCommand), and
-# in a Codespaces prebuild, whose snapshot keeps its results: installs the
-# toolchain, so that update-content.sh only has to build the app and
-# post-start.sh only has to start it. It runs before the codespace is
+# in a Codespaces prebuild, whose snapshot keeps its results: makes the
+# toolchain and the build ready, so that update-content.sh builds only if
+# the app changed and post-start.sh only has to start it. From the
+# published image (DEMOS_TOOLCHAIN=image), that is copying the image's
+# release web build into the workspace; on a laptop's dev container with
+# devbox, installing the toolchain. It runs before the codespace is
 # assigned to a user, so it has no Codespaces secrets: post-create.sh
 # reports those.
 #
@@ -55,13 +58,24 @@ fail() {
   exit 1
 }
 
-# devbox.lock records each package's store path, so `devbox install`
-# copies them from cache.nixos.org itself; only nixpkgs comes from GitHub.
 startup_facts
-echo "on-create: devbox install..."
-started=$SECONDS
-devbox install || fail "devbox install"
-echo "on-create: devbox install took $((SECONDS - started)) s"
+# shellcheck source=../../demos-toolchain.sh
+source "$app/../demos-toolchain.sh"
+if [[ "$DEMOS_TOOLCHAIN" == image ]]; then
+  # The image carries Flutter, process-compose and the demos' release web
+  # builds: put PokerFace's into the workspace, unless it changed since the
+  # image was made (see image/restore-builds.sh).
+  started=$SECONDS
+  (cd "$app/.." && bash image/restore-builds.sh PokerFace) || fail "image/restore-builds.sh"
+  echo "on-create: build restored in $((SECONDS - started)) s"
+else
+  # devbox.lock records each package's store path, so `devbox install`
+  # copies them from cache.nixos.org itself; only nixpkgs comes from GitHub.
+  echo "on-create: devbox install..."
+  started=$SECONDS
+  devbox install || fail "devbox install"
+  echo "on-create: devbox install took $((SECONDS - started)) s"
+fi
 
 echo "on-create: done"
 df -h /
