@@ -68,3 +68,18 @@ The feature files hold the current specification; see the
    in the panel.** Each notice is a link: tapping it scrolls the panel to
    that generation's call, opens it, and marks it with an amber border.
    See [Calls panel](calls-panel.md).
+
+## 2026-10-27
+
+7. **Make the demos efficient enough for a 4-core codespace: serve a
+   release build instead of running the Flutter dev server, and compile
+   the API.** `devbox services up` now serves the app's release build
+   with a small native web server (`cellfie_api/bin/web_server.dart`:
+   `/app/` from `build/web`, `/api/` and `/` proxied to the API, as nginx
+   does under Docker Compose) and runs the API compiled with `dart
+   compile exe`; both come from `scripts/build.sh`, which builds only
+   what changed and runs one Flutter web build at a time across the
+   repository. Resident memory drops from about 1.2 GB to about 35 MB,
+   and a start after no change takes seconds. Hot reload stays with
+   `WEB_MODE=debug` or `devbox run web`. See
+   [Development environment](dev-environment.md).
