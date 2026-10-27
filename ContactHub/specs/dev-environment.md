@@ -59,8 +59,10 @@ explains the reasons behind each piece.
   only what is missing or older than its sources: `web` runs
   `scripts/make.sh web` with `WEB_BASE_HREF=/app/` and an empty
   `API_BASE_URL`, compared against `lib/`, `web/`, `assets/`, the
-  pubspecs and the version files, and also when the build's base href
-  isn't `/app/`; `web_server` and `api` run `dart compile exe`, compared
+  pubspecs and the version files, and also when the build doesn't record
+  those settings (`build/web/.aityx-services`, written once a build
+  succeeds and required to be newer than the build, so a `make web` by
+  hand with other settings isn't reused); `web_server` and `api` run `dart compile exe`, compared
   against `bin/`, `lib/` and the pubspecs. The two scripts run it before
   serving, so a start after no change builds nothing and serves in
   seconds; a first start, or one after a change, takes the build (about
@@ -68,9 +70,10 @@ explains the reasons behind each piece.
   web build runs at a time across the repository's demos, through a lock
   directory in the system's temp folder
   (`aityx-demos-flutter-web-build.lock`, holding the builder's PID; a
-  lock whose process is gone is taken over), so starting every demo at
-  once doesn't thrash a small machine; the API's compiles share a lock of
-  their own. `build/` is git-ignored.
+  lock whose process is gone, or that never got its PID and is a minute
+  old, is taken over), so starting every demo at once doesn't thrash a
+  small machine; the checks run inside the lock, so two starts that
+  overlap build once. The API's compiles share a lock of their own. `build/` is git-ignored.
 - `devbox run web` runs only the web app, in debug mode (hot reload)
   unless `WEB_MODE=release`; `devbox run api` only the API.
 - The web app calls the API at `API_BASE_URL` (a dart-define). The
