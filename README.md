@@ -64,7 +64,7 @@ demo, start only that demo.
 Creating a codespace installs the toolchains (`onCreateCommand`) and
 builds the five apps one after another (`updateContentCommand`, a minute
 or two each on 4 cores); the editor attaches after the first step, and
-the demos start as their builds finish. A **Codespaces prebuild** does
+the demos start once every build is done. A **Codespaces prebuild** does
 both ahead of time, on GitHub's side, and keeps the result as a
 snapshot: a codespace created from it opens in well under a minute with
 every demo up a few seconds later. To enable it, in the repository's
