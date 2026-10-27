@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Runs the API (pokerface_api/) on http://localhost:${API_PORT:-8911}.
+# Runs the API (pokerface_api/) on http://localhost:${API_PORT:-8911}:
+# bin/server.dart compiled to a native executable (scripts/build.sh, only
+# when the API changed), so it starts at once and stays small.
 # Runs via `devbox services up` (see process-compose.yaml) or `devbox run api`.
 # The aityx settings come from the environment, else the repo's .env (see
 # .env.example). They're exported to the server's own environment only:
@@ -17,6 +19,6 @@ unset value
 export API_PORT="${API_PORT:-8911}"
 export ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-http://localhost:${FLUTTER_WEB_PORT:-8910},http://127.0.0.1:${FLUTTER_WEB_PORT:-8910}}"
 
-cd "$root/pokerface_api"
-dart pub get >/dev/null
-exec dart run bin/server.dart
+bash "$root/scripts/build.sh" api
+# The server finds its models beside its binary: build/../models/.
+exec "$root/pokerface_api/build/server"
