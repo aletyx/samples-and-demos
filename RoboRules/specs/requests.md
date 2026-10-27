@@ -57,3 +57,19 @@ The requests that shaped RoboRules, oldest first, each with what changed.
    their line ([The window](window.md)).
 6. **Do not use "dead"; better use "lost".** A robot out of the round is
    "lost" everywhere the app says it.
+
+## 2026-10-27
+
+7. **Make the demos efficient enough for a 4-core codespace: serve a
+   release build instead of running the Flutter dev server, and compile
+   the API.** `devbox services up` now serves the app's release build
+   with a small native web server (`roborules_api/bin/web_server.dart`:
+   `/app/` from `build/web`, `/api/` and `/` proxied to the API, as nginx
+   does under Docker Compose) and runs the API compiled with `dart
+   compile exe`, which finds `models/` beside its binary as in the Docker
+   image; both come from `scripts/build.sh`, which builds only what
+   changed and runs one Flutter web build at a time across the
+   repository. Resident memory drops from about 1 GB to about 27 MB, and a
+   start after no change takes a second. Hot reload stays with
+   `WEB_MODE=debug` or `devbox run web`. See
+   [Development environment](dev-environment.md).
