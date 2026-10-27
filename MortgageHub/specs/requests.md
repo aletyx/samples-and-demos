@@ -276,3 +276,18 @@ spec.
     glyph with no background, as aityx.ai's own favicon is drawn; the
     PNG tile stays as the fallback and the app icons keep it. See
     [App icon](app-icon.md#favicon).
+
+## 2026-10-27
+
+38. **Make the demos efficient enough for a 4-core codespace: serve a
+    release build instead of running the Flutter dev server, and compile
+    the API.** `devbox services up` now serves the app's release build
+    with a small native web server (`mortgagehub_api/bin/web_server.dart`:
+    `/app/` from `build/web`, `/api/` and `/` proxied to the API, as nginx
+    does under Docker Compose) and runs the API compiled with `dart
+    compile exe`; both come from `scripts/build.sh`, which builds only
+    what changed and runs one Flutter web build at a time across the
+    repository. Resident memory drops from about 1.2 GB to about 35 MB per
+    demo, and a start after no change takes seconds. Hot reload stays
+    with `WEB_MODE=debug` or `devbox run web`. See
+    [Development environment](dev-environment.md).
