@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -198,6 +199,11 @@ class AnnotatedLine {
 
   /// The first line of a highlighted value: it carries the label.
   bool start = false;
+
+  /// On the first line of a value: its dotted path, and the index of its
+  /// last line, so a jump can mark the whole value.
+  String? path;
+  int? end;
 }
 
 /// [json] as `JsonEncoder.withIndent('  ')` prints it, line by line, with
@@ -238,6 +244,9 @@ List<AnnotatedLine> annotateJson(Object? json, List<JsonNote> notes) {
     } else {
       lines.add(AnnotatedLine('$indent$key${jsonEncode(value)}$comma'));
     }
+    lines[first]
+      ..path = path
+      ..end = lines.length - 1;
     if (path.isEmpty) return;
     for (final note in notes) {
       if (note.matches(path, value)) {
@@ -260,9 +269,16 @@ List<AnnotatedLine> annotateJson(Object? json, List<JsonNote> notes) {
   return lines;
 }
 
-/// [json], pretty-printed and selectable under [title], with the parts
-/// [notes] match highlighted: a short label beside each, the reason it
-/// matters in a tooltip, and chips above that scroll to them.
+/// Each line's height: fixed, so a line's offset is exactly
+/// `8 + index * _lineHeight` and a jump lands on it.
+const _lineHeight = 22.0;
+const _gutterWidth = 52.0;
+const _mono = TextStyle(fontFamily: 'RobotoMono', fontSize: 14, height: 1.2);
+
+/// [json], pretty-printed with numbered lines under [title], with the
+/// parts [notes] match highlighted and labeled. "Jump to" chips, and the
+/// labels themselves, scroll exactly to a part's first line, mark the whole
+/// value, and say above the code what it is and why it matters.
 class AityxJsonView extends StatefulWidget {
   const AityxJsonView(
     this.title,
@@ -280,10 +296,19 @@ class AityxJsonView extends StatefulWidget {
 }
 
 class _AityxJsonViewState extends State<AityxJsonView> {
+  final _vertical = ScrollController();
+  final _horizontal = ScrollController();
+  final _viewKey = GlobalKey();
   late List<AnnotatedLine> _lines;
+  late int _longestLine;
 
-  /// The first line of each note's first highlight, to scroll to.
-  final _anchors = <JsonNote, GlobalKey>{};
+  /// The first line of each note's first highlight, in the order they
+  /// appear: where its "Jump to" chip goes.
+  final _anchors = <JsonNote, int>{};
+
+  /// The first line of the part last jumped to, marked whole in the code
+  /// and explained above it.
+  int? _active;
 
   @override
   void initState() {
@@ -297,33 +322,64 @@ class _AityxJsonViewState extends State<AityxJsonView> {
     if (old.json != widget.json || old.notes != widget.notes) _build();
   }
 
+  @override
+  void dispose() {
+    _vertical.dispose();
+    _horizontal.dispose();
+    super.dispose();
+  }
+
   void _build() {
     _lines = annotateJson(widget.json, widget.notes);
+    _longestLine = _lines.fold(0, (max, l) => math.max(max, l.text.length));
     _anchors.clear();
-    for (final line in _lines) {
-      if (line.start) _anchors.putIfAbsent(line.note!, GlobalKey.new);
+    for (var i = 0; i < _lines.length; i++) {
+      final line = _lines[i];
+      if (line.start) _anchors.putIfAbsent(line.note!, () => i);
+    }
+    if (_active case final a? when a >= _lines.length || !_lines[a].start) {
+      _active = null;
     }
   }
 
-  void _jumpTo(JsonNote note) {
-    final context = _anchors[note]?.currentContext;
-    if (context == null) return;
-    Scrollable.ensureVisible(
-      context,
-      alignment: 0.1,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+  /// Marks the part whose first line is [first], brings the whole view
+  /// (chips, explanation and code) to the top of the page, and scrolls that
+  /// line to the top of the code, one line of context above it.
+  void _jumpTo(int first) {
+    setState(() => _active = first);
+    // After the frame, so the page scrolls to the view with its explanation.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_viewKey.currentContext case final view?) {
+        Scrollable.ensureVisible(
+          view,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+      if (!_vertical.hasClients) return;
+      final offset = math.max(0.0, 8 + (first - 1) * _lineHeight);
+      _vertical.animateTo(
+        math.min(offset, _vertical.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+      if (_horizontal.hasClients) _horizontal.jumpTo(0);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final mono = theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace');
-    final seen = <JsonNote>{};
+    final active = _active == null ? null : _lines[_active!];
+    final height = (MediaQuery.sizeOf(context).height * 0.55).clamp(
+      320.0,
+      640.0,
+    );
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      key: _viewKey,
+      padding: const EdgeInsets.only(top: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -348,8 +404,8 @@ class _AityxJsonViewState extends State<AityxJsonView> {
           ),
           if (_anchors.isNotEmpty) ...[
             Text(
-              'Highlighted parts matter most: hover or tap a label for why. '
-              'Jump to:',
+              'Highlighted parts matter most: pick one to go to it and read '
+              'why. Jump to:',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -359,49 +415,53 @@ class _AityxJsonViewState extends State<AityxJsonView> {
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final note in _anchors.keys)
-                  ActionChip(
+                for (final MapEntry(key: note, value: first)
+                    in _anchors.entries)
+                  ChoiceChip(
                     visualDensity: VisualDensity.compact,
+                    showCheckmark: false,
+                    selected: note == active?.note,
                     avatar: Icon(
                       note.alarm ? Icons.error_outline : Icons.my_location,
                       size: 14,
-                      color: note.alarm ? _alarmColor(scheme) : scheme.primary,
+                      color: _accent(scheme, note),
                     ),
                     side: note.alarm
                         ? BorderSide(color: _alarmColor(scheme))
                         : null,
                     label: Text(note.label),
                     tooltip: note.why,
-                    onPressed: () => _jumpTo(note),
+                    onSelected: (_) => _jumpTo(first),
                   ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
           ],
+          // What the marked part is, in words, above the code.
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: active == null
+                ? const SizedBox(width: double.infinity)
+                : _Explanation(
+                    key: ValueKey(_active),
+                    note: active.note!,
+                    path: active.path!,
+                  ),
+          ),
           Container(
-            constraints: const BoxConstraints(maxHeight: 360),
+            height: height,
             decoration: BoxDecoration(
               color: scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
             ),
             clipBehavior: Clip.antiAlias,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: SelectionArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final line in _lines)
-                      _JsonLine(
-                        line,
-                        key: line.start && seen.add(line.note!)
-                            ? _anchors[line.note]
-                            : null,
-                        style: mono,
-                      ),
-                  ],
-                ),
-              ),
+            child: _CodePane(
+              lines: _lines,
+              longestLine: _longestLine,
+              vertical: _vertical,
+              horizontal: _horizontal,
+              active: _active,
+              onLabel: _jumpTo,
             ),
           ),
         ],
@@ -410,81 +470,260 @@ class _AityxJsonViewState extends State<AityxJsonView> {
   }
 }
 
-class _JsonLine extends StatelessWidget {
-  const _JsonLine(this.line, {super.key, this.style});
+Color _accent(ColorScheme scheme, JsonNote note) =>
+    note.alarm ? _alarmColor(scheme) : scheme.primary;
 
-  final AnnotatedLine line;
-  final TextStyle? style;
+/// The marked part: its label, where it is in the JSON, and why it matters.
+class _Explanation extends StatelessWidget {
+  const _Explanation({super.key, required this.note, required this.path});
+
+  final JsonNote note;
+  final String path;
 
   @override
   Widget build(BuildContext context) {
-    final note = line.note;
-    final text = Text(line.text, style: style);
-    if (note == null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: text,
-      );
-    }
-    final scheme = Theme.of(context).colorScheme;
-    final accent = note.alarm ? _alarmColor(scheme) : scheme.primary;
-    final onAccent = note.alarm ? scheme.onError : scheme.onPrimary;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final accent = _accent(scheme, note);
     return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: note.alarm ? 0.18 : 0.12),
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
         border: Border(left: BorderSide(color: accent, width: 3)),
       ),
-      padding: const EdgeInsets.only(left: 9, right: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(child: text),
-          if (line.start) ...[
-            const SizedBox(width: 8),
-            Tooltip(
-              richMessage: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${note.label}\n',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(text: note.why),
-                ],
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '${note.label}  ',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            TextSpan(
+              text: path,
+              style: _mono.copyWith(
+                fontSize: 13,
+                color: scheme.onSurfaceVariant,
               ),
-              triggerMode: TooltipTriggerMode.tap,
-              showDuration: const Duration(seconds: 8),
-              waitDuration: const Duration(milliseconds: 200),
-              constraints: const BoxConstraints(maxWidth: 320),
-              child: SelectionContainer.disabled(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 1,
+            ),
+            TextSpan(text: '\n${note.why}'),
+          ],
+        ),
+        style: theme.textTheme.bodyMedium,
+      ),
+    );
+  }
+}
+
+/// The code: one fixed-height, numbered row per line; highlighted parts
+/// tinted with their label on their first row, the marked one strongly.
+class _CodePane extends StatelessWidget {
+  const _CodePane({
+    required this.lines,
+    required this.longestLine,
+    required this.vertical,
+    required this.horizontal,
+    required this.active,
+    required this.onLabel,
+  });
+
+  final List<AnnotatedLine> lines;
+  final int longestLine;
+  final ScrollController vertical;
+  final ScrollController horizontal;
+
+  /// The first line of the marked part.
+  final int? active;
+  final ValueChanged<int> onLabel;
+
+  double _charWidth() {
+    final painter = TextPainter(
+      text: const TextSpan(text: '0000000000', style: _mono),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    return painter.width / 10;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final active = this.active;
+    final markedNote = active == null ? null : lines[active].note;
+    final markedEnd = active == null ? -1 : lines[active].end!;
+    final contentWidth = _gutterWidth + 28 + longestLine * _charWidth() + 200;
+    return LayoutBuilder(
+      builder: (context, constraints) => Scrollbar(
+        controller: horizontal,
+        child: SingleChildScrollView(
+          controller: horizontal,
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: math.max(constraints.maxWidth, contentWidth),
+            height: constraints.maxHeight,
+            child: SelectionArea(
+              child: Scrollbar(
+                controller: vertical,
+                child: ListView.builder(
+                  controller: vertical,
+                  // Room below the last line, so a part near the end can
+                  // still scroll to the top like any other.
+                  padding: EdgeInsets.only(
+                    top: 8,
+                    bottom: math.max(
+                      8,
+                      constraints.maxHeight - 3 * _lineHeight,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.info_outline, size: 12, color: onAccent),
-                      const SizedBox(width: 3),
-                      Text(
-                        note.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: onAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  itemExtent: _lineHeight,
+                  itemCount: lines.length,
+                  itemBuilder: (context, i) => _Row(
+                    number: i + 1,
+                    line: lines[i],
+                    marked: active != null && i >= active && i <= markedEnd,
+                    markedNote: markedNote,
+                    isActive: i == active,
+                    onLabel: () => onLabel(i),
+                    scheme: scheme,
                   ),
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  const _Row({
+    required this.number,
+    required this.line,
+    required this.marked,
+    required this.markedNote,
+    required this.isActive,
+    required this.onLabel,
+    required this.scheme,
+  });
+
+  final int number;
+  final AnnotatedLine line;
+
+  /// Inside the part last jumped to, and that part's first line.
+  final bool marked;
+  final JsonNote? markedNote;
+  final bool isActive;
+  final VoidCallback onLabel;
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final note = line.note;
+    // A marked row takes the marked part's color, even where an inner
+    // part's highlight covers it.
+    final shown = marked ? markedNote : note;
+    final accent = shown == null ? null : _accent(scheme, shown);
+    final strength = marked
+        ? 0.24
+        : (shown?.alarm ?? false)
+        ? 0.18
+        : 0.10;
+    return Container(
+      decoration: accent == null
+          ? null
+          : BoxDecoration(
+              color: accent.withValues(alpha: strength),
+              border: Border(
+                left: BorderSide(
+                  color: marked ? accent : accent.withValues(alpha: 0.6),
+                  width: 3,
+                ),
+              ),
+            ),
+      child: Row(
+        children: [
+          SelectionContainer.disabled(
+            child: SizedBox(
+              width: _gutterWidth - (accent == null ? 0 : 3),
+              child: Text(
+                '$number',
+                textAlign: TextAlign.right,
+                style: _mono.copyWith(
+                  color: marked
+                      ? accent
+                      : scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            line.text,
+            style: _mono.copyWith(color: scheme.onSurface),
+            softWrap: false,
+          ),
+          if (line.start && note != null) ...[
+            const SizedBox(width: 12),
+            _Label(note, active: isActive, onTap: onLabel),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// A part's label at the end of its first line: hover for why it matters,
+/// tap to mark it and read the explanation above the code.
+class _Label extends StatelessWidget {
+  const _Label(this.note, {required this.active, required this.onTap});
+
+  final JsonNote note;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = _accent(scheme, note);
+    final onAccent = note.alarm ? scheme.onError : scheme.onPrimary;
+    return SelectionContainer.disabled(
+      child: Tooltip(
+        message: note.why,
+        waitDuration: const Duration(milliseconds: 300),
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+            decoration: BoxDecoration(
+              color: active ? accent : accent.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(10),
+              border: active ? Border.all(color: scheme.onSurface) : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  note.alarm ? Icons.error_outline : Icons.info_outline,
+                  size: 12,
+                  color: onAccent,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  note.label,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: onAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
