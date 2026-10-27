@@ -56,8 +56,20 @@ and every aityx call in the log.
 
 and open http://localhost:8920/app/. The API answers on
 http://localhost:8921. The ports are RoboRules' own, so it runs alongside
-the other samples (Mortgage Hub 8880/8881, Contact Hub 8890/8891). The
-first start compiles the app, a minute or so.
+the other samples (Mortgage Hub 8880/8881, Contact Hub 8890/8891).
+
+That serves the app's release build with a small native web server
+([scripts/flutter-web.sh](scripts/flutter-web.sh)) and the API compiled to
+a native executable ([scripts/api.sh](scripts/api.sh)), what Docker
+Compose serves too, and it keeps the machine free: the two servers hold
+about 27 MB between them. The first start builds them (about 25 s on a
+laptop, a minute or two on a 4-core codespace); later starts reuse the
+builds until something changes, and are up in a second or two. For hot
+reload while working on the app, run the Flutter dev server instead, with
+`WEB_MODE=debug devbox services up`, or on its own with `devbox run web`
+(press `r` in its terminal). `devbox run build` builds the web build and
+the executables ahead of time ([scripts/build.sh](scripts/build.sh)), only
+what changed. Stop everything with `devbox services stop`.
 
 `bash scripts/model-test.sh` plays scripted battles on aityx and checks
 the physics against Robocode's rules; run it after changing the world
