@@ -25,6 +25,13 @@
     "context": "."
   },
   "remoteUser": "vscode",
+  // An SSH server, so `gh codespace ssh`, `gh codespace cp` and
+  // `gh codespace logs` reach the codespace from a terminal: that is how
+  // startup.log is read without the editor, and how the demos are
+  // benchmarked.
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
   // The dev servers must listen on every interface for the forwarded
   // ports to reach them (only the container sees them).
   "containerEnv": {

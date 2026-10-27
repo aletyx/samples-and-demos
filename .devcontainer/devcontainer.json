@@ -26,6 +26,13 @@
     "context": "."
   },
   "remoteUser": "vscode",
+  // An SSH server, so `gh codespace ssh`, `gh codespace cp` and
+  // `gh codespace logs` reach the codespace from a terminal: that is how
+  // startup.log is read without the editor, and how the demos are
+  // benchmarked.
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
   // The 4-core, 16 GB Codespaces machine. Creating a codespace builds
   // five Flutter apps, one after another (a few minutes); with a prebuild
   // (see below) that work is already done, and the demos start in seconds.
