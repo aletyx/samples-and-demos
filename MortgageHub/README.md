@@ -66,8 +66,16 @@ That starts, from [process-compose.yaml](process-compose.yaml):
 
 | URL | What |
 |---|---|
-| http://localhost:8880/app/ | The Flutter app in web mode ([scripts/flutter-web.sh](scripts/flutter-web.sh)). Press `r` in its terminal to hot reload |
-| http://localhost:8881/api/health | The API ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the dev server's proxy |
+| http://localhost:8880/app/ | The app's release build, served by a small native web server ([scripts/flutter-web.sh](scripts/flutter-web.sh)). The first start builds it (about 20 s on a laptop, a minute or two on a 4-core codespace); later starts reuse it until the app changes |
+| http://localhost:8881/api/health | The API, compiled to a native executable ([scripts/api.sh](scripts/api.sh)); the web app reaches it as `/api/` on its own origin, through the web server's proxy |
+
+That's what Docker Compose serves too, and it keeps the machine free:
+the two servers hold about 35 MB between them. For hot reload while
+working on the app, run the Flutter dev server instead, with
+`WEB_MODE=debug devbox services up`, or on its own with `devbox run web`
+(press `r` in its terminal). `devbox run build` builds the web build and
+the executables ahead of time ([scripts/build.sh](scripts/build.sh)),
+only what changed.
 
 A `health-check` monitor logs one line every 15 s (set
 `HEALTH_CHECK_INTERVAL` to change it): the time, then each check as its
@@ -79,7 +87,8 @@ has no key):
 ```
 
 Stop everything with `devbox services stop`. To run only the app, use
-`devbox run web` (set `FLUTTER_WEB_PORT` to change the port); only the
+`devbox run web`, the dev server with hot reload (set `FLUTTER_WEB_PORT`
+to change the port, `WEB_MODE=release` for the release build); only the
 API, `devbox run api` (`API_PORT`).
 
 ### Building the binaries

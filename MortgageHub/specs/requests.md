@@ -288,3 +288,16 @@ spec.
     whole value, and a panel above the code gives its label, path and
     why. A label goes to its own value, not its note's first match. See
     [Regulatory check](regulatory-check.md).
+
+38. **Make the demos efficient enough for a 4-core codespace: serve a
+    release build instead of running the Flutter dev server, and compile
+    the API.** `devbox services up` now serves the app's release build
+    with a small native web server (`mortgagehub_api/bin/web_server.dart`:
+    `/app/` from `build/web`, `/api/` and `/` proxied to the API, as nginx
+    does under Docker Compose) and runs the API compiled with `dart
+    compile exe`; both come from `scripts/build.sh`, which builds only
+    what changed and runs one Flutter web build at a time across the
+    repository. Resident memory drops from about 1.2 GB to about 35 MB per
+    demo, and a start after no change takes seconds. Hot reload stays
+    with `WEB_MODE=debug` or `devbox run web`. See
+    [Development environment](dev-environment.md).
