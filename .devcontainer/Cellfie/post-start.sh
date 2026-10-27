@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs each time the container starts (postStartCommand), after
-# post-create.sh on the first start: starts Cellfie's services and,
+# on-create.sh, update-content.sh and post-create.sh on the first start: starts Cellfie's services and,
 # in a codespace, makes the web app's port public, so the app opens from
 # the Ports panel (or the browser tab Codespaces opens) with nothing to run.
 #
@@ -56,7 +56,7 @@ startup_facts
 cd "$app" || { echo "post-start: cannot find $app" >&2; exit 1; }
 
 if ! command -v devbox >/dev/null || [[ ! -d .devbox ]]; then
-  echo "post-start: devbox is not installed here yet (did post-create.sh"
+  echo "post-start: devbox is not installed here yet (did on-create.sh"
   echo "post-start: fail? see its lines above); start the app with:"
   echo "post-start:   cd Cellfie && devbox services up"
 else

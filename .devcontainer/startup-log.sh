@@ -1,5 +1,6 @@
-# Sourced by post-create.sh, post-start.sh and public-port.sh: everything
-# they print, and what start-all.sh and the services do as they come up,
+# Sourced by on-create.sh, update-content.sh, post-create.sh, post-start.sh
+# and public-port.sh: everything they print, and what build-all.sh,
+# start-all.sh and the services do as they come up,
 # goes to startup.log at the root of the repository (git-ignored, like
 # every *.log) with a UTC time on each line, as well as to the terminal.
 # It's in the workspace, so it can be opened from the Explorer and
