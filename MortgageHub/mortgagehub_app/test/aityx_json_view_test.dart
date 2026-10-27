@@ -131,8 +131,17 @@ void main() {
     expect(review.where((line) => line.note?.alarm ?? false), isEmpty);
   });
 
-  testWidgets('shows labels, explains them and jumps to them', (tester) async {
-    tester.view.physicalSize = const Size(900, 1600);
+  test('records where every value starts and ends', () {
+    final lines = annotateJson(response, responseNotes);
+    final status = lines.indexWhere((l) => l.text == '    "status": {');
+    expect(lines[status].path, 'answers.status');
+    expect(lines[lines[status].end!].text, '    },');
+    expect(lines.first.path, '');
+    expect(lines.first.end, lines.length - 1);
+  });
+
+  testWidgets('numbers the lines, and jumps exactly to a part', (tester) async {
+    tester.view.physicalSize = const Size(1200, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
@@ -145,20 +154,55 @@ void main() {
       ),
     );
 
-    expect(find.byType(ActionChip), findsNWidgets(requestNotes.length));
-    final assumed = find.text('Assumed rate').last;
-    final scrollable = find.byType(Scrollable).last;
-    final before = tester.getTopLeft(assumed).dy;
-    await tester.tap(find.widgetWithText(ActionChip, 'Assumed rate'));
-    await tester.pumpAndSettle();
-    expect(tester.getTopLeft(assumed).dy, lessThan(before));
-    expect(
-      tester.getRect(assumed).overlaps(tester.getRect(scrollable)),
-      isTrue,
-    );
+    expect(find.byType(ChoiceChip), findsNWidgets(requestNotes.length));
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
 
-    await tester.tap(assumed);
-    await tester.pump(const Duration(milliseconds: 500));
+    final lines = annotateJson(request, requestNotes);
+    final rate = lines.indexWhere((l) => l.path == 'state.assumed_rate');
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Assumed rate'));
+    await tester.pumpAndSettle();
+
+    // Its line is numbered, and lands one line below the pane's top: rows
+    // are 22 px, so its middle is 22 + 11 px down.
+    final number = find.text('${rate + 1}');
+    expect(number, findsOneWidget);
+    final pane = tester.getTopLeft(find.byType(ListView));
+    expect(tester.getCenter(number).dy - pane.dy, closeTo(33, 0.5));
+    // Above the code: what it is, where, and why.
+    expect(find.textContaining('state.assumed_rate'), findsOneWidget);
     expect(find.textContaining('not a priced rate'), findsWidgets);
+  });
+
+  testWidgets('a label marks its own value among its note\'s matches', (
+    tester,
+  ) async {
+    final notes = [JsonNote(RegExp(r'^items\.\d+$'), 'Item', 'One item.')];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: AityxJsonView('Items', const {
+              'items': [
+                {'a': 1},
+                {'a': 2},
+              ],
+            }, notes: notes),
+          ),
+        ),
+      ),
+    );
+    final labels = find.descendant(
+      of: find.byType(ListView),
+      matching: find.text('Item'),
+    );
+    expect(labels, findsNWidgets(2));
+    await tester.tap(labels.at(1));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('items.1'), findsOneWidget);
+    // The chip goes to the first.
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Item'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('items.0'), findsOneWidget);
   });
 }
