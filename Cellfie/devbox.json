@@ -7,8 +7,9 @@
   },
   "shell": {
     "scripts": {
-      "web": "bash scripts/flutter-web.sh",
-      "api": "bash scripts/api.sh"
+      "web": "WEB_MODE=${WEB_MODE:-debug} bash scripts/flutter-web.sh",
+      "api": "bash scripts/api.sh",
+      "build": "bash scripts/build.sh"
     }
   }
 }
