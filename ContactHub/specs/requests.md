@@ -170,3 +170,19 @@ The feature files hold the current specification; see the
     cutout, as aityx.ai's own favicon is drawn; the PNG tile stays as the
     fallback and the app icons keep it. See
     [App icon](app-icon.md#favicon).
+
+## 2026-10-27
+
+15. **Make the demos efficient enough for a 4-core codespace: serve a
+    release build instead of running the Flutter dev server, and compile
+    the API**, as Mortgage Hub does. `devbox services up` now serves the
+    app's release build with a small native web server
+    (`contacthub_api/bin/web_server.dart`: `/app/` from `build/web`,
+    `/api/` and `/` proxied to the API, as nginx does under Docker
+    Compose) and runs the API compiled with `dart compile exe`, which
+    finds `models/routing.json` beside its binary as in the Docker image;
+    both come from `scripts/build.sh`, which builds only what changed and
+    runs one Flutter web build at a time across the repository. Resident
+    memory drops from about 1.2 GB to about 35 MB, and a start after no
+    change takes seconds. Hot reload stays with `WEB_MODE=debug` or
+    `devbox run web`. See [Development environment](dev-environment.md).
