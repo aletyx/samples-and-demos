@@ -269,11 +269,19 @@ List<AnnotatedLine> annotateJson(Object? json, List<JsonNote> notes) {
   return lines;
 }
 
-/// Each line's height: fixed, so a line's offset is exactly
-/// `8 + index * _lineHeight` and a jump lands on it.
+/// Each line's height at the default text size: fixed, so a line's offset
+/// is exactly `8 + index * rowHeight` and a jump lands on it. The rows and
+/// the text follow the user's text size together (see [_rowHeight]).
 const _lineHeight = 22.0;
 const _gutterWidth = 52.0;
 const _mono = TextStyle(fontFamily: 'RobotoMono', fontSize: 14, height: 1.2);
+
+/// [_lineHeight] at the text size in [context]: the rows grow with larger
+/// accessibility text, as the text they hold does.
+double _rowHeight(BuildContext context) =>
+    _lineHeight *
+    MediaQuery.textScalerOf(context).scale(_mono.fontSize!) /
+    _mono.fontSize!;
 
 /// [json], pretty-printed with numbered lines under [title], with the
 /// parts [notes] match highlighted and labeled. "Jump to" chips, and the
@@ -358,7 +366,7 @@ class _AityxJsonViewState extends State<AityxJsonView> {
         );
       }
       if (!_vertical.hasClients) return;
-      final offset = math.max(0.0, 8 + (first - 1) * _lineHeight);
+      final offset = math.max(0.0, 8 + (first - 1) * _rowHeight(context));
       _vertical.animateTo(
         math.min(offset, _vertical.position.maxScrollExtent),
         duration: const Duration(milliseconds: 350),
@@ -538,10 +546,12 @@ class _CodePane extends StatelessWidget {
   final int? active;
   final ValueChanged<int> onLabel;
 
-  double _charWidth() {
+  /// A character's width as the rows draw it, at [context]'s text size.
+  double _charWidth(BuildContext context) {
     final painter = TextPainter(
       text: const TextSpan(text: '0000000000', style: _mono),
       textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
     )..layout();
     return painter.width / 10;
   }
@@ -552,31 +562,34 @@ class _CodePane extends StatelessWidget {
     final active = this.active;
     final markedNote = active == null ? null : lines[active].note;
     final markedEnd = active == null ? -1 : lines[active].end!;
-    final contentWidth = _gutterWidth + 28 + longestLine * _charWidth() + 200;
+    final rowHeight = _rowHeight(context);
+    final contentWidth =
+        _gutterWidth + 28 + longestLine * _charWidth(context) + 200;
+    // The vertical scrollbar stays at the pane's edge, outside the box
+    // that scrolls sideways; each scrollbar follows its own axis.
     return LayoutBuilder(
       builder: (context, constraints) => Scrollbar(
-        controller: horizontal,
-        child: SingleChildScrollView(
+        controller: vertical,
+        notificationPredicate: (n) => n.metrics.axis == Axis.vertical,
+        child: Scrollbar(
           controller: horizontal,
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: math.max(constraints.maxWidth, contentWidth),
-            height: constraints.maxHeight,
-            child: SelectionArea(
-              child: Scrollbar(
-                controller: vertical,
+          notificationPredicate: (n) => n.metrics.axis == Axis.horizontal,
+          child: SingleChildScrollView(
+            controller: horizontal,
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: math.max(constraints.maxWidth, contentWidth),
+              height: constraints.maxHeight,
+              child: SelectionArea(
                 child: ListView.builder(
                   controller: vertical,
                   // Room below the last line, so a part near the end can
                   // still scroll to the top like any other.
                   padding: EdgeInsets.only(
                     top: 8,
-                    bottom: math.max(
-                      8,
-                      constraints.maxHeight - 3 * _lineHeight,
-                    ),
+                    bottom: math.max(8, constraints.maxHeight - 3 * rowHeight),
                   ),
-                  itemExtent: _lineHeight,
+                  itemExtent: rowHeight,
                   itemCount: lines.length,
                   itemBuilder: (context, i) => _Row(
                     number: i + 1,

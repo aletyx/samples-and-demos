@@ -31,7 +31,8 @@ app (summary)  ──POST /api/proposals/check──▶  mortgagehub_api  ──
   is a code pane 55% of the window high (320 to 640 px), one numbered line
   per row in Roboto Mono (bundled, see
   [assets/fonts](../mortgagehub_app/assets/fonts/README.md): Flutter on the
-  web has no monospace font of its own), 14 px on fixed 22 px rows, the
+  web has no monospace font of its own), 14 px on fixed 22 px rows (both
+  scaled with the user's text size), the
   numbers counting from 1 in each block, scrolling sideways for long
   lines. The parts that matter are highlighted: a tinted band with an
   edge in the theme's primary and a short label at the end of the value's
