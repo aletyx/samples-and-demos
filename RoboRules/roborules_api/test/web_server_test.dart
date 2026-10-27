@@ -41,6 +41,7 @@ Future<HttpServer> fakeApi() async {
 }
 
 void main() {
+  late Directory parent;
   late Directory root;
   late HttpServer api;
   late HttpServer web;
@@ -48,12 +49,15 @@ void main() {
   late Uri base;
 
   setUp(() async {
-    root = await Directory.systemTemp.createTemp('web_server_test');
+    // A folder of this test's own: the build, and a file beside it that
+    // must never be served.
+    parent = await Directory.systemTemp.createTemp('web_server_test');
+    root = await Directory('${parent.path}/web').create();
     await File('${root.path}/index.html').writeAsString('<html>app</html>');
     await File('${root.path}/main.dart.js').writeAsString('js();');
     await Directory('${root.path}/canvaskit').create();
     await File('${root.path}/canvaskit/a.wasm').writeAsBytes([0, 97, 115, 109]);
-    await File('${root.parent.path}/outside.txt').writeAsString('secret');
+    await File('${parent.path}/outside.txt').writeAsString('secret');
     api = await fakeApi();
     web = await serveWeb(
       root: root,
@@ -69,8 +73,19 @@ void main() {
     client.close(force: true);
     await web.close(force: true);
     await api.close(force: true);
-    await root.delete(recursive: true);
+    await parent.delete(recursive: true);
   });
+
+  /// [requestLine]'s path sent as written: HttpClient would normalize `..`
+  /// away before the server saw it.
+  Future<String> raw(String path) async {
+    final socket = await Socket.connect('127.0.0.1', web.port);
+    socket.write('GET $path HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n');
+    await socket.flush();
+    final answer = await utf8.decoder.bind(socket).join();
+    socket.destroy();
+    return answer;
+  }
 
   Future<(HttpClientResponse, String)> get(
     String path, {
@@ -114,13 +129,25 @@ void main() {
   });
 
   test('never serves a file outside the build', () async {
+    // The file is there and would be served if the path escaped.
+    expect(await File('${parent.path}/outside.txt').readAsString(), 'secret');
     for (final path in [
       '/app/../outside.txt',
       '/app/%2e%2e/outside.txt',
       '/app/canvaskit/../../outside.txt',
+      '/app/canvaskit/%2E%2E/%2E%2E/outside.txt',
     ]) {
-      final (_, body) = await get(path);
-      expect(body, isNot(contains('secret')), reason: path);
+      final answer = await raw(path);
+      expect(answer, isNot(contains('secret')), reason: path);
+      // Dart's server collapses a plain `..` first (the path then leaves
+      // /app/ and is not found); an encoded one reaches the server's own
+      // check and falls back to the app's page, as any unknown route.
+      expect(
+        answer.startsWith('HTTP/1.1 404') ||
+            answer.contains('<html>app</html>'),
+        isTrue,
+        reason: path,
+      );
     }
     final (other, _) = await get('/outside.txt');
     expect(other.statusCode, 404);
