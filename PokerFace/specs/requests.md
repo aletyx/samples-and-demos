@@ -71,3 +71,18 @@ The feature files hold the current specification; see the
    the whole situation, the strategy's own decisions, and a link to the
    whole call. See [The aityx calls](calls.md#the-hand-log).
 
+## 2026-10-27
+
+6. **Make the demos efficient enough for a 4-core codespace: serve a
+   release build instead of running the Flutter dev server, and compile
+   the API** (Mortgage Hub's change, ported). `devbox services up` now
+   serves the app's release build with a small native web server
+   (`pokerface_api/bin/web_server.dart`: `/app/` from `build/web`, `/api/`
+   and `/` proxied to the API, as nginx does under Docker Compose) and
+   runs the API compiled with `dart compile exe`; both come from
+   `scripts/build.sh`, which builds only what changed and runs one Flutter
+   web build at a time across the repository. Resident memory drops from
+   about 1.2 GB to about 30 MB, and a start after no change takes a
+   second. Hot reload stays with `WEB_MODE=debug` or `devbox run web`.
+   See [Development environment](dev-environment.md).
+
