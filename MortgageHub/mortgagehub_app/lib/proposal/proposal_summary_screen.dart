@@ -35,7 +35,7 @@ class ProposalSummaryScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
+            constraints: const BoxConstraints(maxWidth: _wideWidth),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -63,50 +63,59 @@ class ProposalSummaryScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 RegulatoryCheckCard(request: r, checker: checker),
-                _Group('The loan', {
-                  'Purpose': r.purpose.label,
-                  'Program': r.program.label,
-                  'Term': r.term.label,
-                  'Rate type': r.rateType.label,
-                  'Timeline': r.timeline.label,
-                }),
-                _Group('The property', {
-                  'Type': r.propertyType.label,
-                  'Use': r.occupancy.label,
-                  'Location': r.propertyFound
-                      ? address
-                      : '$address (not found yet)',
-                  r.purpose.isPurchase ? 'Purchase price' : 'Estimated value':
-                      money(r.propertyValue),
-                  if (r.purpose.isPurchase)
-                    'Down payment': money(r.downPayment),
-                  if (!r.purpose.isPurchase)
-                    'Current balance': money(r.currentBalance),
-                  if (r.purpose == LoanPurpose.cashOutRefinance)
-                    'Cash out': money(r.cashOut),
-                  'Property taxes (year)': optional(r.annualTaxes),
-                  'Insurance (year)': optional(r.annualInsurance),
-                  'HOA dues (month)': optional(r.monthlyHoa),
-                }),
-                _Group('About you', {
-                  'Name': '${r.firstName} ${r.lastName}',
-                  'Email': r.email,
-                  'Phone': r.phone,
-                  'Co-borrower': yesNo(r.hasCoBorrower),
-                  'Credit score': r.creditScore.label,
-                  'Employment': r.employment.label,
-                  'Annual income': money(r.annualIncome),
-                  'Monthly debts': money(r.monthlyDebts),
-                  'Savings to close': optional(r.assets),
-                  if (r.purpose.isPurchase)
-                    'First-time buyer': yesNo(r.firstTimeBuyer),
-                  'Military service': yesNo(r.militaryService),
-                }),
+                _narrow(
+                  _Group('The loan', {
+                    'Purpose': r.purpose.label,
+                    'Program': r.program.label,
+                    'Term': r.term.label,
+                    'Rate type': r.rateType.label,
+                    'Timeline': r.timeline.label,
+                  }),
+                ),
+                _narrow(
+                  _Group('The property', {
+                    'Type': r.propertyType.label,
+                    'Use': r.occupancy.label,
+                    'Location': r.propertyFound
+                        ? address
+                        : '$address (not found yet)',
+                    r.purpose.isPurchase ? 'Purchase price' : 'Estimated value':
+                        money(r.propertyValue),
+                    if (r.purpose.isPurchase)
+                      'Down payment': money(r.downPayment),
+                    if (!r.purpose.isPurchase)
+                      'Current balance': money(r.currentBalance),
+                    if (r.purpose == LoanPurpose.cashOutRefinance)
+                      'Cash out': money(r.cashOut),
+                    'Property taxes (year)': optional(r.annualTaxes),
+                    'Insurance (year)': optional(r.annualInsurance),
+                    'HOA dues (month)': optional(r.monthlyHoa),
+                  }),
+                ),
+                _narrow(
+                  _Group('About you', {
+                    'Name': '${r.firstName} ${r.lastName}',
+                    'Email': r.email,
+                    'Phone': r.phone,
+                    'Co-borrower': yesNo(r.hasCoBorrower),
+                    'Credit score': r.creditScore.label,
+                    'Employment': r.employment.label,
+                    'Annual income': money(r.annualIncome),
+                    'Monthly debts': money(r.monthlyDebts),
+                    'Savings to close': optional(r.assets),
+                    if (r.purpose.isPurchase)
+                      'First-time buyer': yesNo(r.firstTimeBuyer),
+                    'Military service': yesNo(r.militaryService),
+                  }),
+                ),
                 const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: () =>
-                      Navigator.of(context).popUntil((route) => route.isFirst),
-                  child: const Text('Done'),
+                _narrow(
+                  FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst),
+                    child: const Text('Done'),
+                  ),
                 ),
               ],
             ),
@@ -116,6 +125,18 @@ class ProposalSummaryScreen extends StatelessWidget {
     );
   }
 }
+
+/// The summary's width, and the regulatory check's while it shows the
+/// aityx call, so the JSON has room.
+const _width = 640.0;
+const _wideWidth = 1100.0;
+
+Widget _narrow(Widget child, {double width = _width}) => Center(
+  child: ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: width),
+    child: child,
+  ),
+);
 
 /// Whole dollars with thousands separators: $425,000.
 String money(int amount) {
@@ -241,7 +262,7 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
+    final card = Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -276,6 +297,7 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
         ),
       ),
     );
+    return _narrow(card, width: _showAityx ? _wideWidth : _width);
   }
 
   List<Widget> _error(BuildContext context, Object error) {

@@ -279,6 +279,16 @@ spec.
 
 ## 2026-10-27
 
+37. **Improve the aityx request and response view for the demo: make it
+    wider, number the JSON's lines, and navigate precisely to each
+    label.** The regulatory check widens to 1100 px while the call is
+    shown; each block is a fixed-height code pane with numbered lines in
+    bundled Roboto Mono; a **Jump to** chip or a label scrolls the value's
+    first line to the top of the code (one line of context), marks the
+    whole value, and a panel above the code gives its label, path and
+    why. A label goes to its own value, not its note's first match. See
+    [Regulatory check](regulatory-check.md).
+
 38. **Make the demos efficient enough for a 4-core codespace: serve a
     release build instead of running the Flutter dev server, and compile
     the API.** `devbox services up` now serves the app's release build

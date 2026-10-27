@@ -24,6 +24,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # The JSON viewer's monospace font (see assets/fonts/README.md).
+  fonts:
+    - family: RobotoMono
+      fonts:
+        - asset: assets/fonts/RobotoMono-Regular.ttf
 
 # App icons for every platform, generated from assets/icon/ by
 # `dart run flutter_launcher_icons`. The masters are SVGs rendered to PNG
