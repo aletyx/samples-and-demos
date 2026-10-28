@@ -23,10 +23,17 @@ from the root of this repository with [Devbox](https://www.jetify.com/devbox):
 
 ```bash
 ./start-all.sh              # every demo, detached; waits until each answers
+./start-aityx.sh            # the aityx group: Mortgage Hub, Contact Hub, PokerFace, RoboRules, Cellfie
+./start-datyx.sh            # the datyx group: the datyx API, its dashboard and HealthHub
 ./start-all.sh ContactHub   # only the ones named
-./stop-all.sh               # stops them all; ./stop-all.sh ContactHub only one
+./stop-all.sh               # stops them all; ./stop-aityx.sh and ./stop-datyx.sh one group
 ```
 
+The demos run in two groups, each with its own start and stop scripts:
+**aityx**, the five demos whose decisions run on aityx, and **datyx**,
+the datyx API, the datyx dashboard and HealthHub. A folder's group is
+its `group.id.txt`, which the group scripts read; `start-all.sh` and
+`stop-all.sh` take both groups and the index page.
 [start-all.sh](start-all.sh) runs `devbox services up -b` in each folder
 and then prints where to open each app once its web app and API answer.
 Each demo serves its app's release build and a compiled API, so a start
