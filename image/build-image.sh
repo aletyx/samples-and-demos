@@ -30,10 +30,18 @@ cd "$root"
 source "$root/image/build-key.sh"
 
 sha="$(git rev-parse --short HEAD)"
+# The demos with a web build to carry: a committed app package and a
+# scripts/build.sh. A folder without one (new, or not a Flutter demo) is
+# left out; its codespace builds it.
 demos=()
 for config in */devbox.json; do
   dir="$(dirname "$config")"
-  [[ -f "$dir/scripts/build.sh" ]] && demos+=("$dir")
+  [[ -f "$dir/scripts/build.sh" ]] || continue
+  if [[ -z "$(build_key "$dir")" ]]; then
+    echo "· $dir: no app package committed: not carried by the image"
+    continue
+  fi
+  demos+=("$dir")
 done
 
 for demo in "${demos[@]}"; do
@@ -46,8 +54,8 @@ for demo in "${demos[@]}"; do
   fi
 done
 
-echo "==> building every demo (./build-all.sh)"
-./build-all.sh
+echo "==> building the demos (./build-all.sh ${demos[*]})"
+./build-all.sh "${demos[@]}"
 
 context="$root/image/context"
 rm -rf "$context"
