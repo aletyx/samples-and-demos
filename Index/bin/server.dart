@@ -166,37 +166,37 @@ Future<String?> _answers(String url) async {
 }
 
 /// The aityx check, kept for a minute so the page's polling doesn't call
-/// aityx each time.
-Map<String, Object?>? _aityxLast;
+/// aityx each time; requests that arrive while it runs share it.
+Future<Map<String, Object?>>? _aityxCheck;
 DateTime _aityxAt = DateTime(0);
 
-Future<Map<String, Object?>> _aityx() async {
-  if (_aityxLast != null &&
+Future<Map<String, Object?>> _aityx() {
+  final check = _aityxCheck;
+  if (check != null &&
       DateTime.now().difference(_aityxAt) < const Duration(minutes: 1)) {
-    return _aityxLast!;
+    return check;
   }
-  _aityxLast = await _checkAityx();
   _aityxAt = DateTime.now();
-  return _aityxLast!;
+  return _aityxCheck = _checkAityx();
 }
 
-/// The key and URL: from the environment (start-all.sh exports them, and
-/// process-compose loads .env, a link to the repo's), else from the
-/// repo's .env, which every demo's .env links to.
+/// The key and URL, each as the demos' scripts read it: from the
+/// environment (start-all.sh exports them), else from the repo's .env,
+/// which every demo's .env links to.
 Future<(String, String, String)?> _aityxSettings() async {
   final env = Platform.environment;
-  final key = env['AITYX_API_KEY'] ?? '';
-  if (key.isNotEmpty) return (key, env['AITYX_URL'] ?? '', 'environment');
   final file = File('${_root.path}/.env');
-  if (!await file.exists()) return null;
-  final lines = await file.readAsLines();
-  String setting(String name) => lines
+  final lines = await file.exists() ? await file.readAsLines() : <String>[];
+  String fromFile(String name) => lines
       .where((l) => l.startsWith('$name='))
       .map((l) => l.substring(name.length + 1).trim())
       .fold('', (_, v) => v);
-  final fileKey = setting('AITYX_API_KEY');
-  if (fileKey.isEmpty) return null;
-  return (fileKey, setting('AITYX_URL'), '.env');
+  final envKey = env['AITYX_API_KEY'] ?? '';
+  final key = envKey.isNotEmpty ? envKey : fromFile('AITYX_API_KEY');
+  if (key.isEmpty) return null;
+  final envUrl = env['AITYX_URL'] ?? '';
+  final url = envUrl.isNotEmpty ? envUrl : fromFile('AITYX_URL');
+  return (key, url, envKey.isNotEmpty ? 'environment' : '.env');
 }
 
 /// Posts an empty request to /v1/systemone: aityx checks the key first, so

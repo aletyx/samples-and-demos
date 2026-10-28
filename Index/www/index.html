@@ -80,6 +80,7 @@
     .warning[hidden] { display: none; }
     .warning strong { color: var(--amber); }
     .warning code, .aityx-status code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+    .aityx-status:focus-visible { outline: 2px solid var(--orange-light); outline-offset: 3px; border-radius: 4px; }
     .aityx-status { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--dim); flex: none; }
     .dot.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(76, 195, 138, .2); }
@@ -105,7 +106,7 @@
       </div>
     </div>
     <div class="meta">
-      <div><span class="aityx-status" id="aityx-status" title="Checking aityx…"><span class="dot"></span><span>aityx</span></span></div>
+      <div><span class="aityx-status" id="aityx-status" tabindex="0" role="status" title="Checking aityx…"><span class="dot" aria-hidden="true"></span><span class="label">aityx: checking…</span></span></div>
       <a href="https://github.com/aletyx/samples-and-demos">github.com/aletyx/samples-and-demos</a>
     </div>
   </header>
@@ -244,16 +245,21 @@
       const dot = status.querySelector('.dot');
       let a;
       try {
-        const r = await fetch('api/aityx', { cache: 'no-store' });
+        // From the root: the page is also served at /app/.
+        const r = await fetch('/api/aityx', { cache: 'no-store' });
         a = await r.json();
       } catch (_) {
         a = { key: true, ok: false, detail: 'the index server did not answer' };
       }
       document.getElementById('aityx-warning').hidden = a.key !== false;
       dot.className = 'dot ' + (a.ok ? 'ok' : 'bad');
+      status.querySelector('.label').textContent =
+        a.ok ? 'aityx: ready' : !a.key ? 'aityx: no key' : 'aityx: not working';
+      // The reason, on hover and for screen readers.
       status.title = a.ok
         ? 'aityx accepts the key (' + a.source + ', ' + a.url + ')'
-        : 'aityx: ' + a.detail;
+        : 'aityx: ' + (a.detail || 'no answer');
+      status.setAttribute('aria-label', status.title);
     }
     checkAityx();
     setInterval(checkAityx, 60000);
