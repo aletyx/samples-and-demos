@@ -11,10 +11,12 @@
 #   ./start-all.sh ContactHub   # only these
 #   WAIT=0 ./start-all.sh       # start, don't wait
 #
-# Each demo's aityx settings go in its own .env (see <demo>/.env.example):
+# The aityx settings go in the .env at the root (see .env.example):
 # AITYX_API_KEY, the key, and AITYX_URL, the endpoint (https://api.aityx.ai
-# unless set; a stage key needs https://api-stage.aityx.ai). Without a key
-# the app runs, but it can't call aityx. Each demo serves its app's
+# unless set; a stage key needs https://api-stage.aityx.ai). Each demo that
+# calls aityx, and the index, gets a link to it, <demo>/.env -> ../.env, so
+# process-compose and the demo's scripts load it. Without a key the app
+# runs, but it can't call aityx. Each demo serves its app's
 # release build and a compiled API (see <demo>/scripts/build.sh); a demo
 # whose build is missing or older than its sources builds it first, a
 # minute or two, one demo at a time. ./build-all.sh does that ahead, with
@@ -28,11 +30,23 @@ root="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=demos-toolchain.sh
 source "$root/demos-toolchain.sh"
 # These Codespaces secrets are inherited by each API process. Empty values
-# leave the per-demo .env fallback available for local development.
+# leave the .env fallback available for local development.
 export AITYX_API_KEY="${AITYX_API_KEY:-}"
 export AITYX_URL="${AITYX_URL:-}"
 
-if [[ -z "$AITYX_API_KEY" ]]; then
+# The root .env, linked from each folder that reads an aityx key (its
+# .env.example names AITYX_API_KEY) and from the index. A folder's own .env
+# that isn't a link is left as it is.
+if [[ -f "$root/.env" ]]; then
+  for example in "$root"/*/.env.example; do
+    dir="$(dirname "$example")"
+    grep -q '^AITYX_API_KEY=' "$example" || continue
+    [[ -e "$dir/.env" || -L "$dir/.env" ]] || ln -s ../.env "$dir/.env"
+  done
+  [[ -e "$root/Index/.env" || -L "$root/Index/.env" ]] || ln -s ../.env "$root/Index/.env"
+fi
+
+if [[ -z "$AITYX_API_KEY" ]] && ! grep -qs '^AITYX_API_KEY=.' "$root/.env"; then
   echo "AITYX_API_KEY is not set; apps will start, but aityx-backed features won't work." >&2
 fi
 

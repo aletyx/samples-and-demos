@@ -38,7 +38,9 @@ Docker Compose, is left as it is. The script checks for `AITYX_API_KEY` and
 warns if it is missing; the apps still open, but their aityx-backed
 features won't work. It passes `AITYX_API_KEY` and `AITYX_URL` from the
 environment to each API service. API scripts prefer those values and
-fall back to that demo's `.env` (see each folder's `.env.example`).
+fall back to the demo's `.env`, which `start-all.sh` links to the one at
+the root of the repository (see [.env.example](.env.example)): one key for
+every demo.
 `AITYX_URL` defaults to `https://api.aityx.ai`; a stage key needs
 `AITYX_URL=https://api-stage.aityx.ai`. Watch one demo's services with
 `devbox services attach -c <demo>`; [stop-all.sh](stop-all.sh) runs
@@ -129,8 +131,7 @@ without a codespace, are in the
 
 ### Running it locally
 
-Put your key in `MortgageHub/.env` (copy
-[MortgageHub/.env.example](MortgageHub/.env.example)) or export
+Put your key in the root `.env` (copy [.env.example](.env.example)) or export
 `AITYX_API_KEY`. Then, from the root of this repository, either:
 
 ```bash
@@ -154,8 +155,8 @@ dictated with speech recognized in the browser, or picked from samples),
 and a Dart API routes it with one aityx call, in which Jev classifies and
 checks the message and a decision model picks the department, the person
 and the priority. The app shows why, and the aityx call, with links to
-exactly the JSON behind each item. Put your key in `ContactHub/.env`
-(see [.env.example](ContactHub/.env.example)), then, from the root of this
+exactly the JSON behind each item. Put your key in the root `.env`
+(see [.env.example](.env.example)), then, from the root of this
 repository:
 
 ```bash
@@ -180,8 +181,8 @@ soup, islands, a glider fleet, a pattern zoo or a methuselah, then play
 at a chosen acceleration or step one generation at a time. The rule
 switches include Conway, HighLife and Life without death.
 
-Put your `AITYX_API_KEY` in `Cellfie/.env` for local use (see
-[Cellfie/.env.example](Cellfie/.env.example)), or use the Codespaces
+Put your `AITYX_API_KEY` in the root `.env` for local use (see
+[.env.example](.env.example)), or use the Codespaces
 secrets described above. To start it locally from the repository root:
 
 ```bash
@@ -202,7 +203,7 @@ nearest enemy's distance and bearing, walls, energy, its gun) that sets how
 it drives, turns, aims and fires; pick Robocode's sample robots or random
 ones, and select a robot to change its rules. The battle itself is played by aityx: one call plays up to 50 turns of sensing,
 every robot's rules, Robocode's motion, bullets, collisions and damage, and
-another scores each round. Put your key in `RoboRules/.env`, then:
+another scores each round. Put your key in the root `.env`, then:
 
 ```bash
 devbox services up -c RoboRules --pcflags "--tui=false"
@@ -225,8 +226,8 @@ the Rock, the Maniac, the Calling Station, the Mathematician and the
 Shark, each a file of rules; add players with any of them, read the
 rules, or write your own. The table plays like an online poker room, a
 sidebar shows every call to aityx with its request and response, and a
-slider sets the pace. Put your key in `PokerFace/.env` (see
-[.env.example](PokerFace/.env.example)), then, from the root of this
+slider sets the pace. Put your key in the root `.env` (see
+[.env.example](.env.example)), then, from the root of this
 repository:
 
 ```bash
