@@ -301,3 +301,16 @@ spec.
     demo, and a start after no change takes seconds. Hot reload stays
     with `WEB_MODE=debug` or `devbox run web`. See
     [Development environment](dev-environment.md).
+
+## 2026-10-28
+
+39. **Have the demos prebuilt in the dev container image, ready to boot, and
+   push it where anyone can launch it.** Every dev container now runs the
+   published image `docker.io/aletyxcode/samples-and-demos-devcontainer`
+   (public on Docker Hub, since the organization's GHCR packages can't be
+   public), built from `image/Containerfile` with Flutter, process-compose
+   and every demo's release web build. A codespace restores the build,
+   compiles the API in seconds and starts the services on the image's own
+   tools (`DEMOS_TOOLCHAIN=image`, no devbox): every demo answers less than
+   four minutes after the request, down from more than ten. See
+   [Development environment](dev-environment.md) and `image/README.md`.

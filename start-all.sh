@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Starts every demo that runs as services: each folder with a devbox.json
 # and a process-compose.yaml (Mortgage Hub, Contact Hub, ..., and the index
-# page in Index/), detached,
-# with `devbox services up -b`, then waits until each one's web app and
+# page in Index/), detached, with `devbox services up -b` (or, in a
+# codespace, the image's process-compose: see demos-toolchain.sh), then
+# waits until each one's web app and
 # API answer and prints where to open them. A demo whose web port already
 # answers (started by hand, or with Docker Compose) is left as it is.
 #
@@ -22,6 +23,10 @@
 set -uo pipefail
 
 root="$(cd "$(dirname "$0")" && pwd)"
+# How services run: devbox (a laptop) or the dev container image's own
+# Flutter and process-compose (DEMOS_TOOLCHAIN=image, a codespace).
+# shellcheck source=demos-toolchain.sh
+source "$root/demos-toolchain.sh"
 # These Codespaces secrets are inherited by each API process. Empty values
 # leave the per-demo .env fallback available for local development.
 export AITYX_API_KEY="${AITYX_API_KEY:-}"
@@ -78,11 +83,11 @@ for demo in $(demos "$@"); do
     echo "· $demo already answers at http://localhost:$web/app/: left as it is"
     continue
   fi
-  echo "▶ $demo: starting (devbox services up -b, in $dir)"
-  if (cd "$dir" && devbox services up -b --pcflags "--tui=false" >/dev/null); then
+  echo "▶ $demo: starting ($DEMOS_TOOLCHAIN services, in $dir)"
+  if services_up "$dir"; then
     started+=("$demo")
   else
-    echo "✗ $demo: devbox services up failed; see devbox services attach -c $demo" >&2
+    echo "✗ $demo: starting its services failed; see $(services_attach_hint "$dir")" >&2
     failed=1
   fi
 done
@@ -118,7 +123,7 @@ done
 
 for demo in "${pending[@]+"${pending[@]}"}"; do
   web="$(port "$demo" FLUTTER_WEB_PORT)"
-  echo "✗ $demo did not answer at http://localhost:$web/app/ within $WAIT s; see devbox services attach -c $demo" >&2
+  echo "✗ $demo did not answer at http://localhost:$web/app/ within $WAIT s; see $(services_attach_hint "$root/$demo")" >&2
   failed=1
 done
 

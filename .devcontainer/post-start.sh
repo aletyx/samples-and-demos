@@ -6,14 +6,16 @@
 # panel (or from the index page's browser tab, which Codespaces opens)
 # with nothing to run.
 #
-# start-all.sh runs `devbox services up -b` in each demo's folder: the web
+# start-all.sh starts each demo's services (`devbox services up -b`, or the
+# image's process-compose: see demos-toolchain.sh): the web
 # app and the API of Mortgage Hub (8880), Contact Hub (8890), PokerFace
 # (8910), RoboRules (8920) and Cellfie (8930), plus the
 # index on 8800. Each demo serves its release build and a compiled API,
 # built by update-content.sh when the codespace was created (or in its
 # prebuild), so they are up in seconds; a demo whose build is missing or
 # older than its sources builds first, a minute or two. Watch one with
-# `devbox services attach -c <demo>`; stop them with ./stop-all.sh.
+# `process-compose attach -U -u /tmp/aityx-demos-<demo>.sock` (see
+# demos-toolchain.sh); stop them with ./stop-all.sh.
 #
 # Everything is logged to startup.log at the root (see startup-log.sh),
 # including start-all.sh's own lines saying when each demo answers, or,
@@ -23,6 +25,8 @@ set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=startup-log.sh
 source "$here/startup-log.sh"
+# shellcheck source=../demos-toolchain.sh
+source "$here/../demos-toolchain.sh"
 
 startup_capture post-start
 echo "===== post-start: $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
@@ -30,13 +34,15 @@ startup_facts
 
 cd "$startup_root" || { echo "post-start: cannot find $startup_root" >&2; exit 1; }
 
+# What the toolchain (devbox, or the image's own tools) still lacks for
+# any demo: with devbox, each demo's `devbox install` from on-create.sh.
 missing=()
 for demo in $(startup_demos); do
-  [[ -d "$demo/.devbox" ]] || missing+=("$demo")
+  while IFS= read -r item; do missing+=("$item"); done < <(toolchain_missing "$startup_root/$demo")
 done
-if ! command -v devbox >/dev/null || [[ ${#missing[@]} -gt 0 ]]; then
-  echo "post-start: devbox is not installed in ${missing[*]:-any demo} yet (did"
-  echo "post-start: on-create.sh fail? see its lines above); start the"
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "post-start: the $DEMOS_TOOLCHAIN toolchain isn't ready: missing $(printf '%s; ' "${missing[@]}" | sort -u | tr -d '\n')"
+  echo "post-start: (did on-create.sh fail? see its lines above); start the"
   echo "post-start: demos with: ./start-all.sh"
 else
   # Detached, so it outlives postStartCommand. start-all.sh's output, and

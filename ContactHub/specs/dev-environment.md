@@ -112,17 +112,29 @@ explains the reasons behind each piece.
   `/app/bin/server healthcheck`), and `web` starts once `api` is healthy.
 - **Dev container**
   ([.devcontainer/ContactHub/](../../.devcontainer/ContactHub)), named
-  **Contact Hub**: the same Containerfile and scripts as Mortgage Hub's
-  (Devbox 0.18.1, Nix 2.35.0, the GitHub CLI and Flutter 3.47.0, pinned
-  and checksum-verified), with `ContactHub/` as the app folder.
-  `post-create.sh` reports whether `AITYX_API_KEY` arrived (never its
-  value) and runs `devbox install`; `post-start.sh` starts
-  `devbox services up -b` detached on every start, with a watcher that
-  logs when `/app/` and `/api/health` answer; `public-port.sh` makes port
+  **Contact Hub**: the published image every dev container here uses
+  (`docker.io/aletyxcode/samples-and-demos-devcontainer`, built from
+  [image/Containerfile](../../image/Containerfile): Flutter 3.47.0,
+  process-compose and the GitHub CLI, pinned and checksum-verified, and
+  every demo's release web build) with the same scripts as Mortgage
+  Hub's, with `ContactHub/` as the app folder. The demos run on the
+  image's own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
+  [demos-toolchain.sh](../../demos-toolchain.sh)): no devbox or Nix in
+  a codespace. `on-create.sh` copies the app's release web build from
+  the image ([image/restore-builds.sh](../../image/restore-builds.sh),
+  skipped when `ContactHub/` changed since the image was made: the app
+  then builds itself); `update-content.sh` runs `scripts/build.sh` (the
+  compiled API and web server, a few seconds); `post-create.sh` reports
+  whether `AITYX_API_KEY` arrived (never its value); `post-start.sh`
+  starts the services detached with `process-compose up` on every start
+  (socket `/tmp/aityx-demos-ContactHub.sock`), with a watcher that logs
+  when `/app/` and `/api/health` answer; `public-port.sh` makes port
   8890 public (again on attach). Everything goes to
   `ContactHub/startup.log`, git-ignored, which holds no secrets. The
   container sets `CONTACTHUB_BIND_HOST=0.0.0.0`, forwards port 8890 only,
-  and adds the Dart and Flutter extensions.
+  and adds the Dart and Flutter extensions. Measured: the codespace is
+  available about three minutes after the request and the app answers
+  within a minute after that.
 - **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`,
   the same secret as Mortgage Hub's. Codespaces secrets belong to a user
   and are granted per repository, so a key granted to this repository for
@@ -138,5 +150,4 @@ explains the reasons behind each piece.
 
 ## Known limitations
 
-- The dev container hasn't been started on Codespaces yet.
 - No release, deploy or CI workflows.

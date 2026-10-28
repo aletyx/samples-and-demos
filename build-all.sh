@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Builds what every demo serves, so that ./start-all.sh only has to start
 # servers: in each folder with a devbox.json and a scripts/build.sh (Mortgage
-# Hub, Contact Hub, ...), `bash scripts/build.sh` under devbox, which builds
+# Hub, Contact Hub, ...), `bash scripts/build.sh` under devbox (or the dev
+# container image's Flutter: see demos-toolchain.sh), which builds
 # the app's release web build and compiles the API and the web server to
 # native executables, and only what is missing or older than its sources.
 # One demo after another: a Flutter web build uses every core, and five at
@@ -19,6 +20,8 @@
 set -uo pipefail
 
 root="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=demos-toolchain.sh
+source "$root/demos-toolchain.sh"
 
 # demos [names...]: the folders to build: the ones named, else every folder
 # with a devbox.json and a process-compose.yaml.
@@ -46,9 +49,9 @@ for demo in $(demos "$@"); do
     echo "· $demo has no scripts/build.sh: nothing to build ahead"
     continue
   fi
-  echo "▶ $demo: bash scripts/build.sh (under devbox, in $dir)"
+  echo "▶ $demo: bash scripts/build.sh (under $DEMOS_TOOLCHAIN, in $dir)"
   started=$SECONDS
-  if (cd "$dir" && devbox run -- bash scripts/build.sh); then
+  if run_build "$dir"; then
     echo "✅ $demo built in $((SECONDS - started)) s"
     built+=("$demo")
   else

@@ -46,8 +46,8 @@ fall back to that demo's `.env` (see each folder's `.env.example`).
 
 The same, in a codespace: the repository's default dev container,
 [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json),
-installs every demo's toolchain and builds every demo when the codespace
-is created, and runs `./start-all.sh` on each start. It needs your own
+starts from the published image with every demo already built (see
+below) and runs `./start-all.sh` on each start. It needs your own
 `AITYX_API_KEY` Codespaces secret and, optionally, an `AITYX_URL` secret
 (see [Launching it](#launching-it) below) and the 4-core, 16 GB machine.
 
@@ -59,24 +59,22 @@ public so the links can be shared. Every step of the start goes to
 `startup.log` at the root. The other dev containers in the list, one per
 demo, start only that demo.
 
-### Prebuilds: a codespace that is ready when it opens
+### Ready when it opens: the published image
 
-Creating a codespace installs the toolchains (`onCreateCommand`) and
-builds the five apps one after another (`updateContentCommand`, a minute
-or two each on 4 cores); the editor attaches after the first step, and
-the demos start once every build is done. A **Codespaces prebuild** does
-both ahead of time, on GitHub's side, and keeps the result as a
-snapshot: a codespace created from it opens in well under a minute with
-every demo up a few seconds later. To enable it, in the repository's
-**Settings → Codespaces → Set up prebuild**: branch `main`,
-configuration file `.devcontainer/devcontainer.json`, trigger *Every
-push* (or *On configuration change* plus a schedule, to spend fewer
-Actions minutes: a demo whose sources moved since the snapshot simply
-rebuilds when it starts), and the regions you use (each region's
-snapshot is billed as storage). The machine list then shows **Prebuild
-ready**, and `startup.log` says `created from a prebuild`. The same
-prebuild work applies to the one-demo dev containers, each with its own
-configuration file.
+Every dev container here uses one published image,
+`docker.io/aletyxcode/samples-and-demos-devcontainer` (built from
+[image/Containerfile](image/Containerfile) by
+[image/build-image.sh](image/build-image.sh), see [image/](image/)):
+Flutter, process-compose and **every demo's release web build**. Creating
+a codespace pulls it, copies the builds of the demos that haven't changed
+since the image was made into the workspace (`onCreateCommand`) and
+starts them (`postStartCommand`); a demo that did change builds itself,
+a minute or two on 4 cores, while the others are already up. GitHub's
+prebuilds and Actions are switched off for this organization, so the
+image is built on a laptop and pushed after merging to `main`; an old
+image slows a changed demo down but breaks nothing. The demos run on the
+image's own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
+[demos-toolchain.sh](demos-toolchain.sh)); devbox is for a laptop.
 
 ## Mortgage Hub
 
@@ -121,7 +119,7 @@ Codespaces → New with options*, keep **All demos** as the dev container
 configuration; the others start one demo each.
 
 Once it starts, the apps start too: when Mortgage Hub answers, seconds
-from a prebuild or after its build, open port **8880** from the **Ports**
+from the image, or after its build, open port **8880** from the **Ports**
 panel, or from its card on the index page (port **8800**, opened for
 you). Check that the port's visibility says **Public**, so the link can
 be shared; if it says Private, right-click it and choose **Port

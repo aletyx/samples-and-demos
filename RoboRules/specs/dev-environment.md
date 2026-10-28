@@ -82,5 +82,16 @@ ports:
   release build under nginx and the API compiled, with `models/` beside it.
 - **Dev container** ([.devcontainer/RoboRules/](../../.devcontainer/RoboRules)),
   named **RoboRules**, forwarding 8920 and asking for the same
-  `AITYX_API_KEY` Codespaces secret as the other samples.
+  `AITYX_API_KEY` Codespaces secret as the other samples. It uses the
+  published image every dev container here uses
+  (`docker.io/aletyxcode/samples-and-demos-devcontainer`, see
+  [image/](../../image/)), which carries the app's release web build:
+  `on-create.sh` copies it into the workspace (unless `RoboRules/`
+  changed since the image was made: then the app builds itself),
+  `update-content.sh` compiles the API and web server and
+  `post-start.sh` starts the services detached with the image's
+  process-compose (socket `/tmp/aityx-demos-RoboRules.sock`,
+  `DEMOS_TOOLCHAIN=image`, see
+  [demos-toolchain.sh](../../demos-toolchain.sh)); no devbox in a
+  codespace. Every step goes to `RoboRules/startup.log`.
 - The app is web only: `make` (or `make web`) builds it; `make clean`.

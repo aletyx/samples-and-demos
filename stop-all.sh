@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Stops the demos ./start-all.sh starts: `devbox services stop` in each
+# Stops the demos ./start-all.sh starts: `devbox services stop` (or, in a
+# codespace, `process-compose down`: see demos-toolchain.sh) in each
 # folder with a devbox.json and a process-compose.yaml, or only in the
 # ones named. A demo that isn't running is skipped. Demos started with
 # Docker Compose are not touched (docker compose -f <demo>/compose.yaml
@@ -10,6 +11,8 @@
 set -uo pipefail
 
 root="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=demos-toolchain.sh
+source "$root/demos-toolchain.sh"
 
 demos() {
   if [[ $# -gt 0 ]]; then
@@ -30,23 +33,17 @@ for demo in $(demos "$@"); do
     failed=1
     continue
   fi
-  # `devbox services ls` lists running processes with a PID and a status
-  # (on stderr). Read whole: grep -q would close the pipe on devbox.
-  if ! status="$(cd "$dir" && devbox services ls 2>&1)"; then
-    echo "✗ $demo: could not read service status" >&2
-    [[ -n "$status" ]] && printf '%s\n' "$status" >&2
-    failed=1
-    continue
-  fi
-  if ! grep -q 'Running\|Pending\|Restarting' <<<"$status"; then
-    echo "· $demo is not running"
-    continue
-  fi
-  echo "■ $demo: stopping (devbox services stop, in $dir)"
-  if (cd "$dir" && devbox services stop >/dev/null 2>&1); then
+  services_running "$dir"
+  case $? in
+    0) ;;
+    1) echo "· $demo is not running"; continue ;;
+    *) echo "✗ $demo: could not read service status" >&2; failed=1; continue ;;
+  esac
+  echo "■ $demo: stopping ($DEMOS_TOOLCHAIN services, in $dir)"
+  if services_down "$dir"; then
     echo "✅ $demo stopped"
   else
-    echo "✗ $demo: devbox services stop failed" >&2
+    echo "✗ $demo: stopping its services failed" >&2
     failed=1
   fi
 done

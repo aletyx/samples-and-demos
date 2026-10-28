@@ -12,7 +12,7 @@ process it under current US rules, run by [aityx.ai](https://aityx.ai).
 | App ([mortgagehub_app/](mortgagehub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
 | API ([mortgagehub_api/](mortgagehub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key and runs the regulatory check |
 | Rules | An [aityx.ai](https://aityx.ai) decision model ([proposal-check.json](mortgagehub_api/models/proposal-check.json)) |
-| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
+| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) on a laptop, or a [Dev Container](https://containers.dev/) from the [published image](../image/), process-compose for the services either way; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
 [devbox.lock](devbox.lock): Flutter, GNU Make and curl.
@@ -173,25 +173,35 @@ not ticked, the secret does not reach this repository; go back to step 1.
 
 ### 3. Run the app
 
-On first start,
-[post-create.sh](../.devcontainer/post-create.sh) runs `devbox install`
-in this folder and in every other demo's, downloading the locked Nix
-store paths; it also says whether your key arrived. Then, on that and
-every later start, [post-start.sh](../.devcontainer/post-start.sh) runs
-`./start-all.sh` in the background and makes port **8880** public, with
-the other demos' ports. There is nothing to run: once the app has
-compiled, a few minutes on the first start, open port 8880 from the
-**Ports** panel, or from the Mortgage Hub card on the index page
-(port 8800, which Codespaces opens in a browser tab for you). Its bare
-URL redirects to the app at `/app/`.
+When the codespace is created,
+[on-create.sh](../.devcontainer/on-create.sh) copies every demo's
+release web build from the [published image](../image/) into the
+workspace (a demo that changed since the image was made builds itself,
+a minute or two, while the others are already up),
+[update-content.sh](../.devcontainer/update-content.sh) compiles the
+APIs and web servers (a few seconds each) and
+[post-create.sh](../.devcontainer/post-create.sh) says whether your key
+arrived. Then, on that and every later start,
+[post-start.sh](../.devcontainer/post-start.sh) runs `./start-all.sh`
+in the background and makes port **8880** public, with the other demos'
+ports. There is nothing to run: the codespace is available about three
+minutes after you ask for it and the demos answer within a minute after
+that; open port 8880 from the **Ports** panel, or from the Mortgage Hub
+card on the index page (port 8800, which Codespaces opens in a browser
+tab for you). Its bare URL redirects to the app at `/app/`.
 
-Watch the services with `devbox services attach -c MortgageHub` from
-the repository root, restart them with `devbox services restart` from
-this folder, and stop them with `devbox services stop`.
+Watch the services with `process-compose attach -U -u
+/tmp/aityx-demos-MortgageHub.sock`, stop them with `./stop-all.sh
+MortgageHub` from the repository root (or `process-compose down -U -u`
+with the same socket), and start them again with `./start-all.sh
+MortgageHub`. There is no devbox in a codespace: the demos run on the
+image's own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
+[demos-toolchain.sh](../demos-toolchain.sh)); `devbox services` is for
+a laptop.
 
 **If the app doesn't start, send us `startup.log` from the root of the
 repository.** Every step of the codespace's start goes there,
-timestamped: the installs, what `start-all.sh` says as each demo answers
+timestamped: the builds, what `start-all.sh` says as each demo answers
 (or, after 15 minutes without, that it didn't), and the ports'
 visibility. Open it from the Explorer, or right-click it and choose
 **Download**. It holds no secrets: your key and token appear only as
@@ -208,9 +218,7 @@ a terminal, `gh codespace ports -c "$CODESPACE_NAME"` shows it, and
 
 A public port opens for anyone you share the link with — and they run
 regulatory checks on your [aityx](https://aityx.ai) key. Set it back to
-private in the **Ports** panel if you don't want that. If
-`devbox install` fails with HTTP 403, export `GITHUB_TOKEN` (for example
-`export GITHUB_TOKEN=$(gh auth token)`) and run it again.
+private in the **Ports** panel if you don't want that.
 
 ## Run it in a dev container locally
 
@@ -219,9 +227,12 @@ then **All demos**. The dev container lives at the root of the
 repository, in [.devcontainer/](../.devcontainer), because that is where
 GitHub looks for one; it starts every demo, this one among them.
 
-The [Containerfile](../.devcontainer/Containerfile) starts
-from Microsoft's `ubuntu-24.04` devcontainer base image and installs
-pinned, checksum-verified releases of Devbox and Nix.
+It runs the [published image](../image/) every dev container here uses,
+`docker.io/aletyxcode/samples-and-demos-devcontainer`, built from one
+[Containerfile](../image/Containerfile): Microsoft's `ubuntu-24.04`
+devcontainer base image with pinned, checksum-verified releases of
+Flutter, process-compose and the GitHub CLI, and every demo's release
+web build.
 
 Codespaces secrets are a GitHub feature, so set the key here by copying
 [.env.example](.env.example) to `.env` and filling in `AITYX_API_KEY`. The

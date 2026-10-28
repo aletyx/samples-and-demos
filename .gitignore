@@ -4,3 +4,6 @@ settings.xml
 # Logs, in every sample: never committed.
 *.log
 logs/
+
+# The dev container image build context (see image/build-image.sh)
+image/context/
