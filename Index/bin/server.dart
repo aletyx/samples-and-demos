@@ -10,6 +10,11 @@
 ///                       defaults in that file) and whether its web app
 ///                       and API answer right now, and whether the API has
 ///                       its aityx key; the page polls it
+///   GET /api/aityx      whether an aityx key is set (AITYX_API_KEY here,
+///                       else in the repo's .env) and whether aityx accepts
+///                       it: {"key": bool, "source": ..., "ok": bool,
+///                       "detail": ...}; never the key. The page's banner
+///                       and status light read it
 ///
 /// Settings: INDEX_PORT (default 8800), INDEX_BIND_HOST (127.0.0.1).
 library;
@@ -44,6 +49,8 @@ Future<void> _handle(HttpRequest request) async {
       _json(response, 200, {'ok': true});
     } else if (path == '/api/demos') {
       _json(response, 200, {'demos': await _demos()});
+    } else if (path == '/api/aityx') {
+      _json(response, 200, await _aityx());
     } else {
       await _file(response, path);
     }
@@ -155,5 +162,87 @@ Future<String?> _answers(String url) async {
         : null;
   } catch (_) {
     return null;
+  }
+}
+
+/// The aityx check, kept for a minute so the page's polling doesn't call
+/// aityx each time.
+Map<String, Object?>? _aityxLast;
+DateTime _aityxAt = DateTime(0);
+
+Future<Map<String, Object?>> _aityx() async {
+  if (_aityxLast != null &&
+      DateTime.now().difference(_aityxAt) < const Duration(minutes: 1)) {
+    return _aityxLast!;
+  }
+  _aityxLast = await _checkAityx();
+  _aityxAt = DateTime.now();
+  return _aityxLast!;
+}
+
+/// The key and URL: from the environment (start-all.sh exports them, and
+/// process-compose loads .env, a link to the repo's), else from the
+/// repo's .env, which every demo's .env links to.
+Future<(String, String, String)?> _aityxSettings() async {
+  final env = Platform.environment;
+  final key = env['AITYX_API_KEY'] ?? '';
+  if (key.isNotEmpty) return (key, env['AITYX_URL'] ?? '', 'environment');
+  final file = File('${_root.path}/.env');
+  if (!await file.exists()) return null;
+  final lines = await file.readAsLines();
+  String setting(String name) => lines
+      .where((l) => l.startsWith('$name='))
+      .map((l) => l.substring(name.length + 1).trim())
+      .fold('', (_, v) => v);
+  final fileKey = setting('AITYX_API_KEY');
+  if (fileKey.isEmpty) return null;
+  return (fileKey, setting('AITYX_URL'), '.env');
+}
+
+/// Posts an empty request to /v1/systemone: aityx checks the key first, so
+/// a working key gets 400 "invalid_request" (state is required) and a bad
+/// one 401, without running any model.
+Future<Map<String, Object?>> _checkAityx() async {
+  final settings = await _aityxSettings();
+  if (settings == null) {
+    return {'key': false, 'ok': false, 'detail': 'AITYX_API_KEY is not set'};
+  }
+  final (key, setUrl, source) = settings;
+  final base = Uri.tryParse(setUrl.isEmpty ? 'https://api.aityx.ai' : setUrl);
+  final result = <String, Object?>{'key': true, 'source': source, 'ok': false};
+  if (base == null || base.scheme != 'https' || base.host.isEmpty) {
+    return result..['detail'] = 'AITYX_URL must be an https URL';
+  }
+  result['url'] = base.origin;
+  try {
+    final call = await _client.postUrl(base.resolve('/v1/systemone'));
+    call.headers
+      ..set(HttpHeaders.authorizationHeader, 'Bearer $key')
+      ..contentType = ContentType.json;
+    call.write('{}');
+    final answer = await call.close().timeout(const Duration(seconds: 10));
+    final text = await answer
+        .transform(utf8.decoder)
+        .join()
+        .timeout(const Duration(seconds: 10));
+    Object? json;
+    try {
+      json = jsonDecode(text);
+    } on FormatException {
+      json = null;
+    }
+    final code = json is Map ? json['code'] : null;
+    if (answer.statusCode == 400 && code == 'invalid_request') {
+      return result
+        ..['ok'] = true
+        ..['detail'] = 'aityx accepts the key';
+    }
+    final detail = json is Map ? json['detail'] : null;
+    return result
+      ..['detail'] =
+          'aityx answered HTTP ${answer.statusCode}'
+          '${detail is String ? ': $detail' : ''}';
+  } catch (error) {
+    return result..['detail'] = 'aityx did not answer: ${error.runtimeType}';
   }
 }
