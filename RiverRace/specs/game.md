@@ -73,7 +73,10 @@ score, bridge and losses, and **Race again** starts on a new river.
 - **← →** (or A, D) steer, **↑** (W) faster, **↓** (S) slower, **space**
   fires (held, it fires again as soon as it can), **P** or **Enter**
   pauses and plays. The keys work whatever has the focus (a control just
-  clicked included), except while a dialog or menu is open.
+  clicked included), except while a dialog or menu is open. The flying
+  keys count while held, read every frame: a key held when a dialog
+  opens, or let go inside it, stops counting, so the plane doesn't keep
+  steering or firing.
 - Before the race the river shows only *Press any key to play*: whether
   two or three planes race depends on **You fly**.
 - Any key starts the race, goes on after a pause, and, once the race is

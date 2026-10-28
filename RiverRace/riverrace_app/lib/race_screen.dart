@@ -120,6 +120,7 @@ class _RaceScreenState extends State<RaceScreen>
         _due = 0;
         break;
       }
+      _syncControls();
       _race.step();
       _due -= 1;
       if (_race.frame % _decideEvery == 0) _ask();
@@ -182,13 +183,16 @@ class _RaceScreenState extends State<RaceScreen>
         p.id: PilotLabel(p.strategy.name, planeColors[p.id]!),
     };
     final senses = {for (final p in pilots) p.id: p.sense};
+    // A plane lost and back since the ask is flying another life: the
+    // answer is about one that crashed, so it's dropped for it.
+    final lostAt = {for (final p in pilots) p.id: race.plane(p.id).lost};
     CallRecord record;
     try {
       final decision = await _decider.decide(frame, pilots);
       if (!mounted || race != _race) return;
       for (final MapEntry(key: id, value: action) in decision.actions.entries) {
         final plane = race.plane(id);
-        if (plane.flying) plane.action = action;
+        if (plane.flying && plane.lost == lostAt[id]) plane.action = action;
       }
       _error = null;
       _lastTookMs = decision.tookMs;
@@ -275,28 +279,45 @@ class _RaceScreenState extends State<RaceScreen>
         return KeyEventResult.handled;
       }
     }
-    final c = _race.controls;
-    if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
-      c.left = down;
-    } else if (key == LogicalKeyboardKey.arrowRight ||
-        key == LogicalKeyboardKey.keyD) {
-      c.right = down;
-    } else if (key == LogicalKeyboardKey.arrowUp ||
-        key == LogicalKeyboardKey.keyW) {
-      c.fast = down;
-    } else if (key == LogicalKeyboardKey.arrowDown ||
-        key == LogicalKeyboardKey.keyS) {
-      c.slow = down;
-    } else if (key == LogicalKeyboardKey.space) {
-      c.fire = down;
-    } else if (key == LogicalKeyboardKey.keyP ||
-        key == LogicalKeyboardKey.enter) {
+    if (key == LogicalKeyboardKey.keyP || key == LogicalKeyboardKey.enter) {
       if (down) _playing ? _pause() : _play();
-    } else {
-      return KeyEventResult.ignored;
+      return KeyEventResult.handled;
     }
-    return KeyEventResult.handled;
+    // The flying keys are read as held each frame (_syncControls); taken
+    // here so a focused control doesn't also act on them.
+    return _flyingKeys.any((keys) => keys.contains(key))
+        ? KeyEventResult.handled
+        : KeyEventResult.ignored;
   }
+
+  static final _left = {LogicalKeyboardKey.arrowLeft, LogicalKeyboardKey.keyA};
+  static final _right = {
+    LogicalKeyboardKey.arrowRight,
+    LogicalKeyboardKey.keyD,
+  };
+  static final _fast = {LogicalKeyboardKey.arrowUp, LogicalKeyboardKey.keyW};
+  static final _slow = {LogicalKeyboardKey.arrowDown, LogicalKeyboardKey.keyS};
+  static final _fire = {LogicalKeyboardKey.space};
+  static final _flyingKeys = [_left, _right, _fast, _slow, _fire];
+
+  /// The player's controls from the keys held now; none while a dialog or
+  /// menu is open, so a key held into the rule editor, or released there,
+  /// doesn't keep the plane steering or firing.
+  void _syncControls() {
+    final held = HardwareKeyboard.instance.logicalKeysPressed;
+    final on = mounted && (ModalRoute.of(context)?.isCurrent ?? true);
+    bool any(Set<LogicalKeyboardKey> keys) => on && keys.any(held.contains);
+    _race.controls
+      ..left = any(_left)
+      ..right = any(_right)
+      ..fast = any(_fast)
+      ..slow = any(_slow)
+      ..fire = any(_fire);
+  }
+
+  /// The race now, for tests.
+  @visibleForTesting
+  Race get race => _race;
 
   // --- Layout ---
 

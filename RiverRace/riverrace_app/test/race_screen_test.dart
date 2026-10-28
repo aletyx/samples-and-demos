@@ -1,4 +1,7 @@
 import 'package:flutter/services.dart';
+
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverrace_app/game/race.dart';
 import 'package:riverrace_app/main.dart';
@@ -127,4 +130,68 @@ void main() {
     expect(find.text('Rookie'), findsWidgets);
     expect(find.text('Fly straight and keep firing.'), findsOneWidget);
   });
+
+  testWidgets('a key held into a dialog stops counting', (tester) async {
+    await pumpApp(tester, FakeDecider());
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
+    await run(tester, 2);
+    final race =
+        (tester.state(find.byType(RaceScreen)) as dynamic).race as Race;
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowLeft);
+    await run(tester, 3);
+    expect(race.controls.left, isTrue);
+    // A dialog opens over the race: the key, still held, stops counting,
+    // and stays off once let go there.
+    await tester.ensureVisible(find.text('Add rule').first);
+    await tester.pump();
+    await tester.tap(find.text('Add rule').first);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('New rule'), findsOneWidget);
+    await run(tester, 3);
+    expect(race.controls.left, isFalse);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowLeft);
+    await run(tester, 3);
+    expect(race.controls.left, isFalse);
+    await tester.tap(find.text('Cancel'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyP);
+    await tester.pump();
+  });
+
+  testWidgets('a late answer is dropped for a plane lost since', (
+    tester,
+  ) async {
+    final decider = SlowDecider();
+    await pumpApp(tester, decider);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
+    await run(tester, 8);
+    expect(decider.pending, isNotNull);
+    final race =
+        (tester.state(find.byType(RaceScreen)) as dynamic).race as Race;
+    // Pilot 1 crashes and comes back before aityx answers.
+    race.plane('p1').lost++;
+    decider.answer(const PilotAction(steer: 'left', rule: 3));
+    await tester.pump();
+    expect(race.plane('p1').action.rule, isNot(3));
+    expect(race.plane('p2').action.rule, 3);
+    await tester.tap(find.text('Pause'));
+    await tester.pump();
+  });
+}
+
+/// Answers only when told to.
+class SlowDecider implements Decider {
+  Completer<Decision>? pending;
+  int tick = 0;
+  List<String> ids = const [];
+
+  @override
+  Future<Decision> decide(int tick, List<PilotAsk> pilots) {
+    this.tick = tick;
+    ids = [for (final p in pilots) p.id];
+    return (pending = Completer<Decision>()).future;
+  }
+
+  void answer(PilotAction action) =>
+      pending!.complete(Decision(tick, {for (final id in ids) id: action}));
 }

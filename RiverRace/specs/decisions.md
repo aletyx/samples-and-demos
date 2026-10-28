@@ -19,6 +19,9 @@ The player's plane never reaches the API.
 - **Fair race**: the game holds once a decision is more frames late than
   the interval, until aityx answers, so the pilots never fly on an old
   decision. The game then runs as fast as aityx allows.
+- An answer that arrives after its pilot's plane was lost (and perhaps
+  came back) is dropped for that plane: it was about the plane that
+  crashed. The app keeps each pilot's loss count with its ask.
 - When the API answers an error, it's shown above the river, the pilots
   keep their last decision, and the next call waits a second of game
   time.

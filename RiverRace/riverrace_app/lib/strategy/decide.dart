@@ -4,6 +4,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../game/race.dart';
@@ -68,8 +69,23 @@ abstract interface class Decider {
   Future<Decision> decide(int tick, List<PilotAsk> pilots);
 }
 
-/// The app's API, at API_BASE_URL: empty means the app's own origin (the
-/// web server's or nginx's /api/ proxy).
+/// Where `POST /api/decide` is: under [baseUrl] (API_BASE_URL) when set;
+/// else, on the web, the app's own origin (the web server's or nginx's
+/// /api/ proxy, [page] being the page's address), and in a native app,
+/// which has no origin, [nativeApi], the API `devbox services up` runs.
+Uri decideUrl(String baseUrl, {required bool web, required Uri page}) {
+  if (baseUrl.isNotEmpty) return Uri.parse('$baseUrl/api/decide');
+  if (web) return page.resolve('/api/decide');
+  return Uri.parse('$nativeApi/api/decide');
+}
+
+/// A native app's API when API_BASE_URL is empty, as scripts/make.sh's
+/// default. An Android emulator reaches the host at 10.0.2.2 instead:
+/// pass API_BASE_URL.
+const nativeApi = 'http://localhost:8941';
+
+/// The app's API, at API_BASE_URL: empty means the app's own origin on the
+/// web, [nativeApi] in a native app (see [decideUrl]).
 class ApiDecider implements Decider {
   ApiDecider({http.Client? client, String? baseUrl})
     : _client = client ?? http.Client(),
@@ -80,9 +96,7 @@ class ApiDecider implements Decider {
   final http.Client _client;
   final String _baseUrl;
 
-  Uri get _url => _baseUrl.isEmpty
-      ? Uri.base.resolve('/api/decide')
-      : Uri.parse('$_baseUrl/api/decide');
+  Uri get _url => decideUrl(_baseUrl, web: kIsWeb, page: Uri.base);
 
   /// Throws [DecideException] with a message for the user.
   @override
@@ -100,7 +114,11 @@ class ApiDecider implements Decider {
           )
           .timeout(const Duration(seconds: 40));
     } catch (_) {
-      throw const DecideException('The API did not answer.');
+      throw DecideException(
+        'The API did not answer at ${_url.origin}.'
+        '${kIsWeb ? '' : ' Run it (devbox services up), or build the app with '
+                  '--dart-define=API_BASE_URL=<its address>.'}',
+      );
     }
     Object? json;
     try {

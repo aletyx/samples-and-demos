@@ -10,7 +10,9 @@
 ///                      each pilot's rules on aityx's /v1/systemone, with
 ///                      what its plane senses; with the body sent to aityx
 ///                      and its answer under "aityx" (the key, a header, is
-///                      in neither); 504 after 30 s
+///                      in neither); 504 after 30 s; 403 from a
+///                      cross-site page, 415 without a JSON body (see
+///                      refusal in lib/routes.dart)
 ///
 /// Settings, from the environment (scripts/api.sh loads .env):
 ///   AITYX_API_KEY      the key (secret)
@@ -124,6 +126,15 @@ Future<void> _handle(
   }
   try {
     if (request.method == 'POST' && request.uri.path == '/api/decide') {
+      final refused = refusal(
+        origin: origin,
+        fetchSite: request.headers.value('sec-fetch-site'),
+        mimeType: request.headers.contentType?.mimeType,
+        origins: origins,
+      );
+      if (refused != null) {
+        return _json(response, refused.status, refused.body!);
+      }
       await _decide(request, aityx);
     } else {
       final answer = route(

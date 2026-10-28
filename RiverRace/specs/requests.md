@@ -48,3 +48,15 @@ The feature files hold the current specification; see the
    a control just clicked has the focus (space used to toggle it); not
    while a dialog or menu is open. Recorded the GIF again for the blog
    post.
+7. **Fix the review's findings on the pull request.** The API refuses a
+   call from another site's page (403) and a body that isn't JSON (415)
+   before it calls aityx, so no website can spend the key; the app's own
+   calls, same-origin through the proxy, still go through (see
+   [API](api.md)). The player's keys are read as held every frame and
+   count only while no dialog is open (see [Game](game.md#playing)). A
+   decision that arrives after its plane was lost is dropped (see
+   [Decisions](decisions.md)). A native app without `API_BASE_URL` calls
+   `http://localhost:8941` instead of a `file:` address. The Android
+   finding (the Kotlin plugin not applied) didn't reproduce: Flutter's
+   template builds, `MainActivity` included, so the Gradle files stay as
+   Flutter generates them.
