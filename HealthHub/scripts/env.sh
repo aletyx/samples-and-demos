@@ -3,12 +3,16 @@
 # to the processes' environment only: never put on a command line.
 
 _root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# This folder's .env, else the repository's: a fresh checkout has no link
+# until start-all.sh makes it.
+_env_file="$_root/.env"
+[[ -f "$_env_file" ]] || _env_file="$_root/../.env"
 # load_env <NAME>...: exports each variable from .env when it isn't set.
 load_env() {
   local name value
   for name in "$@"; do
-    if [[ -z "${!name:-}" && -f "$_root/.env" ]]; then
-      value="$(sed -n "s/^${name}=//p" "$_root/.env" | tail -1)"
+    if [[ -z "${!name:-}" && -f "$_env_file" ]]; then
+      value="$(sed -n "s/^${name}=//p" "$_env_file" | tail -1)"
       value="${value%%#*}"
       value="${value%"${value##*[![:space:]]}"}"
       [[ -n "$value" ]] && export "$name=$value"
@@ -19,7 +23,7 @@ load_env() {
 load_env AITYX_API_KEY AITYX_URL FLUTTER_WEB_PORT API_PORT HEALTHHUB_BIND_HOST \
   HEALTHHUB_DB_PORT HEALTHHUB_DB_ADMIN_PASSWORD HEALTHHUB_DB_PASSWORD WEB_MODE \
   OIDC_ISSUER OIDC_CLIENT_ID DATYX_API_URL
-unset _root
+unset _root _env_file
 export FLUTTER_WEB_PORT="${FLUTTER_WEB_PORT:-9800}"
 export API_PORT="${API_PORT:-9801}"
 export HEALTHHUB_BIND_HOST="${HEALTHHUB_BIND_HOST:-127.0.0.1}"
