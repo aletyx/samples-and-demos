@@ -110,6 +110,8 @@ Pass `MODE=profile` or `MODE=debug` for other build modes, and
 The version is `X.Y.Z`: X and Y from [version.X.txt](version.X.txt) and
 [version.Y.txt](version.Y.txt), Z the build time (see
 [scripts/version.sh](scripts/version.sh)).
+The artifact's group and artifact IDs, `aityx:mortgagehub`, are in
+[group.id.txt](group.id.txt) and [artifact.id.txt](artifact.id.txt).
 
 ## Run it in a codespace
 
