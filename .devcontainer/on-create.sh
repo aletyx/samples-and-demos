@@ -11,6 +11,7 @@
 #
 # Every demo that runs as services (each folder with a devbox.json and a
 # process-compose.yaml: Mortgage Hub, Contact Hub, Cellfie, RoboRules,
+# HealthHub,
 # PokerFace, and the index page in Index/) gets `devbox install` in its
 # folder. They lock the same Flutter, so the Nix store is filled once and
 # the later installs are quick.

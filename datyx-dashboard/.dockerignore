@@ -1,0 +1,13 @@
+# What the image (docker/web.Dockerfile, built from this folder) gets: the
+# dashboard's sources, the version files and the build scripts, nothing
+# local or built.
+*
+!version.X.txt
+!version.Y.txt
+!scripts/version.sh
+!scripts/make.sh
+!docker/nginx.conf.template
+!datyx_dashboard/
+datyx_dashboard/build/
+datyx_dashboard/.dart_tool/
+datyx_dashboard/web_dev_config.yaml

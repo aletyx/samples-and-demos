@@ -11,7 +11,10 @@ sample with its own documentation.
 | [Cellfie](Cellfie/) | The cells take a picture of themselves every generation, and aityx says who's in it: Conway's Game of Life on an infinite board, with the rules and pattern catalogue as an aityx decision model; one call per generation, with the board and every request and response shown in the app | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [HealthHub](HealthHub/) | The first demo with a database: a Flutter app, a Dart API and PostgreSQL, built like the others; for now a hello world read from the database through the API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FHealthHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Index](Index/) | One page linking every demo, in the aityx palette; `./start-all.sh` starts it with the rest on http://localhost:8800/ | `./start-all.sh`, or [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
+| [datyx](datyx/) | A data system in the making, API only: REST on Quarkus and GraalVM (Hibernate, Panache, PostgreSQL) and an OpenMetadata server with Elasticsearch; on ports 9900 to 9905, apart from the demos | `./start-datyx.sh` (the datyx group: this, the dashboard and HealthHub), or `docker compose up` in its folder |
+| [datyx-dashboard](datyx-dashboard/) | The views of datyx: a Flutter web app, like the demos' apps, that calls the datyx API and shows what it answers, with every request and response; on port 9906 | Started with the group above, or `docker compose up` in its folder with the API running |
 | [Payroll](Payroll/) | A large rule base with some intricate rules, as payroll and HR systems have, written as DMN decision models | Open the `.dmn` files in your editor |
 | [Mortgage Process](Mortgage_Process/) | A loan approval process in BPMN2 with a decision table, business rules and forms | Import into Business Central or VS Code |
 
@@ -247,6 +250,28 @@ Both serve the app at http://localhost:8910/app/, alongside the other
 samples. The badge above opens it in a codespace, with the same
 `AITYX_API_KEY` Codespaces secret. See the
 [PokerFace README](PokerFace/README.md).
+
+## HealthHub
+
+[HealthHub/](HealthHub/) is the next demo, and the first with a
+database: a Flutter app, a Dart API and PostgreSQL 17, laid out like the
+others so the same scripts, dev containers and launchers run it. For
+now the app says hello: the greeting is a row in PostgreSQL, read
+through the API and shown with the database's version and the health
+of each part. The database is a Docker container (the `postgres`
+service of its [compose.yaml](HealthHub/compose.yaml)), which
+`devbox services up` starts too, so Docker must be running; the dev
+containers add it. From the root of this repository:
+
+```bash
+devbox services up -c HealthHub --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f HealthHub/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:9800/app/, with the API on 9801
+and PostgreSQL on 9802, alongside the other samples. Nothing calls aityx
+yet. See the [HealthHub README](HealthHub/README.md).
 
 ## Payroll
 
