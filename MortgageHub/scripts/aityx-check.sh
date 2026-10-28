@@ -10,10 +10,14 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# The demo's .env, else the repository's: a fresh checkout has no link
+# until start-all.sh makes it.
+env_file="$root/.env"
+[[ -f "$env_file" ]] || env_file="$root/../.env"
 setting() { # setting <name>: from the environment, else .env
   local value="${!1:-}"
-  if [[ -z "$value" && -f "$root/.env" ]]; then
-    value="$(sed -n "s/^$1=//p" "$root/.env" | tail -1)"
+  if [[ -z "$value" && -f "$env_file" ]]; then
+    value="$(sed -n "s/^$1=//p" "$env_file" | tail -1)"
   fi
   printf '%s' "$value"
 }

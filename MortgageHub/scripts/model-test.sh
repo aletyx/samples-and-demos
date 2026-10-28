@@ -6,9 +6,13 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# The demo's .env, else the repository's: a fresh checkout has no link
+# until start-all.sh makes it.
+env_file="$root/.env"
+[[ -f "$env_file" ]] || env_file="$root/../.env"
 for name in AITYX_API_KEY AITYX_URL; do
-  if [[ -z "${!name:-}" && -f "$root/.env" ]]; then
-    value="$(sed -n "s/^${name}=//p" "$root/.env" | tail -1)"
+  if [[ -z "${!name:-}" && -f "$env_file" ]]; then
+    value="$(sed -n "s/^${name}=//p" "$env_file" | tail -1)"
     [[ -n "$value" ]] && export "$name=$value"
   fi
 done
