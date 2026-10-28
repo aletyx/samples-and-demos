@@ -29,6 +29,17 @@ toolchain_missing() {
   fi
 }
 
+# image_lacks <dir>: under the image, what the demo needs that the image
+# doesn't carry (a JDK, for datyx's API); nothing otherwise. start-all.sh
+# and build-all.sh skip such a demo instead of failing on it.
+image_lacks() {
+  [[ "$DEMOS_TOOLCHAIN" == image ]] || return 0
+  if grep -qE '"(graalvm|jdk)' "$1/devbox.json" 2>/dev/null && ! command -v java >/dev/null; then
+    echo "a JDK (java on the PATH)"
+  fi
+  return 0
+}
+
 # services_socket <dir>: the socket of a demo's detached process-compose.
 services_socket() {
   printf '%s/aityx-demos-%s.sock\n' "${TMPDIR:-/tmp}" "$(basename "$1")"

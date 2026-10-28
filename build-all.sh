@@ -45,6 +45,11 @@ for demo in $(demos "$@"); do
     failed=1
     continue
   fi
+  lacks="$(image_lacks "$dir")"
+  if [[ -n "$lacks" ]]; then
+    echo "· $demo: skipped, the image has no $lacks; run it with devbox"
+    continue
+  fi
   if [[ ! -f "$dir/scripts/build.sh" ]]; then
     echo "· $demo has no scripts/build.sh: nothing to build ahead"
     continue

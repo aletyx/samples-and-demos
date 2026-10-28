@@ -227,11 +227,12 @@
     // A demo's web app from here. A codespace forwards each port on its own
     // host, https://<codespace>-<port>.app.github.dev/, with no :port: this
     // page's host with its port swapped for the app's. Anywhere else, the
-    // app's port on this host.
+    // app's port on this host. The path is /app/, or the card's own (the
+    // datyx API has no app: its Swagger UI).
     const forwarded = location.hostname.match(/^(.+)-(\d+)\.(app\.github\.dev)$/);
-    const appUrl = (port) => forwarded
-      ? 'https://' + forwarded[1] + '-' + port + '.' + forwarded[3] + '/app/'
-      : 'http://' + location.hostname + ':' + port + '/app/';
+    const appUrl = (port, path = '/app/') => forwarded
+      ? 'https://' + forwarded[1] + '-' + port + '.' + forwarded[3] + path
+      : 'http://' + location.hostname + ':' + port + path;
     const ext = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg>';
 
     function card(d) {
@@ -242,7 +243,7 @@
       const statusHtml = d.open ? '<div class="status"><span>' + d.open + '</span></div>' : '';
       let openHtml = '';
       if (!d.open) {
-        const url = appUrl(d.port);
+        const url = appUrl(d.port, d.path);
         openHtml = '<a class="btn primary" href="' + url + '" target="_blank" rel="noopener">Open' + ext + '</a>';
       }
       el.innerHTML =

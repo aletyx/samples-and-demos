@@ -117,6 +117,11 @@ for demo in $selected; do
     failed=1
     continue
   fi
+  lacks="$(image_lacks "$dir")"
+  if [[ -n "$lacks" ]]; then
+    echo "· $demo: skipped, the image has no $lacks; run it with devbox"
+    continue
+  fi
   web="$(port "$demo" FLUTTER_WEB_PORT)"
   api="$(port "$demo" API_PORT)"
   if [[ -n "$web" ]] && answers "http://localhost:$web/app/"; then
