@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Stops the five aityx demos: Mortgage Hub, Contact Hub,
-# PokerFace, RoboRules and Cellfie: every folder whose group.id.txt says
+# Stops the six aityx demos: Mortgage Hub, Contact Hub,
+# PokerFace, RoboRules, Cellfie and RiverRace: every folder whose group.id.txt says
 # `aityx`, through stop-all.sh. The demos start and stop by group; use
 # ./stop-all.sh for every demo (the other group and the index page too)
 # and ./start-aityx.sh for the reverse.

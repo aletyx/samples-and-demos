@@ -11,7 +11,7 @@
 #
 #   ./start-all.sh              # every demo
 #   ./start-all.sh ContactHub   # only these
-#   ./start-aityx.sh            # the aityx group: the five aityx demos
+#   ./start-aityx.sh            # the aityx group: the six aityx demos
 #   ./start-datyx.sh            # the datyx group: the API, the dashboard, HealthHub
 #   WAIT=0 ./start-all.sh       # start, don't wait
 # The groups come from each folder's group.id.txt (aityx or datyx); the

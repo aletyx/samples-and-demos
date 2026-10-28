@@ -9,6 +9,7 @@ sample with its own documentation.
 | [Mortgage Hub](MortgageHub/) | A mortgage application from request to verdict: a Flutter app, a Dart API, and a decision model run by [aityx.ai](https://aityx.ai) | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb) (every demo) |
 | [Contact Hub](ContactHub/) | Ask anything and have it routed to the right department or person. A request, typed or dictated on the device, routed by Jev and an aityx decision model: a Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [Cellfie](Cellfie/) | The cells take a picture of themselves every generation, and aityx says who's in it: Conway's Game of Life on an infinite board, with the rules and pattern catalogue as an aityx decision model; one call per generation, with the board and every request and response shown in the app | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FCellfie%2Fdevcontainer.json&machine=standardLinux32gb) |
+| [RiverRace](RiverRace/) | The 1982 Atari river shooter, remade with three planes up one river at once: two flown by aityx, each by its own editable rules, and one flown by you; every aityx call, sent and received, in a sidebar | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRiverRace%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [RoboRules](RoboRules/) | A web take on the old Robocode: robots whose behavior is an aityx decision model, fighting battles played turn by turn by aityx | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [PokerFace](PokerFace/) | A poker simulator where every player is a set of rules run by [aityx.ai](https://aityx.ai): no-limit hold'em at a table of nine, every aityx call in a sidebar, the pace in your hands, and strategies you can read or write. A Flutter app and a Dart API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FPokerFace%2Fdevcontainer.json&machine=standardLinux32gb) |
 | [HealthHub](HealthHub/) | The first demo with a database: a Flutter app, a Dart API and PostgreSQL, built like the others; for now a hello world read from the database through the API | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FHealthHub%2Fdevcontainer.json&machine=standardLinux32gb) |
@@ -26,14 +27,14 @@ from the root of this repository with [Devbox](https://www.jetify.com/devbox):
 
 ```bash
 ./start-all.sh              # every demo, detached; waits until each answers
-./start-aityx.sh            # the aityx group: Mortgage Hub, Contact Hub, PokerFace, RoboRules, Cellfie
+./start-aityx.sh            # the aityx group: Mortgage Hub, Contact Hub, PokerFace, RoboRules, Cellfie, RiverRace
 ./start-datyx.sh            # the datyx group: the datyx API, its dashboard and HealthHub
 ./start-all.sh ContactHub   # only the ones named
 ./stop-all.sh               # stops them all; ./stop-aityx.sh and ./stop-datyx.sh one group
 ```
 
 The demos run in two groups, each with its own start and stop scripts:
-**aityx**, the five demos whose decisions run on aityx, and **datyx**,
+**aityx**, the six demos whose decisions run on aityx, and **datyx**,
 the datyx API, the datyx dashboard and HealthHub. A folder's group is
 its `group.id.txt`, which the group scripts read; `start-all.sh` and
 `stop-all.sh` take both groups and the index page.
@@ -203,6 +204,28 @@ docker compose -f Cellfie/compose.yaml up --build
 
 Both serve the app at http://localhost:8930/app/, alongside the other
 samples. See the [Cellfie README](Cellfie/README.md).
+
+## RiverRace
+
+[RiverRace/](RiverRace/) remakes the 1982 Atari river shooter: a river
+with banks, islands and bridges, tankers, helicopters, jets and fuel
+depots, fuel that runs out, and points for what you shoot. Three planes
+fly up the same river at once: two are flown by aityx, each by its own
+strategy, a decision table of rules you can add to, change and remove
+while they fly, and the yellow one is yours (arrow keys and space). Every
+few frames one aityx call decides what both aityx pilots do; the side
+panel shows each call, sent and received, and the rule that fired.
+
+To start it locally from the repository root:
+
+```bash
+devbox services up -c RiverRace --pcflags "--tui=false"
+# or, with Docker alone
+docker compose -f RiverRace/compose.yaml up --build
+```
+
+Both serve the app at http://localhost:8940/app/. See the
+[RiverRace README](RiverRace/README.md).
 
 ## RoboRules
 
