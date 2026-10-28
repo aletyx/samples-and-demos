@@ -32,7 +32,7 @@
     .brand svg { width: 44px; height: 44px; }
     h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
     .tag { color: var(--muted); margin: 4px 0 0; }
-    .meta { color: var(--muted); font-size: 14px; text-align: right; }
+    .meta { color: var(--muted); font-size: 14px; text-align: right; align-self: flex-start; }
     .meta a { color: var(--fg); }
     main { max-width: 1100px; margin: 0 auto; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
@@ -73,10 +73,27 @@
     h3.section { margin: 36px 0 12px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
     footer { max-width: 1100px; margin: 40px auto 0; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--border); padding-top: 18px; }
     footer code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--fg); }
+    .warning {
+      max-width: 1100px; margin: 16px auto 0; padding: 10px 14px; border-radius: 10px;
+      border: 1px solid rgba(232, 176, 75, .5); background: rgba(232, 176, 75, .1); color: var(--fg); font-size: 14px;
+    }
+    .warning[hidden] { display: none; }
+    .warning strong { color: var(--amber); }
+    .warning code, .aityx-status code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+    .aityx-status:focus-visible { outline: 2px solid var(--orange-light); outline-offset: 3px; border-radius: 4px; }
+    .aityx-status { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--dim); flex: none; }
+    .dot.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(76, 195, 138, .2); }
+    .dot.bad { background: var(--red); }
     @media (max-width: 600px) { header { padding-top: 24px; } .meta { text-align: left; } }
   </style>
 </head>
 <body>
+  <div class="warning" id="aityx-warning" role="alert" hidden>
+    <strong>No aityx key.</strong> <code>AITYX_API_KEY</code> is not set, in the environment or in the
+    <code>.env</code> at the root of the repository: the apps open, but they can't call aityx. Set it there
+    (or as a Codespaces secret) and restart the demos.
+  </div>
   <header>
     <div class="brand">
       <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -89,6 +106,7 @@
       </div>
     </div>
     <div class="meta">
+      <div><span class="aityx-status" id="aityx-status" tabindex="0" role="status" title="Checking aityx…"><span class="dot" aria-hidden="true"></span><span class="label">aityx: checking…</span></span></div>
       <a href="https://github.com/aletyx/samples-and-demos">github.com/aletyx/samples-and-demos</a>
     </div>
   </header>
@@ -117,7 +135,7 @@
         folder: 'MortgageHub', port: 8880, name: 'Mortgage Hub',
         what: 'A mortgage application, from request to verdict',
         desc: 'A buyer fills in a proposal request, and a regulatory check says whether a lender can process it under current US rules: Fannie Mae’s eligibility matrix, the 2026 FHFA and FHA limits, FHA, VA and USDA rules and DTI limits, executed as a decision model on aityx.',
-        chips: ['Flutter app', 'Dart API', 'aityx decision model'],
+        chips: ['aityx decision model'],
         // Its own dev container is archived; the default one starts it with the rest.
         icon: 'home', codespace: true, devcontainer: '.devcontainer/devcontainer.json',
       },
@@ -125,28 +143,28 @@
         folder: 'ContactHub', port: 8890, name: 'Contact Hub',
         what: 'Ask anything, and it reaches the right person',
         desc: 'A request, typed or dictated on the device, is classified and checked by aityx and routed by a decision model to the department, the person and the priority; for an order, the store’s policy says what is refunded and by when. The app shows why, and the aityx call itself.',
-        chips: ['Flutter app', 'Dart API', 'aityx decision model', 'speech on the device'],
+        chips: ['aityx decision model', 'speech on the device'],
         icon: 'chat', codespace: true,
       },
       {
         folder: 'Cellfie', port: 8930, name: 'Cellfie',
         what: 'The cells take a picture of themselves, and aityx says who’s in it',
         desc: 'Conway’s Game of Life on an infinite board, with the rules of birth and death (Conway’s, HighLife’s and Life without death, as switches) and a catalogue of its patterns, as an aityx decision model: one aityx call per generation names what lives, what dies and which clusters are blocks, gliders or pulsars, with the request and the response in a side panel.',
-        chips: ['Flutter app', 'Dart API', 'aityx decision model'],
+        chips: ['aityx decision model'],
         icon: 'grid', codespace: true,
       },
       {
         folder: 'RoboRules', port: 8920, name: 'RoboRules',
         what: 'Robocode on the web, every turn played by aityx',
         desc: 'Tanks fight until one is left. Every robot’s behavior is an aityx decision model, its rules a table you can edit, and the whole battle (sensors, moves, bullets, hits, damage, scores) is played by aityx; the app only draws it.',
-        chips: ['Flutter app', 'Dart API', 'aityx decision model'],
+        chips: ['aityx decision model'],
         icon: 'robot', codespace: true,
       },
       {
         folder: 'PokerFace', port: 8910, name: 'PokerFace',
         what: 'A poker simulator where every player is a set of rules',
         desc: 'No-limit hold’em at a table of up to nine. At each turn the app works out the player’s situation and one aityx call runs their strategy on it: the action, the amount, and the rule that decided it. Five strategies to read, or write your own; every call in a sidebar; the pace in your hands.',
-        chips: ['Flutter app', 'Dart API', 'aityx decision model', 'strategies as rules'],
+        chips: ['aityx decision model', 'strategies as rules'],
         icon: 'cards', codespace: true,
       },
     ];
@@ -219,6 +237,32 @@
 
     document.getElementById('apps').replaceChildren(...demos.map(card));
     document.getElementById('models').replaceChildren(...models.map(card));
+
+    // The aityx key and whether aityx accepts it (bin/server.dart's
+    // /api/aityx): the banner when there's no key, the light top right.
+    async function checkAityx() {
+      const status = document.getElementById('aityx-status');
+      const dot = status.querySelector('.dot');
+      let a;
+      try {
+        // From the root: the page is also served at /app/.
+        const r = await fetch('/api/aityx', { cache: 'no-store' });
+        a = await r.json();
+      } catch (_) {
+        a = { key: true, ok: false, detail: 'the index server did not answer' };
+      }
+      document.getElementById('aityx-warning').hidden = a.key !== false;
+      dot.className = 'dot ' + (a.ok ? 'ok' : 'bad');
+      status.querySelector('.label').textContent =
+        a.ok ? 'aityx: ready' : !a.key ? 'aityx: no key' : 'aityx: not working';
+      // The reason, on hover and for screen readers.
+      status.title = a.ok
+        ? 'aityx accepts the key (' + a.source + ', ' + a.url + ')'
+        : 'aityx: ' + (a.detail || 'no answer');
+      status.setAttribute('aria-label', status.title);
+    }
+    checkAityx();
+    setInterval(checkAityx, 60000);
   </script>
 </body>
 </html>
