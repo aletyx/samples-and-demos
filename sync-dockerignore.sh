@@ -4,7 +4,8 @@
 # BuildKit reads instead of the folder's) the rules of the .gitignore
 # files that apply to its context, so a .env, a log or a local build
 # never ends up in an image. Run it after changing a .gitignore or adding
-# a Dockerfile; it rewrites only the block between its markers.
+# a Dockerfile (one without an ignore file gets one); it rewrites only the
+# block between its markers.
 #
 #   ./sync-dockerignore.sh          # update every ignore file
 #   ./sync-dockerignore.sh --check  # exit 1 if any is out of date
@@ -86,15 +87,37 @@ block() {
   echo "$end"
 }
 
+# files <pattern>...: the files git tracks or would track (new ones too).
+files() {
+  git ls-files --cached --others --exclude-standard -- "$@" | sort -u
+}
+
 check=0
 [[ "${1:-}" == --check ]] && check=1
 stale=0
+
+# Every Dockerfile needs an ignore file BuildKit reads: its own
+# (<name>.Dockerfile.dockerignore) or its context's .dockerignore, the
+# folder it's in, or the parent of docker/ for docker/<name>.Dockerfile.
+# A missing one is created with the generated block alone.
+while IFS= read -r dockerfile; do
+  dir="$(dirname "$dockerfile")"
+  [[ "$(basename "$dir")" == docker ]] && dir="$(dirname "$dir")"
+  [[ -f "$dockerfile.dockerignore" || -f "$dir/.dockerignore" ]] && continue
+  if [[ $check == 1 ]]; then
+    echo "✗ $dockerfile has no ignore file (./sync-dockerignore.sh creates $dir/.dockerignore)" >&2
+    stale=1
+  else
+    : >"$dir/.dockerignore"
+  fi
+done < <(files 'Dockerfile' '**/Dockerfile' '*.Dockerfile' '**/*.Dockerfile')
+
 while IFS= read -r ignore; do
   ctx="$(context "$ignore")"
   # The file without its old block, then the new one.
   kept="$(awk -v b="$begin" -v e="$end" '$0==b{skip=1} !skip{print} $0==e{skip=0}' "$ignore")"
   kept="${kept%"${kept##*[!$'\n']}"}"
-  new="$kept"$'\n\n'"$(block "$ctx")"
+  new="${kept:+$kept$'\n\n'}$(block "$ctx")"
   if [[ "$new" != "$(cat "$ignore")" ]]; then
     if [[ $check == 1 ]]; then
       echo "✗ $ignore is out of date (./sync-dockerignore.sh)" >&2
@@ -104,5 +127,5 @@ while IFS= read -r ignore; do
       echo "· $ignore (context $ctx)"
     fi
   fi
-done < <(git ls-files -- '.dockerignore' '**/.dockerignore' '*.dockerignore' '**/*.dockerignore' | sort -u)
+done < <(files '.dockerignore' '**/.dockerignore' '*.dockerignore' '**/*.dockerignore')
 exit $stale
