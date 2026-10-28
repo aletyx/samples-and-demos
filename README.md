@@ -51,7 +51,10 @@ features won't work. It passes `AITYX_API_KEY` and `AITYX_URL` from the
 environment to each API service. API scripts prefer those values and
 fall back to the demo's `.env`, which `start-all.sh` links to the one at
 the root of the repository (see [.env.example](.env.example)): one key for
-every demo.
+every demo. No `.env`, nor anything else git ignores, goes into a Docker
+image: [sync-dockerignore.sh](sync-dockerignore.sh) copies the
+`.gitignore` rules into every `.dockerignore`; run it after changing a
+`.gitignore` or adding a Dockerfile (`--check` says whether one is stale).
 `AITYX_URL` defaults to `https://api.aityx.ai`; a stage key needs
 `AITYX_URL=https://api-stage.aityx.ai`. Watch one demo's services with
 `devbox services attach -c <demo>`; [stop-all.sh](stop-all.sh) runs
