@@ -4,7 +4,8 @@
   //
   // Every demo in this repository that runs as services, started
   // together: Mortgage Hub, Contact Hub, Cellfie, RoboRules,
-  // PokerFace, each a Flutter web app and a Dart API calling aityx.ai, and the
+  // PokerFace, each a Flutter web app and a Dart API calling aityx.ai,
+  // HealthHub, the same with a PostgreSQL database, and the
   // index page (Index/) that links them and says which ones are up.
   //
   // Source:  https://github.com/aletyx/samples-and-demos
@@ -29,9 +30,12 @@
   // An SSH server, so `gh codespace ssh`, `gh codespace cp` and
   // `gh codespace logs` reach the codespace from a terminal: that is how
   // startup.log is read without the editor, and how the demos are
-  // benchmarked.
+  // benchmarked. Docker, for HealthHub's PostgreSQL: its database is the
+  // postgres container of HealthHub/compose.yaml, which process-compose
+  // starts with `docker compose up postgres`.
   "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {}
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   // The 4-core, 16 GB Codespaces machine. The published image carries
   // the builds, so creating a codespace pulls it and starts the demos; a
@@ -52,7 +56,8 @@
     "CONTACTHUB_BIND_HOST": "0.0.0.0",
     "CELLFIE_BIND_HOST": "0.0.0.0",
     "ROBORULES_BIND_HOST": "0.0.0.0",
-    "POKERFACE_BIND_HOST": "0.0.0.0"
+    "POKERFACE_BIND_HOST": "0.0.0.0",
+    "HEALTHHUB_BIND_HOST": "0.0.0.0"
   },
   // Your own key, never the repository's: the one AITYX_API_KEY secret
   // every demo here reads. GitHub asks for it when you create a codespace
@@ -92,15 +97,16 @@
       ]
     }
   },
-  // The index page and each demo's web app. The APIs (8881, 8891, ...)
-  // stay inside the container: each app reaches its own through the web
-  // server's /api/ proxy. Each port's bare URL redirects to its app at
+  // The index page and each demo's web app. The APIs (8881, 8891, 9801, ...)
+  // and HealthHub's PostgreSQL (9802) stay inside the container: each
+  // app reaches its own API through the web server's /api/ proxy, and
+  // the API its database. Each port's bare URL redirects to its app at
   // /app/. Plain HTTP, which is what the dev servers speak; switching a
   // public port to HTTPS makes it private. post-start.sh makes them
   // public, which devcontainer.json cannot. Only the index opens a
   // browser tab: it is up in seconds and shows the demos as they compile,
   // with a link to each (the forwarded URL, in a codespace).
-  "forwardPorts": [8800, 8880, 8890, 8910, 8920, 8930],
+  "forwardPorts": [8800, 8880, 8890, 8910, 8920, 8930, 9800],
   "portsAttributes": {
     "8800": {
       "label": "Index: every demo on one page",
@@ -129,6 +135,11 @@
     },
     "8930": {
       "label": "Cellfie web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "9800": {
+      "label": "HealthHub web app",
       "protocol": "http",
       "onAutoForward": "silent"
     }

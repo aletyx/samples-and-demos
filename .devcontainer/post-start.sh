@@ -8,7 +8,8 @@
 #
 # start-all.sh starts each demo's services (`devbox services up -b`, or the
 # image's process-compose: see demos-toolchain.sh): the web
-# app and the API of Mortgage Hub (8880), Contact Hub (8890), PokerFace
+# app and the API of Mortgage Hub (8880), Contact Hub (8890), HealthHub
+# (9800, with its PostgreSQL container on 9802), PokerFace
 # (8910), RoboRules (8920) and Cellfie (8930), plus the
 # index on 8800. Each demo serves its release build and a compiled API,
 # built by update-content.sh when the codespace was created (or in its

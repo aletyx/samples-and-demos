@@ -1,0 +1,10 @@
+*
+!docker/nginx.conf
+!scripts/make.sh
+!scripts/version.sh
+!version.X.txt
+!version.Y.txt
+!healthhub_app/
+healthhub_app/build/
+healthhub_app/.dart_tool/
+healthhub_app/web_dev_config.yaml

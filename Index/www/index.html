@@ -167,6 +167,27 @@
         chips: ['aityx decision model', 'strategies as rules'],
         icon: 'cards', codespace: true,
       },
+      {
+        folder: 'HealthHub', port: 9800, name: 'HealthHub',
+        what: 'The first demo with a database',
+        desc: 'A Flutter app, a Dart API and PostgreSQL, built like the other demos. For now it says hello: the greeting is a row in PostgreSQL, read through the API and shown with the database’s version and the health of each part. What it does with aityx comes next.',
+        chips: ['PostgreSQL'],
+        icon: 'heart', codespace: true,
+      },
+      {
+        folder: 'datyx', port: 9900, path: '/q/swagger-ui', name: 'datyx',
+        what: 'A data system in the making: a Quarkus API with PostgreSQL and OpenMetadata',
+        desc: 'The datyx API: REST on Quarkus and GraalVM with Hibernate and Panache over PostgreSQL, and an OpenMetadata server with its Elasticsearch index. API only: its views are the datyx dashboard, the next card. Ports 9900 to 9905, apart from the demos; Open shows its Swagger UI.',
+        chips: ['Quarkus API', 'PostgreSQL', 'OpenMetadata'],
+        icon: 'data', codespace: false,
+      },
+      {
+        folder: 'datyx-dashboard', port: 9906, name: 'datyx dashboard',
+        what: 'The views of datyx: a Flutter app that calls the datyx API',
+        desc: 'A Flutter web app, like every demo\'s, that invokes the datyx API and shows what it answers: status cards for the API, PostgreSQL and OpenMetadata, a hello call, the greetings on record, and a panel with every request and response. Views only; the data and the logic are the API\'s. Port 9906.',
+        chips: ['Flutter dashboard', 'calls the datyx API'],
+        icon: 'data', codespace: false,
+      },
     ];
     const models = [
       {
@@ -193,7 +214,9 @@
       grid: '<path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/>',
       robot: '<path d="M5 9 H19 V19 H5 Z M8 12 H10 V14 H8 Z M14 12 H16 V14 H14 Z M11 4 H13 V9 H11 Z M2 12 H5 V17 H2 Z M19 12 H22 V17 H19 Z"/>',
       cards: '<path d="M7 3 H17 A2 2 0 0 1 19 5 V19 A2 2 0 0 1 17 21 H7 A2 2 0 0 1 5 19 V5 A2 2 0 0 1 7 3 Z M12 7 C13 9 16 10 16 13 C16 14.5 14.7 15.5 13.4 14.8 L14 17 H10 L10.6 14.8 C9.3 15.5 8 14.5 8 13 C8 10 11 9 12 7 Z" fill-rule="evenodd"/>',
+      heart: '<path d="M12 20.5 L10.6 19.2 C5.4 14.5 2 11.4 2 7.6 C2 4.5 4.4 2 7.5 2 C9.2 2 10.9 2.8 12 4.1 C13.1 2.8 14.8 2 16.5 2 C19.6 2 22 4.5 22 7.6 C22 11.4 18.6 14.5 13.4 19.2 Z M7 10 H9.5 L10.8 7.5 L12.8 12.5 L14.2 10 H17" fill-rule="evenodd" stroke="#17161A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
       table: '<path d="M3 5 H21 V19 H3 Z M3 10 H21 M3 14.5 H21 M9 5 V19 M15 5 V19" fill="none" stroke="currentColor" stroke-width="2"/>',
+      data: '<path d="M12 3 C7.6 3 4 4.6 4 6.5 V17.5 C4 19.4 7.6 21 12 21 C16.4 21 20 19.4 20 17.5 V6.5 C20 4.6 16.4 3 12 3 Z M12 5 C15.9 5 18 6.2 18 6.5 C18 6.8 15.9 8 12 8 C8.1 8 6 6.8 6 6.5 C6 6.2 8.1 5 12 5 Z M6 9 C7.5 9.7 9.6 10 12 10 C14.4 10 16.5 9.7 18 9 V12 C18 12.3 15.9 13.5 12 13.5 C8.1 13.5 6 12.3 6 12 Z M6 14.5 C7.5 15.2 9.6 15.5 12 15.5 C14.4 15.5 16.5 15.2 18 14.5 V17.5 C18 17.8 15.9 19 12 19 C8.1 19 6 17.8 6 17.5 Z" fill-rule="evenodd"/>',
       flow: '<path d="M3 6 H8 V11 H3 Z M16 13 H21 V18 H16 Z M8 8.5 H12 V15.5 H16" fill="none" stroke="currentColor" stroke-width="2"/>',
     };
     const github = 'https://github.com/aletyx/samples-and-demos/tree/main/';
@@ -204,11 +227,12 @@
     // A demo's web app from here. A codespace forwards each port on its own
     // host, https://<codespace>-<port>.app.github.dev/, with no :port: this
     // page's host with its port swapped for the app's. Anywhere else, the
-    // app's port on this host.
+    // app's port on this host. The path is /app/, or the card's own (the
+    // datyx API has no app: its Swagger UI).
     const forwarded = location.hostname.match(/^(.+)-(\d+)\.(app\.github\.dev)$/);
-    const appUrl = (port) => forwarded
-      ? 'https://' + forwarded[1] + '-' + port + '.' + forwarded[3] + '/app/'
-      : 'http://' + location.hostname + ':' + port + '/app/';
+    const appUrl = (port, path = '/app/') => forwarded
+      ? 'https://' + forwarded[1] + '-' + port + '.' + forwarded[3] + path
+      : 'http://' + location.hostname + ':' + port + path;
     const ext = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg>';
 
     function card(d) {
@@ -219,7 +243,7 @@
       const statusHtml = d.open ? '<div class="status"><span>' + d.open + '</span></div>' : '';
       let openHtml = '';
       if (!d.open) {
-        const url = appUrl(d.port);
+        const url = appUrl(d.port, d.path);
         openHtml = '<a class="btn primary" href="' + url + '" target="_blank" rel="noopener">Open' + ext + '</a>';
       }
       el.innerHTML =
