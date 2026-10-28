@@ -1,4 +1,4 @@
-# The demos' dev container image, published to GHCR by build-image.sh and
+# The demos' dev container image, published to Docker Hub by build-image.sh and
 # used by every devcontainer.json in .devcontainer/ (`image`, not `build`):
 # Flutter, the GitHub CLI, process-compose, and the demos' release web
 # builds already made, so a codespace starts the demos in seconds instead

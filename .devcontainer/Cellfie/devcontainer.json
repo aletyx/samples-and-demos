@@ -24,7 +24,7 @@
   // every demo's release web build, so nothing is built when a codespace
   // is created and the demos start in seconds. The organization has
   // GitHub's prebuilds switched off; this is the next best thing.
-  "image": "ghcr.io/aletyx/samples-and-demos-devcontainer:latest",
+  "image": "docker.io/aletyxcode/samples-and-demos-devcontainer:latest",
   "remoteUser": "vscode",
   // An SSH server, so `gh codespace ssh`, `gh codespace cp` and
   // `gh codespace logs` reach the codespace from a terminal: that is how

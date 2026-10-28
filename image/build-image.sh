@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Builds the demos' dev container image (Containerfile) with every demo's
-# release web build inside, and pushes it to GHCR, tagged with the commit
-# and as latest. Run from a laptop with Docker and devbox, on a clean
-# checkout of the commit the image is for (usually main):
+# release web build inside, and pushes it to Docker Hub (public, so anyone
+# can create a codespace from it; the organization's GHCR packages can't
+# be made public), tagged with the commit and as latest. Run from a laptop
+# with Docker and devbox, on a clean checkout of the commit the image is
+# for (usually main):
 #
-#   gh auth refresh -s write:packages      # once; then docker login below
-#   gh auth token | docker login ghcr.io -u <user> --password-stdin
+#   docker login -u aletyxcode             # once; a Read & Write access token
 #   bash image/build-image.sh              # ./build-all.sh, then build and push
 #   PUSH=0 bash image/build-image.sh       # build only, loaded locally
 #
@@ -22,7 +23,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-image="${IMAGE:-ghcr.io/aletyx/samples-and-demos-devcontainer}"
+image="${IMAGE:-docker.io/aletyxcode/samples-and-demos-devcontainer}"
 cd "$root"
 
 sha="$(git rev-parse --short HEAD)"

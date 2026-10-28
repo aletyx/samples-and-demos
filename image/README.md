@@ -1,12 +1,15 @@
 # The dev container image
 
 Every dev container in [.devcontainer/](../.devcontainer) uses one
-published image, `ghcr.io/aletyx/samples-and-demos-devcontainer`, built
+published image, `docker.io/aletyxcode/samples-and-demos-devcontainer`, built
 from [Containerfile](Containerfile): Flutter, the GitHub CLI,
 process-compose, the packages the demos depend on, and **every demo's
 release web build**, so a codespace restores the builds and starts the
 demos in seconds. GitHub's prebuilds and Actions are switched off for
-this organization, so the image is built on a laptop and pushed.
+this organization, so the image is built on a laptop and pushed. It lives
+on Docker Hub, public, because a codespace created by anyone (a user
+outside the organization included) must be able to pull it, and the
+organization's GHCR packages can't be made public.
 
 ## Building and pushing it
 
@@ -14,8 +17,7 @@ On a clean checkout of the commit the image is for (usually `main`),
 with Docker running and devbox installed:
 
 ```bash
-gh auth refresh -h github.com -s write:packages          # once
-gh auth token | docker login ghcr.io -u <your-user> --password-stdin
+docker login -u aletyxcode          # once; a Read & Write access token
 bash image/build-image.sh
 ```
 
@@ -25,9 +27,9 @@ of each demo's git tree hash in `image/context/` (git-ignored), builds
 the image for `linux/amd64` (the Codespaces machines; through Docker's
 emulation on Apple silicon, a few minutes for the Flutter steps) and
 pushes it tagged with the commit and as `latest`. `PUSH=0` builds without
-pushing. The package must be public for Codespaces to pull it: the first
-push creates it private; make it public once, under the organization's
-Packages.
+pushing. `IMAGE=<registry/name>` pushes somewhere else, say a private
+registry while trying an image out; the dev containers pull whatever
+`image` their `devcontainer.json` names.
 
 ## What a codespace does with it
 
