@@ -28,7 +28,9 @@ yet), `API_PORT` (9801), `HEALTHHUB_BIND_HOST` (127.0.0.1),
 `OIDC_ISSUER` (default `https://accounts.google.com`), `OIDC_CLIENT_ID`
 (empty: authentication off) and `DATYX_API_URL` (default
 `http://127.0.0.1:9900`; Compose points it at the host's port 9900
-through `host.docker.internal`); `scripts/api.sh` falls back to `.env`
+through `host.docker.internal`, or, with `compose.datyx.yaml` as a second
+`-f` file, at the `api` service of the datyx stack's network, which is
+what works on Linux); `scripts/api.sh` falls back to `.env`
 for the key, the database's port and password and these, and Compose
 sets the host to the `postgres` service.
 

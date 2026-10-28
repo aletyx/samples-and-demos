@@ -15,7 +15,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 /**
  * A data source on record (table data_source): where data lives and how
@@ -23,9 +22,12 @@ import jakarta.persistence.UniqueConstraint;
  * details, in its own embedded group of columns: a database, an S3 bucket,
  * or a filesystem folder. Secrets (a database password, an S3 secret key)
  * are stored as given and never answered back (see DataSourceResource).
+ * The name is unique whatever its case: a unique index on lower(name),
+ * made by the Flyway migration (db/migration), which the resource turns
+ * into a 409.
  */
 @Entity
-@Table(name = "data_source", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
+@Table(name = "data_source")
 public class DataSource extends PanacheEntity {
 
     public enum Type {
@@ -88,10 +90,6 @@ public class DataSource extends PanacheEntity {
     /** The newest first, at most {@code limit}. */
     public static List<DataSource> newest(int limit) {
         return findAll(Sort.descending("createdAt", "id")).page(0, limit).list();
-    }
-
-    public static boolean nameTaken(String name) {
-        return count("lower(name)", name.toLowerCase()) > 0;
     }
 
     /** A database: engine (postgresql, mysql, ...), host and port, the database, a user and its password. */

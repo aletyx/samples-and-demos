@@ -33,9 +33,24 @@ class _HealthHubAppState extends State<HealthHubApp> {
   @override
   void initState() {
     super.initState();
-    _api.authConfig().then(_auth.start).catchError((Object e) {
-      // Without the API there is no sign-in either; the screen says so.
-    });
+    _startAuth();
+  }
+
+  /// Asks the API how to sign in, again and again while it doesn't answer
+  /// (it may still be starting), backing off up to half a minute, so the
+  /// sign-in comes up without a reload once the API is there.
+  Future<void> _startAuth() async {
+    var delay = const Duration(seconds: 3);
+    while (mounted) {
+      try {
+        final config = await _api.authConfig();
+        if (mounted) await _auth.start(config);
+        return;
+      } catch (_) {
+        await Future<void>.delayed(delay);
+        if (delay < const Duration(seconds: 30)) delay *= 2;
+      }
+    }
   }
 
   @override

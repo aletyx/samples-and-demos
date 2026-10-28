@@ -8,7 +8,8 @@ registering them in OpenMetadata, comes next). Code in
 ## The entity
 
 `DataSource` (table `data_source`): `id`, `name` (up to 100 characters,
-required, unique whatever its case), `type` (`database`, `s3` or
+required, unique whatever its case: a unique index on `lower(name)`,
+made by the Flyway migration), `type` (`database`, `s3` or
 `filesystem`; stored as `DATABASE`, `S3`, `FILESYSTEM`), `description`
 (up to 500), `createdAt`, `createdBy` (the email of the signed-in user,
 else the token's subject; null while authentication is off) and
@@ -41,7 +42,8 @@ authentication is on ([auth.md](auth.md)):
   `{"name":"exports","type":"filesystem","filesystem":{"path":"/data/exports"}}`.
   Field constraints (Hibernate Validator) and details missing for the
   type, or given for another type, are a 400 with `{"error":"..."}`; a
-  name already taken is a 409.
+  name already taken is a 409: the row is flushed in the call, and the
+  index's refusal (SQLSTATE 23505) is answered, so a race has one winner.
 - `DELETE /api/datasources/{id}` removes one (204; 404 when there is none).
 
 An answer: the entity's fields, the type as its JSON name, and the

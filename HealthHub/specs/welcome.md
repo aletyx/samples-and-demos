@@ -37,7 +37,8 @@ The account corner: nothing while the API has authentication off;
 Google's own sign-in button while nobody is signed in; the user's picture,
 name and a sign-out button once someone is. `AuthController`
 ([lib/auth/](../healthhub_app/lib/auth/)) reads `GET /api/auth/config`
-at start, initializes `google_sign_in` with the client id the API
+at start (asked again, 3 s then up to 30 s apart, while the API doesn't
+answer), initializes `google_sign_in` with the client id the API
 publishes, tries a silent sign-in, and hands the ID token to the API
 client, which sends it as a bearer on every call and retries once with a
 fresh one after a 401. Signing in or out asks everything again.

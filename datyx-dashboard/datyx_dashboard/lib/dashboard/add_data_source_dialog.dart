@@ -54,6 +54,12 @@ class _AddDataSourceDialogState extends State<AddDataSourceDialog> {
     return value.isEmpty ? null : value;
   }
 
+  /// A secret as typed, spaces and all; null when empty.
+  String? _secret(String key) {
+    final value = _fields[key]!.text;
+    return value.isEmpty ? null : value;
+  }
+
   void _submit() {
     final name = _name.text.trim();
     if (name.isEmpty) {
@@ -74,7 +80,7 @@ class _AddDataSourceDialogState extends State<AddDataSourceDialog> {
           'port': port,
           'database': _text('database'),
           'username': _text('username'),
-          'password': _text('password'),
+          'password': _secret('password'),
         };
       case DataSourceType.s3:
         if (_text('bucket') == null) {
@@ -87,7 +93,7 @@ class _AddDataSourceDialogState extends State<AddDataSourceDialog> {
           'endpoint': _text('endpoint'),
           'prefix': _text('prefix'),
           'accessKeyId': _text('accessKeyId'),
-          'secretAccessKey': _text('secretAccessKey'),
+          'secretAccessKey': _secret('secretAccessKey'),
         };
       case DataSourceType.filesystem:
         if (_text('path') == null) {

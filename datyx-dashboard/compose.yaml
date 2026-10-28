@@ -2,9 +2,11 @@
 # then open http://localhost:9906/app/. No devbox or Flutter needed on the
 # host. The datyx API is not here: it is the datyx/ folder's (its own
 # `docker compose up`, or `devbox services up` there), reached at
-# DATYX_API_URL, by default the host's port 9900 (host.docker.internal).
-# Settings come from the environment, else this folder's .env (see
-# .env.example).
+# DATYX_API_URL, by default the host's port 9900 (host.docker.internal:
+# Docker Desktop; on Linux that is the bridge, where a port bound to
+# 127.0.0.1 isn't reachable, so add compose.datyx.yaml to join the datyx
+# stack's network instead). Settings come from the environment, else this
+# folder's .env (see .env.example).
 
 name: datyx-dashboard
 

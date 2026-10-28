@@ -9,6 +9,7 @@ import java.util.Map;
 import datyx.auth.CurrentUser;
 import datyx.datasource.DataSource.Type;
 import jakarta.inject.Inject;
+import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -40,7 +41,9 @@ import jakarta.ws.rs.core.Response;
  *  "database":{"engine":"postgresql","host":"db","port":5432,"database":"dw","username":"u","password":"p"}}
  * {"name":"lake","type":"s3","s3":{"bucket":"b","region":"eu-west-1","endpoint":null,"prefix":"raw/","accessKeyId":"...","secretAccessKey":"..."}}
  * {"name":"exports","type":"filesystem","filesystem":{"path":"/data/exports"}}
- * Missing or mismatched details are a 400, a name already taken a 409.
+ * Missing or mismatched details are a 400, a name already taken (whatever
+ * its case: the database's unique index on lower(name) decides, so a race
+ * has one winner) a 409.
  * Answers carry the details without their secrets: passwordSet and
  * secretAccessKeySet say whether one was given. Every call needs a
  * signed-in user once authentication is on; who added a source is kept
@@ -74,10 +77,6 @@ public class DataSourceResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", problem)).build();
         }
         String name = body.name().strip();
-        if (DataSource.nameTaken(name)) {
-            return Response.status(Response.Status.CONFLICT)
-                .entity(Map.of("error", "a data source named '" + name + "' already exists")).build();
-        }
         DataSource source = new DataSource();
         source.name = name;
         source.type = body.type();
@@ -91,7 +90,28 @@ public class DataSourceResource {
             case FILESYSTEM -> source.filesystem = body.filesystem().toEntity();
         }
         source.persist();
+        try {
+            // Now, not at commit: a duplicate name is this call's 409, and the
+            // transaction is left marked for rollback.
+            DataSource.flush();
+        } catch (PersistenceException e) {
+            if (isUniqueViolation(e)) {
+                return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("error", "a data source named '" + name + "' already exists")).build();
+            }
+            throw e;
+        }
         return Response.created(URI.create("/api/datasources/" + source.id)).entity(view(source)).build();
+    }
+
+    /** Whether PostgreSQL refused a row for a unique index (SQLSTATE 23505). */
+    private static boolean isUniqueViolation(Throwable e) {
+        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+            if (cause instanceof java.sql.SQLException sql && "23505".equals(sql.getSQLState())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @DELETE

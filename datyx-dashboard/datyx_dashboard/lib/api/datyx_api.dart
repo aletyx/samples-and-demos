@@ -282,15 +282,33 @@ abstract class DatyxApi {
   Future<void> removeDataSource(int id);
 }
 
-/// Gives the bearer token for a call, or null for none; [refresh] asks for
-/// a fresh one after a 401 (an expired token), once.
+/// Gives the bearer token for a call, or null for none.
 typedef TokenProvider = Future<String?> Function();
+
+/// The keys whose values never reach the calls panel.
+const secretKeys = {'password', 'secretAccessKey'};
+
+/// A copy of a request body with its secrets replaced, for the log.
+Object? redacted(Object? body) {
+  if (body is Map) {
+    return {
+      for (final entry in body.entries)
+        entry.key: secretKeys.contains(entry.key) && entry.value != null
+            ? '••••••'
+            : redacted(entry.value),
+    };
+  }
+  if (body is List) return [for (final item in body) redacted(item)];
+  return body;
+}
 
 /// The API over HTTP. [baseUrl] is API_BASE_URL at build time: empty, the
 /// app's own origin (the dev server and the web server proxy /api/ there).
 /// [token] gives the signed-in user's ID token, sent as `Authorization:
 /// Bearer` when there is one; after a 401, [refreshToken] is asked once for
-/// a fresh one and the call is retried.
+/// a fresh one and the call is retried. A call that takes longer than
+/// [timeout] fails. The log gets request bodies with their secrets
+/// replaced ([redacted]).
 class HttpDatyxApi implements DatyxApi {
   HttpDatyxApi({
     String? baseUrl,
@@ -298,6 +316,7 @@ class HttpDatyxApi implements DatyxApi {
     CallLog? log,
     this.token,
     this.refreshToken,
+    this.timeout = const Duration(seconds: 20),
   }) : baseUrl = baseUrl ?? const String.fromEnvironment('API_BASE_URL'),
        _client = client ?? http.Client(),
        log = log ?? CallLog();
@@ -306,6 +325,7 @@ class HttpDatyxApi implements DatyxApi {
   final http.Client _client;
   final TokenProvider? token;
   final TokenProvider? refreshToken;
+  final Duration timeout;
   @override
   final CallLog log;
 
@@ -324,13 +344,14 @@ class HttpDatyxApi implements DatyxApi {
   }) async {
     final uri = _uri(path, query);
     final requestBody = body == null ? null : jsonEncode(body);
+    final loggedBody = body == null ? null : jsonEncode(redacted(body));
     final shown = query == null || query.isEmpty
         ? path
         : '$path?${Uri(queryParameters: query).query}';
     var bearer = await token?.call();
     var retried = false;
     while (true) {
-      final call = log.start(method, shown, requestBody: requestBody);
+      final call = log.start(method, shown, requestBody: loggedBody);
       http.Response response;
       try {
         final request = http.Request(method, uri);
@@ -341,7 +362,9 @@ class HttpDatyxApi implements DatyxApi {
         if (bearer != null && bearer.isNotEmpty) {
           request.headers['authorization'] = 'Bearer $bearer';
         }
-        response = await http.Response.fromStream(await _client.send(request));
+        response = await http.Response.fromStream(
+          await _client.send(request).timeout(timeout),
+        ).timeout(timeout);
       } catch (e) {
         log.finish(call, error: e.toString());
         throw ApiException('$method $path failed: $e');

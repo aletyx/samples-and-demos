@@ -63,7 +63,9 @@ docker compose up -d --wait  # detached, back when it is healthy
 [docker/web.Dockerfile](docker/web.Dockerfile) builds the release web
 build and serves it with nginx under `/app/`, proxying `/api/` and `/q/`
 to `DATYX_API_URL` ([docker/nginx.conf.template](docker/nginx.conf.template)),
-by default the host's port 9900 through `host.docker.internal`, so it
+by default the host's port 9900 through `host.docker.internal` (Docker
+Desktop; on Linux add `-f compose.datyx.yaml` to join the datyx stack's
+network and reach its `api` service by name instead), so it
 reaches the API whether that runs from devbox or from datyx's own
 `docker compose up`. The container is healthy once the app and the API
 through the proxy both answer.

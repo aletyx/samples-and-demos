@@ -10,8 +10,11 @@ a folder of its own) only calls it.
 
 - Quarkus REST with Jackson: JSON endpoints under `/api/`.
 - Hibernate ORM with Panache on PostgreSQL (the `datyx` database, user
-  `datyx`). The schema follows the entities in dev (`update`) and test
-  (`drop-and-create`); production leaves it alone (`none`).
+  `datyx`), and Flyway for the schema: `db/migration/V1__greetings_and_data_sources.sql`
+  runs at every start in every profile (a fresh database, under Docker
+  alone or a jar or native build, gets its tables), tests clean the
+  schema first, a database Hibernate made before Flyway is baselined as
+  version 1, and Hibernate only validates that the entities match.
 - Hibernate Validator: request bodies are validated, a 400 on failure.
 - A REST client for OpenMetadata (`OpenMetadataClient`, config key
   `openmetadata`, URL from `DATYX_OPENMETADATA_URL`), its public
@@ -31,8 +34,9 @@ a folder of its own) only calls it.
   dashboard's cards show: `name`, `version`, `startedAt`, `uptimeSeconds`,
   `database` (`ok`, `version` from `select version()`, or `error`),
   `openmetadata` (`ok`, `version` from the server, `url`, or `error`),
-  `greetings` and `dataSources` (how many are on record). A dependency
-  that fails is reported, not an error for the call.
+  `greetings` and `dataSources` (how many are on record; null while the
+  database is out). A dependency that fails is reported, not an error for
+  the call.
 - `GET /api/greetings?limit=50` lists the greetings on record, newest
   first (`limit` between 1 and 500).
 - `POST /api/greetings` with `{"message":"..."}` stores one (the message

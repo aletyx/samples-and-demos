@@ -44,8 +44,10 @@ heap), `openmetadata-migrate` and `openmetadata` (OpenMetadata server
 2.0.7 on PostgreSQL and Elasticsearch, basic auth, no ingestion pipeline
 client, 1 GB heap) and `api` (built from `docker/api.jvm.Dockerfile`, or
 `docker/api.native.Dockerfile` with `DATYX_API_DOCKERFILE`, the root as
-context, see `.dockerignore`), published on 9900 so the dashboard's own
-compose file reaches it. Data lives in the `postgres-data` and
+context, see `.dockerignore`), published on `API_PORT` (9900) so the
+dashboard's own compose file reaches it; on Linux the dashboard and
+HealthHub join this stack's network through their `compose.datyx.yaml`
+instead, since a port bound to 127.0.0.1 isn't reachable from the bridge. Data lives in the `postgres-data` and
 `search-data` volumes.
 
 ## Ports and settings

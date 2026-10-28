@@ -27,7 +27,8 @@ One screen, `DashboardScreen`:
   the kind (Database, S3 bucket, Filesystem), name and description, then
   the fields of that kind (engine and port, host, database, username and
   password; bucket, region and prefix, endpoint, access key id and secret
-  access key; or the path), the required ones checked before the `POST`.
+  access key; or the path), the required ones checked before the `POST`;
+  secrets go as typed, the rest trimmed.
   Errors the API answers show in a snack bar. With authentication on and
   nobody signed in, the card says to sign in and the list isn't asked.
 - Hello: a name field and a button; `GET /api/hello` with the name, the
@@ -49,7 +50,9 @@ One screen, `DashboardScreen`:
 ## Sign-in
 
 `AuthController` (`lib/auth/auth_controller.dart`) takes the API's
-`GET /api/auth/config` at start. Off: nothing happens and every call goes
+`GET /api/auth/config` at start, asked again with a growing delay (3 s
+up to 30 s) while the API doesn't answer, so a dashboard opened before
+the API is up still gets its sign-in. Off: nothing happens and every call goes
 out anonymous. On: it initializes `google_sign_in` with the client id the
 API published (nothing is built in), listens to its sign-in and sign-out
 events, and tries a silent sign-in from a previous session. The web
@@ -68,7 +71,9 @@ tokens live an hour. Signing in or out refreshes the screen.
 `dataSources(limit)`, `addDataSource(NewDataSource)`,
 `removeDataSource(id)`, and the `CallLog` the panel listens to.
 `HttpDatyxApi` is the real one, over `package:http`, with a token
-provider for the bearer and one for a refresh after a 401; `API_BASE_URL`
+provider for the bearer and one for a refresh after a 401, a 20 s timeout
+on every call, and request bodies logged with their secrets (`password`,
+`secretAccessKey`) replaced by dots; `API_BASE_URL`
 at build time is the API's base, empty meaning the app's own origin, so
 the app calls `/api/...` and whatever serves it proxies that to the API.
 A non-2xx answer or a failed call throws `ApiException`. `DataSource`

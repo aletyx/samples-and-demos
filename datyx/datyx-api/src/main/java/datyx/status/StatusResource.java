@@ -29,7 +29,8 @@ import org.jboss.logging.Logger;
  *  "database":{"ok":true,"version":"PostgreSQL 17..."},
  *  "openmetadata":{"ok":true,"version":"2.0.7","url":"http://localhost:9902"},
  *  "greetings":3,"dataSources":2}
- * A dependency that fails reports {"ok":false,"error":"..."}.
+ * A dependency that fails reports {"ok":false,"error":"..."}, and the
+ * counts are null while the database is out.
  */
 @Path("/api/status")
 @Produces(MediaType.APPLICATION_JSON)
@@ -68,8 +69,18 @@ public class StatusResource {
         body.put("uptimeSeconds", Duration.between(startedAt, Instant.now()).toSeconds());
         body.put("database", database());
         body.put("openmetadata", openMetadata());
-        body.put("greetings", Greeting.count());
-        body.put("dataSources", datyx.datasource.DataSource.count());
+        // Counted together: both null when the database is out, and the
+        // call still answers (database.ok says why).
+        Long greetings = null;
+        Long dataSources = null;
+        try {
+            greetings = Greeting.count();
+            dataSources = datyx.datasource.DataSource.count();
+        } catch (Exception e) {
+            LOG.warnf("counting records failed: %s", e.getMessage());
+        }
+        body.put("greetings", greetings);
+        body.put("dataSources", dataSources);
         return body;
     }
 

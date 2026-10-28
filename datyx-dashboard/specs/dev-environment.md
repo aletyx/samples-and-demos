@@ -35,7 +35,10 @@ alone: `web`, built from `docker/web.Dockerfile` (the release web build
 under nginx, `docker/nginx.conf.template` proxying `/api/` and `/q/` to
 `DATYX_API_URL`, by default the host's port 9900 through
 `host.docker.internal`, which `extra_hosts` maps to the host gateway on
-Linux too; only `DATYX_*` variables are substituted in the template, so
+Linux too, where that is the bridge and a port bound to 127.0.0.1 isn't
+reachable: there, `compose.datyx.yaml` added as a second `-f` file joins
+the datyx stack's network (`datyx_default`, external) and sets
+`DATYX_API_URL` to `http://api:9900`; only `DATYX_*` variables are substituted in the template, so
 nginx's own variables stay). Healthy once `/app/` and `/api/health`
 through the proxy both answer. The API runs from `datyx/`, with devbox or
 its own `docker compose up`.

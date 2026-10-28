@@ -54,7 +54,10 @@ services:
       # Authentication (see .env.example): without a client id it is off.
       OIDC_ISSUER: ${OIDC_ISSUER:-https://accounts.google.com}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
-      # The datyx API, for /api/datyx/*: the host's port 9900 by default.
+      # The datyx API, for /api/datyx/*: the host's port 9900 by default
+      # (Docker Desktop; on Linux add compose.datyx.yaml to join the datyx
+      # stack's network instead, since the bridge can't reach a port bound
+      # to 127.0.0.1).
       DATYX_API_URL: ${DATYX_API_URL:-http://host.docker.internal:9900}
     extra_hosts:
       - "host.docker.internal:host-gateway"
