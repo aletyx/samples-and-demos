@@ -80,6 +80,8 @@
   the same time in Unix seconds
   ([scripts/version.sh](../scripts/version.sh)). It reaches the app as the
   `MORTGAGEHUB_VERSION` dart-define.
+- **Coordinates**: the group ID `aityx` from `group.id.txt` and the artifact
+  ID `mortgagehub` from `artifact.id.txt`; with the version, `aityx:mortgagehub:X.Y.Z`.
 - **Builds**: the [Makefile](../Makefile) runs
   [scripts/make.sh](../scripts/make.sh): `web`, `android`, `ios` (macOS),
   `linux` (Linux), `all` (what the host can build) and `clean`, with
