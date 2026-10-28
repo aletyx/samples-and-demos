@@ -41,6 +41,13 @@ while read -r demo hash; do
     echo "· $demo's app changed since the image was made (${hash:0:7} → ${now:0:7}): it builds itself"
     continue
   fi
+  # The key is HEAD's: a local dev container opened on an edited checkout
+  # would get the image's build, made newer than the edits, and serve it.
+  dirty="$(build_key_paths "$demo" | xargs git status --porcelain -- 2>/dev/null)"
+  if [[ -n "$dirty" ]]; then
+    echo "· $demo's app has uncommitted changes: it builds itself"
+    continue
+  fi
   rm -rf "$app/build/web"
   mkdir -p "$app/build"
   cp -a "$store/$demo/web" "$app/build/web"
