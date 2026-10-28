@@ -41,3 +41,10 @@ The feature files hold the current specification; see the
    [Game](game.md#playing)).
 5. **Make the computer planes a little more transparent.** The aityx
    pilots' planes are drawn at 35% opacity, down from half.
+6. **Don't say how many planes on the start screen, just "Press any key
+   to play", and make that work: there are two or three planes depending
+   on whether the user plays.** The start screen says only *Press any key
+   to play*. The game's keys are read app-wide, so a key plays even when
+   a control just clicked has the focus (space used to toggle it); not
+   while a dialog or menu is open. Recorded the GIF again for the blog
+   post.

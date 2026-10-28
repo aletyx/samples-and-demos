@@ -86,7 +86,14 @@ class _RaceScreenState extends State<RaceScreen>
   );
 
   @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onHardwareKey);
+  }
+
+  @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onHardwareKey);
     _ticker.dispose();
     _repaint.dispose();
     _focus.dispose();
@@ -231,7 +238,15 @@ class _RaceScreenState extends State<RaceScreen>
     LogicalKeyboardKey.escape,
   };
 
-  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+  /// The game's keys, whatever has the focus (a button just clicked
+  /// would otherwise take space and Enter); not while a dialog or menu
+  /// route is open, so the rule editor's fields can be typed in.
+  bool _onHardwareKey(KeyEvent event) {
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    return _onKey(event) == KeyEventResult.handled;
+  }
+
+  KeyEventResult _onKey(KeyEvent event) {
     if (event is KeyRepeatEvent) return KeyEventResult.ignored;
     final down = event is KeyDownEvent;
     final key = event.logicalKey;
@@ -386,7 +401,6 @@ class _RaceScreenState extends State<RaceScreen>
       body: Focus(
         focusNode: _focus,
         autofocus: true,
-        onKeyEvent: _onKey,
         child: wide
             ? Row(
                 children: [
@@ -525,14 +539,7 @@ class _RaceScreenState extends State<RaceScreen>
             'Press any key to race again.',
           ]
         : _race.frame == 0
-        ? [
-            'Three planes, one river.',
-            'Two are flown by aityx, each by its own rules; '
-                '${_youFly ? 'the yellow one is yours.' : 'you watch.'}',
-            if (_youFly)
-              '← → steer · ↑ faster · ↓ slower · space fires · P pauses',
-            'Press any key to start.',
-          ]
+        ? ['Press any key to play']
         : ['Paused', 'Press any key to go on.'];
     return Container(
       color: Colors.black.withValues(alpha: 0.55),

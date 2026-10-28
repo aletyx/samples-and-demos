@@ -72,7 +72,10 @@ score, bridge and losses, and **Race again** starts on a new river.
 
 - **← →** (or A, D) steer, **↑** (W) faster, **↓** (S) slower, **space**
   fires (held, it fires again as soon as it can), **P** or **Enter**
-  pauses and plays. Tapping the river gives it the keyboard back.
+  pauses and plays. The keys work whatever has the focus (a control just
+  clicked included), except while a dialog or menu is open.
+- Before the race the river shows only *Press any key to play*: whether
+  two or three planes race depends on **You fly**.
 - Any key starts the race, goes on after a pause, and, once the race is
   over (after a second and a half, so the banner can be read), starts
   another on a new river; not Tab, Esc or a modifier alone, nor a

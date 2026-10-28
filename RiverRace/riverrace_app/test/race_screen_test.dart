@@ -44,7 +44,7 @@ void main() {
   testWidgets('starts paused, with both pilots and the player', (tester) async {
     await pumpApp(tester, FakeDecider());
     expect(find.text('Start'), findsOneWidget);
-    expect(find.text('Three planes, one river.'), findsOneWidget);
+    expect(find.text('Press any key to play'), findsOneWidget);
     expect(find.text('Careful'), findsWidgets);
     expect(find.text('Daredevil'), findsWidgets);
     expect(find.text('You'), findsOneWidget);
@@ -70,7 +70,10 @@ void main() {
   testWidgets('any key starts the race, and pauses with P', (tester) async {
     final decider = FakeDecider();
     await pumpApp(tester, decider);
-    expect(find.text('Press any key to start.'), findsOneWidget);
+    expect(find.text('Press any key to play'), findsOneWidget);
+    // Even with a control focused (a chip just clicked), a key plays.
+    await tester.tap(find.text('Fair race'));
+    await tester.pump();
     // A shortcut's modifier alone doesn't start it.
     await tester.sendKeyEvent(LogicalKeyboardKey.shiftLeft);
     await tester.pump();
