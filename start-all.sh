@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 # Starts every demo that runs as services: each folder with a devbox.json
-# and a process-compose.yaml (Mortgage Hub, Contact Hub, ..., and the index
-# page in Index/), detached, with `devbox services up -b` (or, in a
+# and a process-compose.yaml (Mortgage Hub, Contact Hub, ..., datyx and
+# the index page in Index/), detached, with `devbox services up -b` (or, in a
 # codespace, the image's process-compose: see demos-toolchain.sh), then
 # waits until each one's web app and
 # API answer and prints where to open them. A demo whose web port already
-# answers (started by hand, or with Docker Compose) is left as it is.
+# answers (started by hand, or with Docker Compose) is left as it is. A
+# folder without a web app (datyx, API only: no FLUTTER_WEB_PORT in its
+# process-compose.yaml) is checked on its API's /api/health instead.
 #
 #   ./start-all.sh              # every demo
 #   ./start-all.sh ContactHub   # only these
+#   ./start-aityx.sh            # the aityx group: the five aityx demos
+#   ./start-datyx.sh            # the datyx group: the API, the dashboard, HealthHub
 #   WAIT=0 ./start-all.sh       # start, don't wait
+# The groups come from each folder's group.id.txt (aityx or datyx); the
+# group scripts run this one with DEMOS_GROUP set.
 #
 # The aityx settings go in the .env at the root (see .env.example):
 # AITYX_API_KEY, the key, and AITYX_URL, the endpoint (https://api.aityx.ai
@@ -54,16 +60,34 @@ fi
 WAIT="${WAIT:-600}"
 
 # demos [names...]: the demos to act on, as folder names: the ones named,
-# else every folder with a devbox.json and a process-compose.yaml.
+# else every folder with a devbox.json and a process-compose.yaml. With
+# DEMOS_GROUP set (start-aityx.sh, start-datyx.sh and the stop scripts),
+# only the folders whose group.id.txt is that group, and a name outside
+# it is an error: the demos start and stop by group.
 demos() {
+  local name dir
   if [[ $# -gt 0 ]]; then
-    printf '%s\n' "$@"
+    for name in "$@"; do
+      if [[ -n "${DEMOS_GROUP:-}" && "$(group "$name")" != "$DEMOS_GROUP" ]]; then
+        echo "✗ $name is not in the $DEMOS_GROUP group (its group.id.txt says '$(group "$name")')" >&2
+        return 1
+      fi
+      printf '%s\n' "$name"
+    done
     return
   fi
   for config in "$root"/*/devbox.json; do
     dir="$(dirname "$config")"
-    [[ -f "$dir/process-compose.yaml" ]] && basename "$dir"
+    [[ -f "$dir/process-compose.yaml" ]] || continue
+    [[ -z "${DEMOS_GROUP:-}" || "$(group "$(basename "$dir")")" == "$DEMOS_GROUP" ]] && basename "$dir"
   done
+  return 0
+}
+
+# group <demo>: the demo's group, from its group.id.txt (empty without one).
+group() {
+  [[ -f "$root/$1/group.id.txt" ]] && tr -d '[:space:]' < "$root/$1/group.id.txt"
+  return 0
 }
 
 # port <demo> <VARIABLE>: the environment override, else the demo's
@@ -85,7 +109,8 @@ answers() {
 
 started=()
 failed=0
-for demo in $(demos "$@"); do
+selected="$(demos "$@")" || exit 1
+for demo in $selected; do
   dir="$root/$demo"
   if [[ ! -f "$dir/devbox.json" || ! -f "$dir/process-compose.yaml" ]]; then
     echo "✗ $demo: no devbox.json and process-compose.yaml in $dir" >&2
@@ -93,8 +118,12 @@ for demo in $(demos "$@"); do
     continue
   fi
   web="$(port "$demo" FLUTTER_WEB_PORT)"
+  api="$(port "$demo" API_PORT)"
   if [[ -n "$web" ]] && answers "http://localhost:$web/app/"; then
     echo "· $demo already answers at http://localhost:$web/app/: left as it is"
+    continue
+  elif [[ -z "$web" && -n "$api" ]] && answers "http://localhost:$api/api/health"; then
+    echo "· $demo already answers at http://localhost:$api/api/health: left as it is"
     continue
   fi
   echo "▶ $demo: starting ($DEMOS_TOOLCHAIN services, in $dir)"
@@ -125,8 +154,15 @@ while [[ ${#pending[@]} -gt 0 && $SECONDS -lt $deadline ]]; do
   for demo in "${pending[@]}"; do
     web="$(port "$demo" FLUTTER_WEB_PORT)"
     api="$(port "$demo" API_PORT)"
+    if [[ -z "$web" ]]; then
+      # No web app: the API itself.
+      if answers "http://localhost:$api/api/health"; then
+        echo "✅ $demo is up: http://localhost:$api/api/health (API only)"
+      else
+        still+=("$demo")
+      fi
     # The API through the app's origin: the dev server proxies /api/ to it.
-    if answers "http://localhost:$web/app/" && answers "http://localhost:$web/api/health"; then
+    elif answers "http://localhost:$web/app/" && answers "http://localhost:$web/api/health"; then
       echo "✅ $demo is up: http://localhost:$web/app/ (API: http://localhost:$api/api/health)"
     else
       still+=("$demo")
@@ -137,7 +173,12 @@ done
 
 for demo in "${pending[@]+"${pending[@]}"}"; do
   web="$(port "$demo" FLUTTER_WEB_PORT)"
-  echo "✗ $demo did not answer at http://localhost:$web/app/ within $WAIT s; see $(services_attach_hint "$root/$demo")" >&2
+  if [[ -n "$web" ]]; then
+    where="http://localhost:$web/app/"
+  else
+    where="http://localhost:$(port "$demo" API_PORT)/api/health"
+  fi
+  echo "✗ $demo did not answer at $where within $WAIT s; see $(services_attach_hint "$root/$demo")" >&2
   failed=1
 done
 

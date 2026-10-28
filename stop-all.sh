@@ -8,25 +8,50 @@
 #
 #   ./stop-all.sh               # every demo
 #   ./stop-all.sh ContactHub    # only these
+#   ./stop-aityx.sh             # the aityx group: the five aityx demos
+#   ./stop-datyx.sh             # the datyx group: the API, the dashboard, HealthHub
+# The groups come from each folder's group.id.txt (aityx or datyx); the
+# group scripts run this one with DEMOS_GROUP set.
 set -uo pipefail
 
 root="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=demos-toolchain.sh
 source "$root/demos-toolchain.sh"
 
+# demos [names...]: the demos to act on, as folder names: the ones named,
+# else every folder with a devbox.json and a process-compose.yaml. With
+# DEMOS_GROUP set (start-aityx.sh, start-datyx.sh and the stop scripts),
+# only the folders whose group.id.txt is that group, and a name outside
+# it is an error: the demos start and stop by group.
 demos() {
+  local name dir
   if [[ $# -gt 0 ]]; then
-    printf '%s\n' "$@"
+    for name in "$@"; do
+      if [[ -n "${DEMOS_GROUP:-}" && "$(group "$name")" != "$DEMOS_GROUP" ]]; then
+        echo "✗ $name is not in the $DEMOS_GROUP group (its group.id.txt says '$(group "$name")')" >&2
+        return 1
+      fi
+      printf '%s\n' "$name"
+    done
     return
   fi
   for config in "$root"/*/devbox.json; do
     dir="$(dirname "$config")"
-    [[ -f "$dir/process-compose.yaml" ]] && basename "$dir"
+    [[ -f "$dir/process-compose.yaml" ]] || continue
+    [[ -z "${DEMOS_GROUP:-}" || "$(group "$(basename "$dir")")" == "$DEMOS_GROUP" ]] && basename "$dir"
   done
+  return 0
+}
+
+# group <demo>: the demo's group, from its group.id.txt (empty without one).
+group() {
+  [[ -f "$root/$1/group.id.txt" ]] && tr -d '[:space:]' < "$root/$1/group.id.txt"
+  return 0
 }
 
 failed=0
-for demo in $(demos "$@"); do
+selected="$(demos "$@")" || exit 1
+for demo in $selected; do
   dir="$root/$demo"
   if [[ ! -f "$dir/devbox.json" ]]; then
     echo "✗ $demo: no devbox.json in $dir" >&2
