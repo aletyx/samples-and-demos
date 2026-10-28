@@ -39,7 +39,7 @@ and every aityx call in the log.
 | App ([roborules_app/](roborules_app)) | [Flutter](https://flutter.dev) for the web, styled like Robocode's Swing window |
 | API ([roborules_api/](roborules_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key, builds the battle model and plays turns on aityx |
 | Rules and physics | [aityx.ai](https://aityx.ai) decision models |
-| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
+| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) on a laptop, or a [Dev Container](https://containers.dev/) from the [published image](../image/), process-compose for the services either way; or [Docker Compose](compose.yaml) |
 
 ## Run it locally with devbox
 
@@ -90,8 +90,16 @@ port. The key comes from your environment or `.env`.
 [![Open RoboRules in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb)
 
 The codespace uses your `AITYX_API_KEY` Codespaces secret, the same as the
-other samples'. Once it has started, open port **8920** from the **Ports**
-panel. If it doesn't start, send `RoboRules/startup.log`.
+other samples'. It runs the [published image](../image/), which carries
+the app's release web build, so the codespace is available about three
+minutes after you ask for it and the app answers within a minute after
+that (unless the app changed since the image was made: then it builds
+itself, a minute or two). Once it has started, open port **8920** from
+the **Ports** panel. Watch the services with `process-compose attach -U
+-u /tmp/aityx-demos-RoboRules.sock`, stop them with `./stop-all.sh
+RoboRules` from the repository root and start them again with
+`./start-all.sh RoboRules`; there is no devbox in a codespace. If it
+doesn't start, send `RoboRules/startup.log`.
 
 ## Playing
 

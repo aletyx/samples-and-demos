@@ -19,7 +19,7 @@ with links that jump to exactly the JSON behind each item.
 |---|---|
 | App ([contacthub_app/](contacthub_app)) | [Flutter](https://flutter.dev) (Dart): web, Android, iOS and Linux from one codebase |
 | API ([contacthub_api/](contacthub_api)) | Dart (`dart:io`): holds the [aityx](https://aityx.ai) key; for now only `/api/health` |
-| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) in a [Dev Container](https://containers.dev/), process-compose for the services; or [Docker Compose](compose.yaml) |
+| Dev environment | [Devbox](https://www.jetify.com/devbox) (Nix) on a laptop, or a [Dev Container](https://containers.dev/) from the [published image](../image/), process-compose for the services either way; or [Docker Compose](compose.yaml) |
 
 The toolchain is pinned in [devbox.json](devbox.json) and locked in
 [devbox.lock](devbox.lock): Flutter, GNU Make and curl. It is the same
@@ -130,7 +130,7 @@ reload: rebuild after a change.
 [![Open Contact Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb)
 
 That link opens this repository's **Contact Hub** dev container on a
-4-core machine (16 GB RAM), which is what the Flutter and Nix builds want.
+4-core machine (16 GB RAM), which is what the Flutter builds want.
 To choose for yourself instead, use *Code → Codespaces → New with
 options* and pick **Contact Hub** as the dev container configuration —
 the repository holds several samples, so the configuration matters.
@@ -145,17 +145,30 @@ Otherwise add it at
 `aletyx/samples-and-demos`), or enter it when GitHub asks on the creation
 page. Without it the app runs, but **Send** can't route.
 
-On first start,
-[post-create.sh](../.devcontainer/ContactHub/post-create.sh) moves to
-this folder, says whether your key arrived and runs `devbox install`. Then, on that and every later
-start, [post-start.sh](../.devcontainer/ContactHub/post-start.sh) starts
-the services in the background and makes port **8890** public. There is
-nothing to run: once the app has compiled, open port 8890 from the
-**Ports** panel (Codespaces may open it in a browser tab for you). Its
-bare URL redirects to the app at `/app/`.
+When the codespace is created,
+[on-create.sh](../.devcontainer/ContactHub/on-create.sh) copies the
+app's release web build from the [published image](../image/) into this
+folder (unless the app changed since the image was made: then it builds
+itself, a minute or two),
+[update-content.sh](../.devcontainer/ContactHub/update-content.sh)
+compiles the API and the web server (a few seconds) and
+[post-create.sh](../.devcontainer/ContactHub/post-create.sh) says
+whether your key arrived. Then, on that and every later start,
+[post-start.sh](../.devcontainer/ContactHub/post-start.sh) starts the
+services in the background and makes port **8890** public. There is
+nothing to run: the codespace is available about three minutes after
+you ask for it and the app answers within a minute after that; open
+port 8890 from the **Ports** panel (Codespaces may open it in a browser
+tab for you). Its bare URL redirects to the app at `/app/`.
 
-Watch the services with `devbox services attach`, restart them with
-`devbox services restart`, and stop them with `devbox services stop`.
+Watch the services with `process-compose attach -U -u
+/tmp/aityx-demos-ContactHub.sock`, stop them with `./stop-all.sh
+ContactHub` from the repository root (or `process-compose down -U -u`
+with the same socket), and start them again with `./start-all.sh
+ContactHub`. There is no devbox in a codespace: the demos run on the
+image's own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
+[demos-toolchain.sh](../demos-toolchain.sh)); `devbox services` is for
+a laptop.
 
 **If the app doesn't start, send us `ContactHub/startup.log`.** Every
 step of the codespace's start goes there, timestamped, including a line
@@ -164,19 +177,19 @@ saying when the web app and the API first answered. It holds no secrets.
 **Check the port's visibility.** In the **Ports** panel, the
 *Visibility* column for 8890 should say **Public**. If it says
 **Private**, right-click the port, choose **Port Visibility → Public**
-and reload the app. If `devbox install` fails with HTTP 403, export
-`GITHUB_TOKEN` (for example `export GITHUB_TOKEN=$(gh auth token)`) and
-run it again.
+and reload the app.
 
 ## Run it in a dev container locally
 
 Open the repository root in VS Code and choose **Reopen in Container**,
 then **Contact Hub**. The dev container lives at the root of the
 repository, in [.devcontainer/ContactHub/](../.devcontainer/ContactHub),
-because that is where GitHub looks for one. Its
-[Containerfile](../.devcontainer/ContactHub/Containerfile) is Mortgage
-Hub's: Microsoft's `ubuntu-24.04` base with pinned, checksum-verified
-Devbox, Nix, the GitHub CLI and Flutter.
+because that is where GitHub looks for one. It runs the same
+[published image](../image/) as every dev container here,
+`docker.io/aletyxcode/samples-and-demos-devcontainer`, built from one
+[Containerfile](../image/Containerfile): Microsoft's `ubuntu-24.04`
+base with pinned, checksum-verified Flutter, process-compose and the
+GitHub CLI, and every demo's release web build.
 
 ## Contributing
 
