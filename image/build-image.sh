@@ -18,13 +18,16 @@
 #
 # The staging folder image/context/ (git-ignored) holds what the
 # Containerfile copies: the pubspecs, the builds and the manifest, which
-# records each demo's git tree hash; restore-builds.sh reuses a build only
-# for a demo whose folder still has that hash, so the tree must be clean.
+# records each demo's build key (build-key.sh: the git ids of what the web
+# build is made from); restore-builds.sh reuses a build only for a demo
+# whose key is unchanged, so those paths must be committed.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 image="${IMAGE:-docker.io/aletyxcode/samples-and-demos-devcontainer}"
 cd "$root"
+# shellcheck source=build-key.sh
+source "$root/image/build-key.sh"
 
 sha="$(git rev-parse --short HEAD)"
 demos=()
@@ -33,11 +36,15 @@ for config in */devbox.json; do
   [[ -f "$dir/scripts/build.sh" ]] && demos+=("$dir")
 done
 
-if [[ -n "$(git status --porcelain -- "${demos[@]}")" ]]; then
-  echo "error: uncommitted changes in ${demos[*]}: the image records each demo's" >&2
-  echo "error: committed tree hash, so commit or stash first" >&2
-  exit 1
-fi
+for demo in "${demos[@]}"; do
+  dirty="$(build_key_paths "$demo" | xargs git status --porcelain --)"
+  if [[ -n "$dirty" ]]; then
+    echo "error: uncommitted changes in what $demo's web build is made from:" >&2
+    echo "$dirty" >&2
+    echo "error: the image records their committed git ids, so commit or stash first" >&2
+    exit 1
+  fi
+done
 
 echo "==> building every demo (./build-all.sh)"
 ./build-all.sh
@@ -52,7 +59,7 @@ for demo in "${demos[@]}"; do
   [[ -f "$app/build/web/.aityx-services" ]] || { echo "error: $app/build/web isn't a services build" >&2; exit 1; }
   mkdir -p "$context/builds/$demo" "$context/pubspecs/$demo"
   cp -a "$app/build/web" "$context/builds/$demo/web"
-  printf '%s %s\n' "$demo" "$(git rev-parse "HEAD:$demo")" >>"$context/builds/manifest"
+  printf '%s %s\n' "$demo" "$(build_key "$demo")" >>"$context/builds/manifest"
   for pkg in "$app" "$api"; do
     mkdir -p "$context/pubspecs/$demo/$(basename "$pkg")"
     cp "$pkg/pubspec.yaml" "$pkg/pubspec.lock" "$context/pubspecs/$demo/$(basename "$pkg")/"

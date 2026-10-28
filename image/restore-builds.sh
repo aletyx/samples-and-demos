@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Puts the release web builds the dev container image carries (/opt/demos,
 # see Containerfile and build-image.sh) into the workspace, for every demo
-# whose folder still has the git tree hash the build was made from; a demo
-# that changed since is left to build itself (its scripts/build.sh, run by
+# whose build key (build-key.sh: the git ids of what the web build is made
+# from) is still the one the build was made with; a demo whose app changed
+# since is left to build itself (its scripts/build.sh, run by
 # ./build-all.sh and before the services start). Run by on-create.sh in a
 # codespace; harmless elsewhere (no /opt/demos: nothing to restore).
 #
@@ -18,6 +19,8 @@ if [[ ! -f "$manifest" ]]; then
   exit 0
 fi
 cd "$root"
+# shellcheck source=build-key.sh
+source "$root/image/build-key.sh"
 
 wanted=("$@")
 restored=()
@@ -33,9 +36,9 @@ while read -r demo hash; do
     echo "· $demo: no build in the image"
     continue
   fi
-  now="$(git rev-parse "HEAD:$demo" 2>/dev/null || echo none)"
-  if [[ "$now" != "$hash" ]]; then
-    echo "· $demo changed since the image was made (${hash:0:7} → ${now:0:7}): it builds itself"
+  now="$(build_key "$demo" 2>/dev/null)"
+  if [[ -z "$now" || "$now" != "$hash" ]]; then
+    echo "· $demo's app changed since the image was made (${hash:0:7} → ${now:0:7}): it builds itself"
     continue
   fi
   rm -rf "$app/build/web"

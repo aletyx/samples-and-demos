@@ -104,10 +104,11 @@ RUN for dir in /tmp/pubspecs/*/*; do \
     && rm -rf /tmp/pubspecs
 
 # The demos' release web builds, made on the laptop that builds the image
-# (build-image.sh runs ./build-all.sh first), with the git tree hash of
-# each demo's folder they were made from (manifest). At codespace creation
-# restore-builds.sh copies the build of every demo whose folder still has
-# that hash into the workspace; a demo that changed builds itself.
+# (build-image.sh runs ./build-all.sh first), with the build key of each
+# (manifest; build-key.sh: the git ids of what the web build is made
+# from). At codespace creation restore-builds.sh copies the build of every
+# demo whose key is unchanged into the workspace; a demo whose app changed
+# builds itself.
 COPY --chown=vscode:vscode builds/ /opt/demos/
 
 # No WORKDIR: the checkout path depends on the repository name

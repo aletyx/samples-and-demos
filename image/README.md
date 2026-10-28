@@ -23,7 +23,9 @@ bash image/build-image.sh
 
 [build-image.sh](build-image.sh) runs `./build-all.sh` (the demos'
 release builds, natively), stages the builds, the pubspecs and a manifest
-of each demo's git tree hash in `image/context/` (git-ignored), builds
+of each demo's build key ([build-key.sh](build-key.sh): the git ids of
+what its web build is made from: the app package, the version files,
+`scripts/` and `devbox.lock`) in `image/context/` (git-ignored), builds
 the image for `linux/amd64` (the Codespaces machines; through Docker's
 emulation on Apple silicon, a few minutes for the Flutter steps) and
 pushes it tagged with the commit and as `latest`. `PUSH=0` builds without
@@ -34,10 +36,11 @@ registry while trying an image out; the dev containers pull whatever
 ## What a codespace does with it
 
 - [restore-builds.sh](restore-builds.sh), run by `on-create.sh`, copies
-  the build of every demo whose folder still has the manifest's tree hash
-  into the workspace; a demo that changed since the image was made is
+  the build of every demo whose build key is still the manifest's into
+  the workspace; a demo whose app changed since the image was made is
   skipped and builds itself (`scripts/build.sh`, about a minute on 4
-  cores), so an old image slows that demo down but breaks nothing.
+  cores), so an old image slows that demo down but breaks nothing. A
+  change elsewhere in the demo (its README, its API) keeps the build.
 - The APIs' binaries are not in the image: `scripts/build.sh` compiles
   them in a few seconds, natively.
 - `DEMOS_TOOLCHAIN=image` (set by `devcontainer.json`) makes
