@@ -15,6 +15,20 @@ case "$DEMOS_TOOLCHAIN" in
   *) echo "error: DEMOS_TOOLCHAIN must be devbox or image (got '$DEMOS_TOOLCHAIN')" >&2; exit 2 ;;
 esac
 
+# toolchain_missing <dir>: what the demo's toolchain still lacks to start
+# its services, one item per line; nothing when it is ready. The dev
+# container's post-start scripts check this before starting anything.
+toolchain_missing() {
+  local dir="$1"
+  if [[ "$DEMOS_TOOLCHAIN" == image ]]; then
+    command -v process-compose >/dev/null || echo "process-compose on the PATH"
+    command -v flutter >/dev/null || echo "flutter on the PATH"
+  else
+    command -v devbox >/dev/null || echo "devbox on the PATH"
+    [[ -d "$dir/.devbox" ]] || echo "$(basename "$dir")/.devbox (devbox install)"
+  fi
+}
+
 # services_socket <dir>: the socket of a demo's detached process-compose.
 services_socket() {
   printf '%s/aityx-demos-%s.sock\n' "${TMPDIR:-/tmp}" "$(basename "$1")"

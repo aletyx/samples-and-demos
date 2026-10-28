@@ -49,10 +49,19 @@ startup_facts() {
   else
     echo "AITYX_URL: default"
   fi
-  echo "devbox: $(command -v devbox || echo missing) $(devbox version 2>/dev/null)"
-  echo "nix: $(nix --version 2>/dev/null || echo missing)"
-  for demo in $(startup_demos); do
-    echo "$demo/.devbox: $([[ -d "$startup_root/$demo/.devbox" ]] && echo present || echo missing)"
-  done
+  # The toolchain (see demos-toolchain.sh): the image's own tools, or
+  # devbox, with each demo's install.
+  echo "toolchain: ${DEMOS_TOOLCHAIN:-devbox}"
+  if [[ "${DEMOS_TOOLCHAIN:-devbox}" == image ]]; then
+    echo "flutter: $(command -v flutter || echo missing)"
+    echo "process-compose: $(command -v process-compose || echo missing) $(process-compose version 2>/dev/null | head -1)"
+    echo "builds in the image: $(ls /opt/demos 2>/dev/null | grep -v manifest | tr '\n' ' ')"
+  else
+    echo "devbox: $(command -v devbox || echo missing) $(devbox version 2>/dev/null)"
+    echo "nix: $(nix --version 2>/dev/null || echo missing)"
+    for demo in $(startup_demos); do
+      echo "$demo/.devbox: $([[ -d "$startup_root/$demo/.devbox" ]] && echo present || echo missing)"
+    done
+  fi
   df -h / 2>/dev/null | tail -1 | awk '{print "disk /: " $4 " free of " $2}'
 }

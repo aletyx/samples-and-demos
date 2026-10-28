@@ -20,7 +20,7 @@ app="$(cd "$here/../.." && pwd)/RoboRules"
 source "$here/startup-log.sh"
 # shellcheck source=../../demos-toolchain.sh
 source "$here/../../demos-toolchain.sh"
-export -f services_up services_running services_socket
+export -f services_up services_running services_socket toolchain_missing
 
 # --watch: the detached watcher started below.
 if [[ "${1:-}" == --watch ]]; then
@@ -44,7 +44,7 @@ if [[ "${1:-}" == --watch ]]; then
   done
   slog "[watch] not ready after 15 minutes; the services' state:"
   services_running "$app"; slog "[watch]   services_running: $? (0 up, 1 down, 2 unknown)"
-  for f in .devbox/compose.log /tmp/process-compose-"$(id -un)".log; do
+  for f in .devbox/compose.log process-compose.log /tmp/process-compose-"$(id -un)".log; do
     [[ -f "$f" ]] || continue
     slog "[watch] last lines of $f:"
     tail -n 60 "$f" | while IFS= read -r line; do slog "[watch]   $line"; done
@@ -58,9 +58,12 @@ startup_facts
 
 cd "$app" || { echo "post-start: cannot find $app" >&2; exit 1; }
 
-if ! command -v devbox >/dev/null || [[ ! -d .devbox ]]; then
-  echo "post-start: devbox is not installed here yet (did on-create.sh"
-  echo "post-start: fail? see its lines above); start the app with:"
+# What the toolchain (devbox, or the image's own tools) still lacks:
+# with devbox, this demo's `devbox install` from on-create.sh.
+missing="$(toolchain_missing "$app" | tr '\n' ';')"
+if [[ -n "$missing" ]]; then
+  echo "post-start: the $DEMOS_TOOLCHAIN toolchain isn't ready: missing ${missing%;}"
+  echo "post-start: (did on-create.sh fail? see its lines above); start the app with:"
   echo "post-start:   ./start-all.sh RoboRules"
 else
   # Detached, so they outlive postStartCommand. The services' own output
