@@ -3,7 +3,7 @@
   // All demos
   //
   // Every demo in this repository that runs as services, started
-  // together: Mortgage Hub, Contact Hub, Cellfie, RoboRules,
+  // together: Mortgage Hub, Contact Hub, Cellfie, RoboRules, RiverRace,
   // PokerFace, each a Flutter web app and a Dart API calling aityx.ai,
   // HealthHub, the same with a PostgreSQL database, and the
   // index page (Index/) that links them and says which ones are up.
@@ -55,6 +55,7 @@
     "MORTGAGEHUB_BIND_HOST": "0.0.0.0",
     "CONTACTHUB_BIND_HOST": "0.0.0.0",
     "CELLFIE_BIND_HOST": "0.0.0.0",
+    "RIVERRACE_BIND_HOST": "0.0.0.0",
     "ROBORULES_BIND_HOST": "0.0.0.0",
     "POKERFACE_BIND_HOST": "0.0.0.0",
     "HEALTHHUB_BIND_HOST": "0.0.0.0"
@@ -106,7 +107,7 @@
   // public, which devcontainer.json cannot. Only the index opens a
   // browser tab: it is up in seconds and shows the demos as they compile,
   // with a link to each (the forwarded URL, in a codespace).
-  "forwardPorts": [8800, 8880, 8890, 8910, 8920, 8930, 9800],
+  "forwardPorts": [8800, 8880, 8890, 8910, 8920, 8930, 8940, 9800],
   "portsAttributes": {
     "8800": {
       "label": "Index: every demo on one page",
@@ -135,6 +136,11 @@
     },
     "8930": {
       "label": "Cellfie web app",
+      "protocol": "http",
+      "onAutoForward": "silent"
+    },
+    "8940": {
+      "label": "RiverRace web app",
       "protocol": "http",
       "onAutoForward": "silent"
     },
