@@ -102,10 +102,13 @@
       ]
     }
   },
-  // The index page and the two web apps, public (post-start.sh). The
-  // datyx API (9900, its Swagger UI at /q/swagger-ui, which the index
-  // links to) and OpenMetadata's UI (9902) are forwarded too, but stay
-  // private: they open for you, signed in to GitHub, and nobody else.
+  // The index page and HealthHub's web app, public (post-start.sh). The
+  // datyx dashboard (9906) is public only once the datyx API requires a
+  // sign-in (OIDC_CLIENT_ID): without one, anyone with its URL could add
+  // or delete data sources through it. The datyx API (9900, its Swagger
+  // UI at /q/swagger-ui, which the index links to) and OpenMetadata's UI
+  // (9902) are forwarded too, but stay private: they open for you,
+  // signed in to GitHub, and nobody else.
   // HealthHub's API (9801) and the databases stay inside the container:
   // each app reaches its API through its web server's /api/ proxy.
   // Plain HTTP, which is what the servers speak; switching a public port
@@ -123,7 +126,7 @@
       "onAutoForward": "silent"
     },
     "9906": {
-      "label": "datyx dashboard",
+      "label": "datyx dashboard (private without OIDC)",
       "protocol": "http",
       "onAutoForward": "silent"
     },
