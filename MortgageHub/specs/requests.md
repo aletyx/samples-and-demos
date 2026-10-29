@@ -334,5 +334,9 @@ spec.
     the 1100 px width were already in the sources (request 37) but the
     demo on this machine was still serving a Docker image built before
     them; it now serves the release build of the current sources. New: a
-    faint rule between the response and the request blocks. See
-    [Regulatory check](regulatory-check.md).
+    faint rule between the response and the request blocks. Since the
+    browser still showed the old app after that (it kept the old image's
+    scripts, which nginx served without cache headers), each web build now
+    gives its scripts URLs of their own, and nginx sends `no-cache` too.
+    See [Regulatory check](regulatory-check.md) and [Development
+    environment](dev-environment.md).

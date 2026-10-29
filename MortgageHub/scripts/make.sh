@@ -40,6 +40,24 @@ can_build() {
   esac
 }
 
+# stamp_web <dir> <id>: gives the web build's scripts URLs of their own,
+# flutter_bootstrap.js?b=<id> from index.html and main.dart.js?b=<id> from
+# the bootstrap, so a browser that cached an earlier build's (a server
+# without cache headers lets it keep them for hours, and a reload doesn't
+# revalidate scripts) fetches this one. index.html itself is revalidated
+# on every load.
+stamp_web() {
+  local dir="$1" id="$2"
+  sed -i.bak "s|src=\"flutter_bootstrap.js\"|src=\"flutter_bootstrap.js?b=$id\"|" "$dir/index.html"
+  sed -i.bak "s|\"mainJsPath\":\"main.dart.js\"|\"mainJsPath\":\"main.dart.js?b=$id\"|" "$dir/flutter_bootstrap.js"
+  rm -f "$dir/index.html.bak" "$dir/flutter_bootstrap.js.bak"
+  if ! grep -q "flutter_bootstrap.js?b=$id" "$dir/index.html" ||
+    ! grep -q "main.dart.js?b=$id" "$dir/flutter_bootstrap.js"; then
+    echo "error: couldn't stamp the web build's script URLs (did Flutter change index.html or flutter_bootstrap.js?)" >&2
+    return 1
+  fi
+}
+
 build() {
   local target="$1"
   if ! can_build "$target"; then
@@ -52,6 +70,7 @@ build() {
       local base=()
       [[ -n "${WEB_BASE_HREF:-}" ]] && base=(--base-href "$WEB_BASE_HREF")
       flutter build web "--$MODE" ${base[@]+"${base[@]}"} "${BUILD_ARGS[@]}"
+      stamp_web build/web "$BUILD_NUMBER"
       echo "==> web: mortgagehub_app/build/web/"
       ;;
     android)
