@@ -35,7 +35,7 @@ Flutter app and a Dart API. Dev container
 The datyx data system and the demos built on a database, with
 PostgreSQL, Elasticsearch and OpenMetadata running in Docker. Dev
 container [.devcontainer/datyx/](.devcontainer/datyx/devcontainer.json),
-on an 8-core, 32 GB machine.
+on a 4-core, 16 GB machine.
 
 | Demo | What it shows |
 |---|---|
@@ -101,7 +101,7 @@ below).
 | Dev container | Starts | Image | Machine |
 |---|---|---|---|
 | [aityx demos](.devcontainer/aityx/devcontainer.json) | Mortgage Hub, Contact Hub, Cellfie, RoboRules, RiverRace, PokerFace | `docker.io/aletyxcode/samples-and-demos-aityx` | 4-core, 16 GB |
-| [datyx demos](.devcontainer/datyx/devcontainer.json) | the datyx API (with PostgreSQL, Elasticsearch and OpenMetadata in Docker), the datyx dashboard, HealthHub | `docker.io/aletyxcode/samples-and-demos-datyx` | 8-core, 32 GB |
+| [datyx demos](.devcontainer/datyx/devcontainer.json) | the datyx API (with PostgreSQL, Elasticsearch and OpenMetadata in Docker), the datyx dashboard, HealthHub | `docker.io/aletyxcode/samples-and-demos-datyx` | 4-core, 16 GB |
 
 Once it starts, the index page opens on port **8800** and links each
 demo; the group's web apps are in the **Ports** panel too, made public so
