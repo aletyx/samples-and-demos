@@ -173,7 +173,7 @@ void main() {
     expect(find.text('now 0.6×'), findsOneWidget);
     await tester.pump(const Duration(seconds: 300));
     expect(screen.pace, 100);
-    await tester.tap(find.text('Restart'));
+    await tester.tap(find.byTooltip('Restart'));
     await tester.pump();
     expect(screen.pace, 50);
     await tester.tap(find.text('Pause'));
