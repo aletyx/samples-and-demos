@@ -77,3 +77,16 @@ The feature files hold the current specification; see the
    speed a bit slower.** The aityx pilots' planes are drawn at 25% opacity,
    down from 35% (see [Theme](theme.md)). **Speed** gains a ¾× choice,
    which the game starts at, instead of 1× (see [Game](game.md#playing)).
+10. **Slow down a little over the fuel strip, as in River Raid; a retro
+    recharging beep over it and a retro explosion when enemies are hit;
+    double the lives, since a plane sometimes doesn't come back after a
+    crash.** A plane over a depot slows to 70% of its throttle's speed. A
+    **Sound** chip (on) plays a square-wave beep while refueling, rising
+    with the tank, and a noise burst when a missile hits something,
+    made with Web Audio (see [Game](game.md#playing)). Planes start with
+    eight lives, up from four. The plane that didn't come back: it did,
+    but now and then (1 respawn in 18) at a spot it couldn't fly out of,
+    an island or the bank just ahead, and was lost again within a few
+    frames; it now comes back where it can fly straight on for 40 rows
+    (see [Game](game.md#the-planes)). The aityx pilots' planes are 25%
+    opaque in the planes section too, as in [Theme](theme.md).

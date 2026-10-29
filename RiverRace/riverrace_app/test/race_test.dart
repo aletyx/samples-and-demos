@@ -126,6 +126,60 @@ void main() {
     expect(you.missile, isNotNull);
   });
 
+  test('a plane comes back where it can fly on', () {
+    var respawns = 0;
+    for (var seed = 1; seed <= 60; seed++) {
+      final race = Race(seed: seed, planeIds: ['you'], finishBridge: 0);
+      final you = race.plane('you');
+      var back = -1;
+      var was = true;
+      for (var f = 0; f < 5000 && you.state != PlaneState.out; f++) {
+        race.step();
+        if (you.flying && !was) {
+          respawns++;
+          back = race.frame;
+        }
+        if (!you.flying && was && back >= 0) {
+          expect(
+            race.frame - back,
+            greaterThanOrEqualTo(8),
+            reason: 'seed $seed',
+          );
+        }
+        was = you.flying;
+      }
+    }
+    expect(respawns, greaterThan(100));
+  });
+
+  test('a plane slows down and beeps over a fuel depot', () {
+    final race = Race(seed: 3, planeIds: ['p1'], finishBridge: 0);
+    final p = race.plane('p1')..fuel = 50;
+    race.things
+      ..clear()
+      ..add(Thing(ThingKind.fuel, p.x, p.y + 20));
+    for (var f = 0; f < 30; f++) {
+      race.step();
+    }
+    expect(p.refueling || p.fuel > 50, isTrue);
+    expect(race.sounds.whereType<RefuelSound>(), isNotEmpty);
+    expect(p.speed, lessThan(speeds['normal']!));
+  });
+
+  test('a missile hit explodes with a sound', () {
+    final race = Race(seed: 3, planeIds: ['p1'], finishBridge: 0);
+    final p = race.plane('p1')
+      ..action = const PilotAction(steer: 'straight', fire: true);
+    race.things
+      ..clear()
+      ..add(Thing(ThingKind.ship, p.x, p.y + 30));
+    for (var f = 0; f < 10; f++) {
+      race.step();
+    }
+    expect(race.things.first.exploding, greaterThan(0));
+    expect(race.sounds.whereType<ExplosionSound>(), isNotEmpty);
+  });
+
   test('fuel runs out without depots', () {
     final race = Race(seed: 3, planeIds: ['p1'], finishBridge: 0);
     final p = race.plane('p1');
