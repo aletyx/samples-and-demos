@@ -11,6 +11,8 @@
 #
 #   ./build-all.sh              # every demo
 #   ./build-all.sh ContactHub   # only these
+#   DEMOS_GROUP=datyx ./build-all.sh   # only the folders of a group (its
+#                               # group.id.txt); a group's dev container sets it
 #
 # The dev container runs it from updateContentCommand, so a Codespaces
 # prebuild holds the builds and a codespace created from one starts every
@@ -24,7 +26,8 @@ root="$(cd "$(dirname "$0")" && pwd)"
 source "$root/demos-toolchain.sh"
 
 # demos [names...]: the folders to build: the ones named, else every folder
-# with a devbox.json and a process-compose.yaml.
+# with a devbox.json and a process-compose.yaml (with DEMOS_GROUP set, in
+# that group).
 demos() {
   if [[ $# -gt 0 ]]; then
     printf '%s\n' "$@"
@@ -32,7 +35,12 @@ demos() {
   fi
   for config in "$root"/*/devbox.json; do
     dir="$(dirname "$config")"
-    [[ -f "$dir/process-compose.yaml" ]] && basename "$dir"
+    [[ -f "$dir/process-compose.yaml" ]] || continue
+    if [[ -n "${DEMOS_GROUP:-}" &&
+      "$(tr -d '[:space:]' <"$dir/group.id.txt" 2>/dev/null)" != "$DEMOS_GROUP" ]]; then
+      continue
+    fi
+    basename "$dir"
   done
 }
 

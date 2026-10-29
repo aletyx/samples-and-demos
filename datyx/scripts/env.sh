@@ -34,7 +34,11 @@ export DATYX_DB_ADMIN_PASSWORD="${DATYX_DB_ADMIN_PASSWORD:-postgres}"
 export DATYX_DB_PASSWORD="${DATYX_DB_PASSWORD:-datyx}"
 export OPENMETADATA_DB_PASSWORD="${OPENMETADATA_DB_PASSWORD:-openmetadata_password}"
 export API_MODE="${API_MODE:-dev}"
-# Authentication (see .env.example): empty, off.
-export OIDC_ISSUER="${OIDC_ISSUER:-}" OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-}" OIDC_EXTRA_AUDIENCES="${OIDC_EXTRA_AUDIENCES:-}"
+# Authentication (see .env.example): off without OIDC_CLIENT_ID. The
+# issuer defaults to Google's, as in application.properties: exported
+# empty, it would override that default with nothing, and the API would
+# not start (a fresh checkout, a codespace, has no .env).
+export OIDC_ISSUER="${OIDC_ISSUER:-https://accounts.google.com}"
+export OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-}" OIDC_EXTRA_AUDIENCES="${OIDC_EXTRA_AUDIENCES:-}"
 # Encryption at rest (see .env.example): empty, the API's development key in dev mode.
 export DATYX_MASTER_KEY="${DATYX_MASTER_KEY:-}"

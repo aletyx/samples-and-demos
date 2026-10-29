@@ -120,13 +120,14 @@
     Every app runs locally on its own port: start the six with <code>./start-aityx.sh</code> at the
     root of the repository, stop them with <code>./stop-aityx.sh</code>. Each needs your own aityx key in its
     <code>.env</code>. Or open one in a GitHub codespace from its card, or
-    <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&amp;machine=standardLinux32gb">all of them at once</a>.
+    <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Faityx%2Fdevcontainer.json&amp;machine=standardLinux32gb">all six at once</a>.
   </footer>
 
   <script>
     // The demos, in the order shown. "folder" matches the repository's folders;
     // "port" is the web app's, the FLUTTER_WEB_PORT default in its
-    // process-compose.yaml.
+    // process-compose.yaml; "codespace" is the group whose dev container
+    // (.devcontainer/<group>/) opens it, or false.
     const demos = [
       {
         folder: 'MortgageHub', port: 8880, name: 'Mortgage Hub',
@@ -134,42 +135,42 @@
         desc: 'A buyer fills in a proposal request, and a regulatory check says whether a lender can process it under current US rules: Fannie Mae’s eligibility matrix, the 2026 FHFA and FHA limits, FHA, VA and USDA rules and DTI limits, executed as a decision model on aityx.',
         chips: ['aityx decision model'],
         // Its own dev container is archived; the default one starts it with the rest.
-        icon: 'home', codespace: true, devcontainer: '.devcontainer/devcontainer.json',
+        icon: 'home', codespace: 'aityx',
       },
       {
         folder: 'ContactHub', port: 8890, name: 'Contact Hub',
         what: 'Ask anything, and it reaches the right person',
         desc: 'A request, typed or dictated on the device, is classified and checked by aityx and routed by a decision model to the department, the person and the priority; for an order, the store’s policy says what is refunded and by when. The app shows why, and the aityx call itself.',
         chips: ['aityx decision model', 'speech on the device'],
-        icon: 'chat', codespace: true,
+        icon: 'chat', codespace: 'aityx',
       },
       {
         folder: 'Cellfie', port: 8930, name: 'Cellfie',
         what: 'The cells take a picture of themselves, and aityx says who’s in it',
         desc: 'Conway’s Game of Life on an infinite board, with the rules of birth and death (Conway’s, HighLife’s and Life without death, as switches) and a catalogue of its patterns, as an aityx decision model: one aityx call per generation names what lives, what dies and which clusters are blocks, gliders or pulsars, with the request and the response in a side panel.',
         chips: ['aityx decision model'],
-        icon: 'grid', codespace: true,
+        icon: 'grid', codespace: 'aityx',
       },
       {
         folder: 'RoboRules', port: 8920, name: 'RoboRules',
         what: 'Robocode on the web, every turn played by aityx',
         desc: 'Tanks fight until one is left. Every robot’s behavior is an aityx decision model, its rules a table you can edit, and the whole battle (sensors, moves, bullets, hits, damage, scores) is played by aityx; the app only draws it.',
         chips: ['aityx decision model'],
-        icon: 'robot', codespace: true,
+        icon: 'robot', codespace: 'aityx',
       },
       {
         folder: 'PokerFace', port: 8910, name: 'PokerFace',
         what: 'A poker simulator where every player is a set of rules',
         desc: 'No-limit hold’em at a table of up to nine. At each turn the app works out the player’s situation and one aityx call runs their strategy on it: the action, the amount, and the rule that decided it. Five strategies to read, or write your own; every call in a sidebar; the pace in your hands.',
         chips: ['aityx decision model', 'strategies as rules'],
-        icon: 'cards', codespace: true,
+        icon: 'cards', codespace: 'aityx',
       },
       {
         folder: 'RiverRace', port: 8940, name: 'RiverRace',
         what: 'The Atari river raid, three planes at once, two flown by aityx',
         desc: 'The 1982 Atari river shooter, remade: banks and islands, bridges, tankers, helicopters, jets and fuel depots, with three planes up one river at once. Two are flown by aityx, each by its own rules (a decision table you can edit while they fly); the yellow one is yours. Who scores more? Every aityx call, sent and received, in a side panel.',
         chips: ['aityx decision model', 'strategies as rules'],
-        icon: 'plane', codespace: true,
+        icon: 'plane', codespace: 'aityx',
       },
     ];
     const icons = {
@@ -183,7 +184,7 @@
     const github = 'https://github.com/aletyx/samples-and-demos/tree/main/';
     const codespaces = (d) =>
       'https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=' +
-      encodeURIComponent(d.devcontainer || '.devcontainer/' + d.folder + '/devcontainer.json') +
+      encodeURIComponent('.devcontainer/' + d.codespace + '/devcontainer.json') +
       '&machine=standardLinux32gb';
     // A demo's web app from here. A codespace forwards each port on its own
     // host, https://<codespace>-<port>.app.github.dev/, with no :port: this

@@ -7,11 +7,26 @@
 # pubspec), version.X.txt and version.Y.txt, scripts/ (build.sh and the
 # dart-defines) and devbox.lock (the Flutter version).
 
+# app_package <demo>: the demo's Flutter app package in HEAD, relative to
+# the repository (Cellfie/cellfie_app, datyx-dashboard/datyx_dashboard):
+# its first folder whose pubspec.yaml depends on the Flutter SDK; nothing
+# for a demo without one (datyx, a Java API).
+app_package() {
+  local dir
+  while IFS= read -r dir; do
+    if git show "HEAD:$dir/pubspec.yaml" 2>/dev/null | grep -q 'sdk: flutter'; then
+      echo "$dir"
+      return 0
+    fi
+  done < <(git ls-tree -d --name-only HEAD "$1/")
+  return 0
+}
+
 # build_key_paths <demo>: the paths, relative to the repository, one per
 # line, that exist in HEAD.
 build_key_paths() {
   local demo="$1" app path
-  app="$(git ls-tree --name-only HEAD "$demo/" | grep '_app$' | head -1)"
+  app="$(app_package "$demo")"
   [[ -n "$app" ]] || return 0
   for path in "$app" "$demo/scripts" "$demo/version.X.txt" "$demo/version.Y.txt" "$demo/devbox.lock"; do
     git rev-parse --quiet --verify "HEAD:$path" >/dev/null 2>&1 && echo "$path"

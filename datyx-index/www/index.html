@@ -116,6 +116,7 @@
   <footer>
     Everything runs locally on its own port, 9800 to 9907: start the group with <code>./start-datyx.sh</code> at the
     root of the repository, stop it with <code>./stop-datyx.sh</code>; or <code>docker compose up</code> in each folder.
+    Or open the group in a <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdatyx%2Fdevcontainer.json&amp;machine=standardLinux32gb">GitHub codespace</a>.
     The six aityx demos have an index of their own, on port 8800.
   </footer>
 
@@ -144,7 +145,7 @@
         what: 'The app of the datyx group, with a database of its own',
         desc: 'A Flutter app, a Dart API and PostgreSQL. The page you open is a map of where you are, with a welcome over it; signing in with Google leads home, a dashboard whose one tile is the same map, and its API reaches datyx with the same identity. Ports 9800 to 9802.',
         chips: ['Flutter app', 'Dart API', 'PostgreSQL', 'Google sign-in'],
-        icon: 'heart', codespace: true,
+        icon: 'heart',
       },
       {
         folder: 'datyx', port: 9902, path: '/', name: 'OpenMetadata',
@@ -162,10 +163,9 @@
       catalog: '<path d="M4 5 H20 V19 H4 Z M4 10 H20 M9 10 V19 M7 7.5 H9 M12 7.5 H17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     };
     const github = 'https://github.com/aletyx/samples-and-demos/tree/main/';
-    const codespaces = (d) =>
-      'https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=' +
-      encodeURIComponent('.devcontainer/' + d.folder + '/devcontainer.json') +
-      '&machine=standardLinux32gb';
+    // Every card opens in the datyx group's codespace (.devcontainer/datyx/).
+    const codespace = 'https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=' +
+      encodeURIComponent('.devcontainer/datyx/devcontainer.json') + '&machine=standardLinux32gb';
     // Where to open one from here. A codespace forwards each port on its
     // own host, https://<codespace>-<port>.app.github.dev/, with no :port:
     // this page's host with its port swapped. Anywhere else, the port on
@@ -189,7 +189,7 @@
         '<div class="actions">' +
         '<a class="btn primary" href="' + appUrl(d.port, d.path) + '" target="_blank" rel="noopener">Open' + ext + '</a>' +
         '<a class="btn" href="' + github + (d.source || d.folder) + '">Source ' + ext + '</a>' +
-        (d.codespace ? '<a class="btn" href="' + codespaces(d) + '">Codespace ' + ext + '</a>' : '') +
+        '<a class="btn" href="' + codespace + '">Codespace ' + ext + '</a>' +
         '</div>';
       return el;
     }

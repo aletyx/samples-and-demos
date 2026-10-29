@@ -80,18 +80,23 @@ ports:
   rewrites the world model.
 - **Docker Compose** ([compose.yaml](../compose.yaml)): the web app's
   release build under nginx and the API compiled, with `models/` beside it.
-- **Dev container** ([.devcontainer/RoboRules/](../../.devcontainer/RoboRules)),
-  named **RoboRules**, forwarding 8920 and asking for the same
-  `AITYX_API_KEY` Codespaces secret as the other samples. It uses the
-  published image every dev container here uses
-  (`docker.io/aletyxcode/samples-and-demos-devcontainer`, see
-  [image/](../../image/)), which carries the app's release web build:
-  `on-create.sh` copies it into the workspace (unless `RoboRules/`
-  changed since the image was made: then the app builds itself),
-  `update-content.sh` compiles the API and web server and
-  `post-start.sh` starts the services detached with the image's
-  process-compose (socket `/tmp/aityx-demos-RoboRules.sock`,
-  `DEMOS_TOOLCHAIN=image`, see
+- **Dev container**: the aityx group's
+  ([.devcontainer/aityx/](../../.devcontainer/aityx)), named **aityx
+  demos**, shared with the other five aityx demos (there is no per-demo
+  one), forwarding 8920 among the group's web ports and the index's 8800,
+  and asking for the same `AITYX_API_KEY` Codespaces secret as the other
+  samples. It uses the group's published image
+  (`docker.io/aletyxcode/samples-and-demos-aityx`, built by
+  `bash image/build-image.sh aityx`, see [image/](../../image/)), which
+  carries the six aityx demos' release web builds: `on-create.sh` copies
+  them into the workspace (unless a demo's folder changed since the image
+  was made: then that app builds itself), `update-content.sh` runs
+  `build-all.sh` for the group (RoboRules' API and web server among them)
+  and `post-start.sh` starts the index page and then the group
+  (`DEMOS_GROUP=aityx`) detached with `start-all.sh` and the image's
+  process-compose (RoboRules' socket is
+  `/tmp/aityx-demos-RoboRules.sock`, `DEMOS_TOOLCHAIN=image`, see
   [demos-toolchain.sh](../../demos-toolchain.sh)); no devbox in a
-  codespace. Every step goes to `RoboRules/startup.log`.
+  codespace. Every step goes to `startup.log` at the root of the
+  repository (see [startup-log.sh](../../.devcontainer/startup-log.sh)).
 - The app is web only: `make` (or `make web`) builds it; `make clean`.

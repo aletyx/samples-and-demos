@@ -17,6 +17,8 @@
 ///                       it: {"key": bool, "source": ..., "ok": bool,
 ///                       "detail": ...}; never the key. The page's banner
 ///                       and status light read it
+///   GET /api/group      {"group": "aityx"}: this index's group
+///                       (INDEX_GROUP); every card on the page is in it
 ///
 /// Settings: INDEX_PORT (default 8800), INDEX_BIND_HOST (127.0.0.1),
 /// INDEX_GROUP (aityx).
@@ -54,6 +56,8 @@ Future<void> _handle(HttpRequest request) async {
       _json(response, 200, {'demos': await _demos()});
     } else if (path == '/api/aityx') {
       _json(response, 200, await _aityx());
+    } else if (path == '/api/group') {
+      _json(response, 200, {'group': _group});
     } else {
       await _file(response, path);
     }

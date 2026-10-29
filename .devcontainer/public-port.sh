@@ -25,8 +25,23 @@ set -uo pipefail
 # shellcheck source=startup-log.sh
 source "$(dirname "${BASH_SOURCE[0]}")/startup-log.sh"
 log=$startup_log
+#
+# The datyx dashboard stays private unless the datyx API requires a
+# sign-in (OIDC_CLIENT_ID, in the environment or datyx/.env): without one
+# the API lets every request through, and the dashboard's /api/ proxy
+# would let anyone with its URL add or delete data sources.
+datyx_oidc() {
+  local id="${OIDC_CLIENT_ID:-}"
+  if [[ -z "$id" && -f "$startup_root/datyx/.env" ]]; then
+    id="$(sed -n 's/^OIDC_CLIENT_ID=\([^#[:space:]]*\).*/\1/p' "$startup_root/datyx/.env" | tail -1)"
+  fi
+  [[ -n "$id" ]]
+}
 ports=()
 for demo in $(startup_demos); do
+  if [[ "$demo" == datyx-dashboard ]] && ! datyx_oidc; then
+    continue
+  fi
   port="$(sed -n 's/.*\${FLUTTER_WEB_PORT:-\([0-9]*\)}.*/\1/p' "$startup_root/$demo/process-compose.yaml" | head -1)"
   [[ -n "$port" ]] && ports+=("$port")
 done

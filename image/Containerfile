@@ -1,6 +1,8 @@
-# The demos' dev container image, published to Docker Hub by build-image.sh and
-# used by every devcontainer.json in .devcontainer/ (`image`, not `build`):
-# Flutter, the GitHub CLI, process-compose, and the demos' release web
+# A demo group's dev container image, published to Docker Hub by
+# build-image.sh (`--build-arg GROUP=aityx` or `datyx`) and used by that
+# group's devcontainer.json in .devcontainer/<group>/ (`image`, not
+# `build`): Flutter, the GitHub CLI, process-compose, for datyx a JDK
+# (GraalVM) and its API's Maven dependencies, and the group's release web
 # builds already made, so a codespace starts the demos in seconds instead
 # of building for ten minutes. The organization has GitHub's prebuilds and
 # Actions switched off, so the image is built on a laptop and pushed (see
@@ -8,7 +10,11 @@
 # checksum. Nix and devbox are not in the image: in a codespace the demos
 # run on the image's Flutter and process-compose (DEMOS_TOOLCHAIN=image);
 # devbox stays the toolchain for a laptop.
-FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+# The group: aityx or datyx (build-image.sh passes it). Its toolchain stage
+# below, then the same steps for both.
+ARG GROUP=aityx
+
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04 AS base
 
 SHELL ["/bin/bash", "-lc"]
 
@@ -92,6 +98,37 @@ RUN arch="$(dpkg --print-architecture)" \
     && /opt/flutter/bin/flutter --version
 ENV PATH="/opt/flutter/bin:${PATH}"
 
+# The aityx demos need nothing more.
+FROM base AS toolchain-aityx
+
+# The datyx API runs on a JDK (Quarkus, built with its Maven wrapper):
+# GraalVM Community, as the API's devbox.json has on a laptop, so its
+# native mode can build too. The pinned release, checked against its
+# published .sha256.
+FROM base AS toolchain-datyx
+ARG GRAALVM_VERSION=25.0.2
+ARG GRAALVM_SHA256_AMD64=e0be791c8fda4d03b6b0a0cb824fef3149736170057b3a515252b44419606af0
+ARG GRAALVM_SHA256_ARM64=b4580d9f223d0a4b3a1757e58b18ff4c1db950e67e105fc5cb741457d2384a71
+USER root
+RUN arch="$(dpkg --print-architecture)" \
+    && case "$arch" in \
+         amd64) a=x64; sha="$GRAALVM_SHA256_AMD64" ;; \
+         arm64) a=aarch64; sha="$GRAALVM_SHA256_ARM64" ;; \
+         *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+       esac \
+    && curl -fsSL -o /tmp/graalvm.tar.gz \
+         "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAALVM_VERSION}/graalvm-community-jdk-${GRAALVM_VERSION}_linux-${a}_bin.tar.gz" \
+    && echo "${sha}  /tmp/graalvm.tar.gz" | sha256sum -c - \
+    && install -d /opt/graalvm \
+    && tar -xzf /tmp/graalvm.tar.gz -C /opt/graalvm --strip-components=1 \
+    && rm /tmp/graalvm.tar.gz \
+    && /opt/graalvm/bin/java -version
+USER vscode
+ENV JAVA_HOME=/opt/graalvm
+ENV PATH="/opt/graalvm/bin:${PATH}"
+
+FROM toolchain-${GROUP}
+
 # The packages every app and API depend on, fetched into the pub cache now,
 # so a demo that has to build in the codespace (one that changed since the
 # image was made) doesn't download them first. Only the pubspecs come in.
@@ -103,7 +140,18 @@ RUN for dir in /tmp/pubspecs/*/*; do \
     done \
     && rm -rf /tmp/pubspecs
 
-# The demos' release web builds, made on the laptop that builds the image
+# The Maven projects' dependencies (datyx's API: Quarkus, its plugins and
+# what quarkus:dev needs), and the Maven its wrapper pins, fetched into
+# ~/.m2 now, so the API's first start in a codespace doesn't download
+# them. Only the poms and the wrappers come in; for aityx there are none.
+COPY --chown=vscode:vscode maven/ /tmp/maven/
+RUN for dir in /tmp/maven/*/*; do \
+      [ -f "$dir/pom.xml" ] || continue; \
+      (cd "$dir" && ./mvnw -B -q dependency:go-offline quarkus:go-offline) || exit 1; \
+    done \
+    && rm -rf /tmp/maven
+
+# The group's release web builds, made on the laptop that builds the image
 # (build-image.sh runs ./build-all.sh first), with the build key of each
 # (manifest; build-key.sh: the git ids of what the web build is made
 # from). At codespace creation restore-builds.sh copies the build of every

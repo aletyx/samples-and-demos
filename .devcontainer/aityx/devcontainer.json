@@ -1,41 +1,38 @@
 {
   // ---------------------------------------------------------------------
-  // All demos
+  // aityx demos
   //
-  // Every demo in this repository that runs as services, started
-  // together: Mortgage Hub, Contact Hub, Cellfie, RoboRules, RiverRace,
-  // PokerFace, each a Flutter web app and a Dart API calling aityx.ai,
-  // HealthHub, the same with a PostgreSQL database, and the
-  // index page (Index/) that links them and says which ones are up.
+  // The aityx group, started together: Mortgage Hub, Contact Hub,
+  // Cellfie, RoboRules, RiverRace and PokerFace, each a Flutter web app
+  // and a Dart API calling aityx.ai, and the index page (Index/) that
+  // links them and says which ones are up. The folders whose
+  // group.id.txt says aityx.
   //
   // Source:  https://github.com/aletyx/samples-and-demos
   // Rules:   https://aityx.ai — runs every decision in every demo
   // Aletyx:  https://aletyx.com
   //          https://nu01.com
   //
-  // This is the repository's default dev container. The others, one per
-  // demo (.devcontainer/<demo>/), start only that demo; Mortgage Hub's
-  // former one is kept in .devcontainer/archive/ and is not offered. The
-  // name below is what GitHub shows in the "Dev container configuration"
-  // list when you create a codespace.
+  // One dev container per demo group: this one, and the datyx group's in
+  // .devcontainer/datyx/. Each has its own image. The scripts they run
+  // are shared, in .devcontainer/, and act on the group DEMOS_GROUP names.
+  // The name below is what GitHub shows in the "Dev container
+  // configuration" list when you create a codespace.
   // ---------------------------------------------------------------------
-  "name": "All demos",
-  // The published image (image/Containerfile, built and pushed by
-  // image/build-image.sh): Flutter, the GitHub CLI, process-compose and
-  // every demo's release web build, so nothing is built when a codespace
+  "name": "aityx demos",
+  // The group's published image (image/Containerfile, built and pushed by
+  // `bash image/build-image.sh aityx`): Flutter, the GitHub CLI,
+  // process-compose and each aityx demo's release web build, so nothing is built when a codespace
   // is created and the demos start in seconds. The organization has
   // GitHub's prebuilds switched off; this is the next best thing.
-  "image": "docker.io/aletyxcode/samples-and-demos-devcontainer:latest",
+  "image": "docker.io/aletyxcode/samples-and-demos-aityx:latest",
   "remoteUser": "vscode",
   // An SSH server, so `gh codespace ssh`, `gh codespace cp` and
   // `gh codespace logs` reach the codespace from a terminal: that is how
   // startup.log is read without the editor, and how the demos are
-  // benchmarked. Docker, for HealthHub's PostgreSQL: its database is the
-  // postgres container of HealthHub/compose.yaml, which process-compose
-  // starts with `docker compose up postgres`.
+  // benchmarked. No Docker: no aityx demo has a database.
   "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/sshd:1": {}
   },
   // The 4-core, 16 GB Codespaces machine. The published image carries
   // the builds, so creating a codespace pulls it and starts the demos; a
@@ -51,14 +48,16 @@
     // The demos run on the image's Flutter and process-compose, not devbox
     // (see demos-toolchain.sh).
     "DEMOS_TOOLCHAIN": "image",
+    // The group: ./start-all.sh, ./stop-all.sh and ./build-all.sh act on
+    // its folders only, and the dev container scripts start it.
+    "DEMOS_GROUP": "aityx",
     "INDEX_BIND_HOST": "0.0.0.0",
     "MORTGAGEHUB_BIND_HOST": "0.0.0.0",
     "CONTACTHUB_BIND_HOST": "0.0.0.0",
     "CELLFIE_BIND_HOST": "0.0.0.0",
     "RIVERRACE_BIND_HOST": "0.0.0.0",
     "ROBORULES_BIND_HOST": "0.0.0.0",
-    "POKERFACE_BIND_HOST": "0.0.0.0",
-    "HEALTHHUB_BIND_HOST": "0.0.0.0"
+    "POKERFACE_BIND_HOST": "0.0.0.0"
   },
   // Your own key, never the repository's: the one AITYX_API_KEY secret
   // every demo here reads. GitHub asks for it when you create a codespace
@@ -98,16 +97,15 @@
       ]
     }
   },
-  // The index page and each demo's web app. The APIs (8881, 8891, 9801, ...)
-  // and HealthHub's PostgreSQL (9802) stay inside the container: each
-  // app reaches its own API through the web server's /api/ proxy, and
-  // the API its database. Each port's bare URL redirects to its app at
+  // The index page and each demo's web app. The APIs (8881, 8891, ...)
+  // stay inside the container: each app reaches its own API through the
+  // web server's /api/ proxy. Each port's bare URL redirects to its app at
   // /app/. Plain HTTP, which is what the dev servers speak; switching a
   // public port to HTTPS makes it private. post-start.sh makes them
   // public, which devcontainer.json cannot. Only the index opens a
   // browser tab: it is up in seconds and shows the demos as they compile,
   // with a link to each (the forwarded URL, in a codespace).
-  "forwardPorts": [8800, 8880, 8890, 8910, 8920, 8930, 8940, 9800],
+  "forwardPorts": [8800, 8880, 8890, 8910, 8920, 8930, 8940],
   "portsAttributes": {
     "8800": {
       "label": "Index: the six aityx demos on one page",
@@ -143,11 +141,6 @@
       "label": "RiverRace web app",
       "protocol": "http",
       "onAutoForward": "silent"
-    },
-    "9800": {
-      "label": "HealthHub web app",
-      "protocol": "http",
-      "onAutoForward": "silent"
     }
   },
   // All run from the repository root, in this order, when the codespace
@@ -157,11 +150,11 @@
   // were prebuilds allowed for the organization.)
   //   on-create.sh       the image's release web builds into the workspace
   //                      (image/restore-builds.sh)
-  //   update-content.sh  ./build-all.sh: each demo's release web build
-  //                      and compiled servers, only what changed
+  //   update-content.sh  ./build-all.sh: each of the group's release web
+  //                      builds and compiled servers, only what changed
   //   post-create.sh     whether the aityx secrets arrived
-  // post-start.sh runs ./start-all.sh and makes the ports public on
-  // every start.
+  // post-start.sh starts the index and the group with ./start-all.sh and
+  // makes the ports public on every start.
   "onCreateCommand": "bash -lc 'bash .devcontainer/on-create.sh'",
   "updateContentCommand": "bash -lc 'bash .devcontainer/update-content.sh'",
   "postCreateCommand": "bash -lc 'bash .devcontainer/post-create.sh'",

@@ -110,38 +110,51 @@ process-compose through Docker Compose comes from.
   `AITYX_API_KEY`, `AITYX_URL` and `HEALTHHUB_DB_PASSWORD` from the
   environment, else `.env`; `web` gets none. All three have health checks
   (`api` runs `/app/bin/server healthcheck`).
-- **Dev container**
-  ([.devcontainer/HealthHub/](../../.devcontainer/HealthHub)), named
-  **HealthHub**: PokerFace's scripts with `HealthHub/` as the app folder,
-  on the published image every demo shares (Flutter 3.47.0,
-  process-compose, the release web builds), plus the
-  `docker-in-docker` feature, since the database is a container.
-  `on-create.sh` restores the web build from the image;
-  `post-create.sh` reports whether `AITYX_API_KEY` arrived (never its
-  value); `post-start.sh` starts the services detached on every start,
-  with a watcher that logs when `/app/` and `/api/health` answer;
-  `public-port.sh` makes port 9800 public (again on attach). Everything
-  goes to `HealthHub/startup.log`, git-ignored, which holds no secrets.
-  The container sets `HEALTHHUB_BIND_HOST=0.0.0.0`, forwards port 9800
-  only (the API and the database stay inside), and adds the Dart and
-  Flutter extensions. The repository's **All demos** container starts
-  HealthHub with the rest and gained the same Docker feature.
-- **Codespaces secret**: `devcontainer.json` declares `AITYX_API_KEY`,
+- **Dev container**: the datyx group's
+  ([.devcontainer/datyx/](../../.devcontainer/datyx)), named **datyx
+  demos**, which HealthHub shares with the datyx API (`datyx/`) and the
+  datyx dashboard (`datyx-dashboard/`); the aityx group has its own, and
+  there is no per-demo one. It runs the group's published image
+  (`docker.io/aletyxcode/samples-and-demos-datyx`, built from
+  [image/Containerfile](../../image/Containerfile) by
+  `bash image/build-image.sh datyx`: Flutter 3.47.0, GraalVM,
+  process-compose, the datyx API's Maven dependencies and the release web
+  builds of the dashboard and HealthHub) on a 4-core, 16 GB machine (the largest the organization allows),
+  plus the `docker-in-docker` feature, since the databases are
+  containers. The scripts are the ones in
+  [.devcontainer/](../../.devcontainer), which both groups share;
+  `DEMOS_GROUP=datyx` makes them, and the root `start-all.sh`,
+  `stop-all.sh` and `build-all.sh`, act on the folders whose
+  `group.id.txt` says `datyx`. `on-create.sh` restores the group's web
+  builds from the image; `update-content.sh` runs `build-all.sh` for
+  what changed since; `post-create.sh` reports whether `AITYX_API_KEY`
+  arrived (never its value); `post-start.sh` starts the index page and
+  then the group detached with `start-all.sh` on every start, which logs
+  when each demo answers; `public-port.sh` makes the web ports public,
+  9800 among them (again on attach). Everything goes to `startup.log` at
+  the root of the repository (see
+  [startup-log.sh](../../.devcontainer/startup-log.sh)), git-ignored,
+  which holds no secrets. The container sets
+  `HEALTHHUB_BIND_HOST=0.0.0.0` with the index's and the datyx API's,
+  forwards 9800 with the index's 8800 and the dashboard's 9906 (HealthHub's
+  API and database stay inside), and adds the Dart and Flutter
+  extensions.
+- **Codespaces secret**: the group's `devcontainer.json` declares `AITYX_API_KEY`,
   the same secret as Mortgage Hub's and Contact Hub's; `AITYX_URL` is
   optional. A local dev container uses `.env`.
 - **Launch link**: the [README](../README.md#run-it-in-a-codespace) and the
   repository README have an **Open in GitHub Codespaces** badge with
-  `devcontainer_path=.devcontainer/HealthHub/devcontainer.json` and
-  `machine=standardLinux32gb`.
+  `devcontainer_path=.devcontainer/datyx/devcontainer.json` and
+  `machine=standardLinux32gb`, the same link as the datyx group's.
 
 ## Known limitations
 
-- The dev container hasn't been started yet, and of the Docker Compose
+- The datyx dev container hasn't been started yet, and of the Docker Compose
   services only `postgres` and `api` have (the API's image built and
   run against the database); the `web` image hasn't been built. The
   devbox services have run end to end (PostgreSQL, the API and the app,
   with `/api/hello` answering from the database).
-- The published image doesn't carry HealthHub's web build until it is
-  rebuilt after this lands; until then a codespace builds it, a minute or
-  two.
+- A codespace builds HealthHub's web build itself, a minute or two,
+  when the datyx image wasn't made from the current `HealthHub/`, or
+  hasn't been pushed since `bash image/build-image.sh datyx` was added.
 - No release, deploy or CI workflows.

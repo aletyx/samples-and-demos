@@ -9,12 +9,10 @@
 # codespace is assigned to a user, so it has no Codespaces secrets: anything
 # that needs them is in post-create.sh.
 #
-# Every demo that runs as services (each folder with a devbox.json and a
-# process-compose.yaml: Mortgage Hub, Contact Hub, Cellfie, RoboRules, RiverRace,
-# HealthHub,
-# PokerFace, and the index page in Index/) gets `devbox install` in its
-# folder. They lock the same Flutter, so the Nix store is filled once and
-# the later installs are quick.
+# Every demo of the container's group (DEMOS_GROUP; see startup_demos in
+# startup-log.sh), its index page among them, gets `devbox install` in its
+# folder. The Flutter ones lock the same Flutter, so the Nix store is
+# filled once and the later installs are quick.
 #
 # Devbox has Nix resolve flakes through api.github.com: its own on
 # `devbox install`, and nixpkgs when `devbox services up` first installs
@@ -61,8 +59,8 @@ startup_facts
 # shellcheck source=../demos-toolchain.sh
 source "$startup_root/demos-toolchain.sh"
 if [[ "$DEMOS_TOOLCHAIN" == image ]]; then
-  # The image carries Flutter, process-compose and every demo's release
-  # web build: put the builds of the demos that haven't changed since the
+  # The group's image carries its toolchain and each of its demos' release
+  # web builds: put the builds of the demos that haven't changed since the
   # image was made into the workspace (see image/restore-builds.sh).
   started=$SECONDS
   bash image/restore-builds.sh || fail "image/restore-builds.sh"

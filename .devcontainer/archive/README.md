@@ -7,8 +7,13 @@ reference.
 
 - [MortgageHub/](MortgageHub/): the original Mortgage Hub dev container,
   the one the others were copied from. It started only Mortgage Hub. The
-  repository's default dev container, [../devcontainer.json](../devcontainer.json),
-  replaced it: it starts every demo with `./start-all.sh`, Mortgage Hub
-  among them, and is what the Mortgage Hub badges open.
+  aityx group's dev container, [../aityx/](../aityx/devcontainer.json),
+  replaced it: it starts the aityx demos, Mortgage Hub among them, and is
+  what the Mortgage Hub badges open.
+
+The per-demo dev containers that followed (Cellfie, Contact Hub,
+HealthHub, PokerFace, RiverRace, RoboRules) and the all-demos default,
+`.devcontainer/devcontainer.json`, were removed when the dev containers
+were split by demo group (aityx and datyx); they are in git history.
   Its scripts still name `.devcontainer/MortgageHub/`, their original
   location, so it does not run from here as it is.

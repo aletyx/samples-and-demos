@@ -107,32 +107,42 @@ explains the reasons behind each piece.
   the environment, else `.env`, and `web` gets neither. Both have health
   checks (`api` runs `/app/bin/server healthcheck`), and `web` starts once
   `api` is healthy.
-- **Dev container**
-  ([.devcontainer/RiverRace/](../../.devcontainer/RiverRace)), named
-  **RiverRace**: the published image every dev container here uses
-  (`docker.io/aletyxcode/samples-and-demos-devcontainer`, built from
-  [image/Containerfile](../../image/Containerfile): Flutter 3.47.0,
-  process-compose and the GitHub CLI, pinned and checksum-verified, and
-  every demo's release web build) with the same scripts as Contact
-  Hub's, with `RiverRace/` as the app folder. The demos run on the image's
-  own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
-  [demos-toolchain.sh](../../demos-toolchain.sh)): no devbox or Nix in
-  a codespace. `on-create.sh` copies the app's release web build from
-  the image ([image/restore-builds.sh](../../image/restore-builds.sh),
-  skipped when `RiverRace/` changed since the image was made: the app then
-  builds itself); `update-content.sh` runs `scripts/build.sh` (the
-  compiled API and web server, a few seconds); `post-create.sh` reports
-  whether `AITYX_API_KEY` arrived (never its value); `post-start.sh`
-  starts the services detached with `process-compose up` on every start
-  (socket `/tmp/aityx-demos-RiverRace.sock`), with a watcher that logs
-  when `/app/` and `/api/health` answer; `public-port.sh` makes port
-  8940 public (again on attach). Everything goes to
-  `RiverRace/startup.log`, git-ignored, which holds no secrets. The
-  container sets `RIVERRACE_BIND_HOST=0.0.0.0`, forwards port 8940 only,
-  and adds the Dart and Flutter extensions. Measured: the codespace is
-  available about three minutes after the request and the app answers
-  within a minute after that.
-- **Codespaces secrets**: `devcontainer.json` declares `AITYX_API_KEY` and
+- **Dev container**: the aityx group's
+  ([.devcontainer/aityx/](../../.devcontainer/aityx)), named **aityx
+  demos**, which RiverRace shares with Mortgage Hub, Contact Hub, Cellfie,
+  PokerFace and RoboRules; the datyx group has its own, and there is no
+  per-demo one. It runs the group's published image
+  (`docker.io/aletyxcode/samples-and-demos-aityx`, built from
+  [image/Containerfile](../../image/Containerfile) by `bash
+  image/build-image.sh aityx`: Flutter 3.47.0, process-compose and the
+  GitHub CLI, pinned and checksum-verified, and the six aityx demos'
+  release web builds) with the scripts in
+  [.devcontainer/](../../.devcontainer), which both groups share.
+  `DEMOS_GROUP=aityx` makes them, and the root `start-all.sh`,
+  `stop-all.sh` and `build-all.sh`, act on the folders whose
+  `group.id.txt` says `aityx`. The demos run on the image's own Flutter
+  and process-compose (`DEMOS_TOOLCHAIN=image`, see
+  [demos-toolchain.sh](../../demos-toolchain.sh)): no devbox or Nix in a
+  codespace. `on-create.sh` copies the group's release web builds from the
+  image ([image/restore-builds.sh](../../image/restore-builds.sh), skipped
+  for a folder that changed since the image was made: that app then builds
+  itself); `update-content.sh` runs `build-all.sh` (RiverRace's compiled
+  API and web server among the rest, a few seconds each); `post-create.sh`
+  reports whether `AITYX_API_KEY` arrived (never its value);
+  `post-start.sh` starts the index page and then the group detached with
+  `start-all.sh` on every start (RiverRace's socket is
+  `/tmp/aityx-demos-RiverRace.sock`), which logs when each demo's `/app/`
+  and `/api/health` answer; `public-port.sh` makes the index's and the
+  group's web ports public, 8940 among them (again on attach). Everything
+  goes to `startup.log` at the root of the repository (see
+  [startup-log.sh](../../.devcontainer/startup-log.sh)), git-ignored,
+  which holds no secrets. The container sets `RIVERRACE_BIND_HOST=0.0.0.0`
+  with the other demos' bind hosts, forwards the index's port 8800 and
+  each demo's web port, 8940 among them, and adds the Dart and Flutter
+  extensions. Measured with the former per-demo dev container: the
+  codespace was available about three minutes after the request and the
+  app answered within a minute after that.
+- **Codespaces secrets**: the group's `devcontainer.json` declares `AITYX_API_KEY` and
   optional `AITYX_URL`,
   the same secret as Mortgage Hub's and Contact Hub's. Codespaces secrets
   belong to a user and are granted per repository, so a key granted to
@@ -140,10 +150,10 @@ explains the reasons behind each piece.
   the creation page otherwise. `AITYX_URL` defaults to
   `https://api.aityx.ai`; `.env` overrides it. Both values are forwarded
   only to the API process. A local dev container uses `.env`.
-- **Launch link**: the [README](../README.md#run-it-in-a-codespace) and the
-  repository README have an **Open in GitHub Codespaces** badge with
-  `devcontainer_path=.devcontainer/RiverRace/devcontainer.json` and
-  `machine=standardLinux32gb`.
+- **Launch link**: the [README](../README.md#run-it-in-a-codespace) and
+  the repository README have an **Open in GitHub Codespaces** badge with
+  `devcontainer_path=.devcontainer/aityx/devcontainer.json` and
+  `machine=standardLinux32gb`, the same link as every aityx demo's.
 
 ## Known limitations
 
