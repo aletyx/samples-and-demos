@@ -73,3 +73,7 @@ The feature files hold the current specification; see the
    `startup.log` at the repository root. The README's codespace link
    points at the group's container. See [Development
    environment](dev-environment.md).
+9. **Make the computer planes a little more transparent, and the default
+   speed a bit slower.** The aityx pilots' planes are drawn at 25% opacity,
+   down from 35% (see [Theme](theme.md)). **Speed** gains a ¾× choice,
+   which the game starts at, instead of 1× (see [Game](game.md#playing)).

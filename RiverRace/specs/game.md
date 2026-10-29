@@ -85,7 +85,7 @@ score, bridge and losses, and **Race again** starts on a new river.
   shortcut with Cmd, Ctrl or Alt.
 - **Start**/**Pause**, **Restart** (same river), **New river**, **You
   fly**, **Fair race** (see [Decisions](decisions.md)), **Speed** (¼×, ½×,
-  1×), **aityx decides every** (3, 6, 12 or 30 frames) and **Finish at**.
+  ¾× by default, 1×), **aityx decides every** (3, 6, 12 or 30 frames) and **Finish at**.
 - The game runs at 60 frames a second of game time, in fixed steps.
 - Under the river, a gray band, as on the Atari: each plane's name,
   score, fuel gauge and planes left.

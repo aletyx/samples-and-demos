@@ -164,7 +164,8 @@ void main() {
     final decider = SlowDecider();
     await pumpApp(tester, decider);
     await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
-    await run(tester, 8);
+    // At ¾× speed, 11 frames reach the first aityx decision.
+    await run(tester, 11);
     expect(decider.pending, isNotNull);
     final race =
         (tester.state(find.byType(RaceScreen)) as dynamic).race as Race;
