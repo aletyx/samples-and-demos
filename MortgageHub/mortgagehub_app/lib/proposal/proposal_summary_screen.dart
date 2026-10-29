@@ -385,9 +385,20 @@ class _RegulatoryCheckCardState extends State<RegulatoryCheckCard> {
             ),
           ),
         ),
-        // The response first: it holds the verdict and why.
+        // The response first: it holds the verdict and why; a faint rule
+        // between the two blocks, so where one ends and the other starts
+        // is clear without the rule shouting.
         if (_showAityx) ...[
           AityxJsonView('Response', check.aityxResponse, notes: responseNotes),
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Divider(
+              key: const Key('aityxSeparator'),
+              height: 1,
+              thickness: 1,
+              color: scheme.outlineVariant.withValues(alpha: 0.6),
+            ),
+          ),
           AityxJsonView(
             'Request: POST /v1/systemone (the API key is not shown)',
             check.aityxRequest,

@@ -22,7 +22,12 @@
     `index.html` for the app's own routes, `Cache-Control: no-cache` with
     `Last-Modified` and 304 so a new build is seen on the next load and an
     unchanged file isn't downloaded again, and only files inside the
-    build (`..` and escapes are refused); `/api/` and the bare `/` proxied
+    build (`..` and escapes are refused). Each web build also stamps its
+    scripts' URLs with its build number (`flutter_bootstrap.js?b=<n>` in
+    `index.html`, `main.dart.js?b=<n>` in the bootstrap, by
+    `scripts/make.sh`), so a browser that cached an earlier build's
+    scripts, which a reload doesn't revalidate, loads the new ones;
+    `/api/` and the bare `/` proxied
     to the API on 127.0.0.1:`API_PORT`, same method, query, headers and
     body, 502 when the API is down. It serves what nginx serves under
     Docker Compose, so the two paths show the same app. With
@@ -96,7 +101,8 @@
     container), runs `scripts/make.sh web` with `WEB_BASE_HREF=/app/` and
     an empty `API_BASE_URL`, and serves the build with nginx 1.29, which
     redirects `/` to `/app/`, falls back to `index.html` for the app's
-    routes and proxies `/api/` to `api`
+    routes, sends `Cache-Control: no-cache` under `/app/` and proxies
+    `/api/` to `api`
     ([docker/nginx.conf](../docker/nginx.conf)). Its build context is this
     folder, narrowed by `web.Dockerfile.dockerignore` to the app, the two
     scripts and the version files; the folder's own `.dockerignore` is
