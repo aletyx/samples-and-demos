@@ -158,12 +158,25 @@ void main() {
     race.things
       ..clear()
       ..add(Thing(ThingKind.fuel, p.x, p.y + 20));
-    for (var f = 0; f < 30; f++) {
+    while (!p.refueling) {
       race.step();
     }
-    expect(p.refueling || p.fuel > 50, isTrue);
+    // At half speed from the frame after it reaches the depot, all the way
+    // over it.
+    race.step();
+    var over = 0;
+    while (p.refueling) {
+      expect(p.speed, speeds['normal']! * refuelSlow);
+      over++;
+      race.step();
+    }
+    expect(over, greaterThan(30));
     expect(race.sounds.whereType<RefuelSound>(), isNotEmpty);
-    expect(p.speed, lessThan(speeds['normal']!));
+    // Past it, it speeds up again.
+    for (var f = 0; f < 20; f++) {
+      race.step();
+    }
+    expect(p.speed, speeds['normal']!);
   });
 
   test('a missile hit explodes with a sound', () {

@@ -37,9 +37,10 @@ const missileSpeed = 5.0;
 const burn = 0.07;
 const refill = 0.9;
 
-/// Over a depot a plane slows to this share of its throttle's speed, as in
-/// the original, and beeps every [refuelBeepEvery] frames.
-const refuelSlow = 0.7;
+/// Over a depot a plane drops at once to this share of its throttle's
+/// speed and holds it, as in the original, and beeps every
+/// [refuelBeepEvery] frames.
+const refuelSlow = 0.5;
 const refuelBeepEvery = 6;
 
 /// Lives at the start (one flying, seven in reserve), and an extra one
@@ -352,8 +353,12 @@ class Race {
     }
     final (dx, throttle, fire) = p.human ? _player() : _pilot(p);
     p.throttle = throttle;
-    final target = speeds[throttle]! * (p.refueling ? refuelSlow : 1);
-    p.speed += (target - p.speed).clamp(-0.08, 0.08);
+    final target = speeds[throttle]!;
+    if (p.refueling) {
+      p.speed = target * refuelSlow;
+    } else {
+      p.speed += (target - p.speed).clamp(-0.08, 0.08);
+    }
     p.x = (p.x + dx).clamp(planeHalfWidth, fieldWidth - planeHalfWidth);
     p.y += p.speed;
     if (p.y < camera + bottomMargin) p.y = camera + bottomMargin;

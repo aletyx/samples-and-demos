@@ -80,7 +80,9 @@ The feature files hold the current specification; see the
 10. **Slow down a little over the fuel strip, as in River Raid; a retro
     recharging beep over it and a retro explosion when enemies are hit;
     double the lives, since a plane sometimes doesn't come back after a
-    crash.** A plane over a depot slows to 70% of its throttle's speed. A
+    crash; then, slow down clearly while over the strip.** A plane over
+    a depot drops at once to half its throttle's speed and holds it (a
+    first try, easing to 70%, was hardly visible). A
     **Sound** chip (on) plays a square-wave beep while refueling, rising
     with the tank, and a noise burst when a missile hits something,
     made with Web Audio (see [Game](game.md#playing)). Planes start with
