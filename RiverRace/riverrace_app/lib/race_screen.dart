@@ -26,6 +26,11 @@ const planeOpacity = {'you': 1.0, 'p1': 0.25, 'p2': 0.25};
 /// The calls the panel keeps, newest first.
 const keptCalls = 120;
 
+/// The game speeds up by [rampStep] percent every [rampEvery] seconds of
+/// play, up to 1×.
+const rampEvery = 30;
+const rampStep = 10;
+
 /// The race screen: the river with the three planes, its controls, the
 /// aityx pilots' strategies, and the calls to aityx in a side panel.
 class RaceScreen extends StatefulWidget {
@@ -56,8 +61,17 @@ class _RaceScreenState extends State<RaceScreen>
   bool _playing = false;
   bool _youFly = true;
 
-  /// The game's speed, in percent.
-  int _speed = 75;
+  /// The game's speed at the start of a race, in percent.
+  int _speed = 50;
+
+  /// Seconds played in this race, which speed it up.
+  double _played = 0;
+
+  /// The game's speed now, in percent.
+  int get pace => math.max(
+    _speed,
+    math.min(_speed + rampStep * (_played ~/ rampEvery), 100),
+  );
   int _decideEvery = 6;
   bool _hold = false;
   bool _sound = true;
@@ -115,7 +129,10 @@ class _RaceScreenState extends State<RaceScreen>
   void _tick(Duration elapsed) {
     final dt = (elapsed - _last).inMicroseconds / 1e6;
     _last = elapsed;
-    _due = math.min(_due + dt * 60 * _speed / 100, 4);
+    final paceBefore = pace;
+    _played += dt;
+    if (pace != paceBefore) setState(() {});
+    _due = math.min(_due + dt * 60 * pace / 100, 4);
     while (_due >= 1) {
       if (_race.over) break;
       // A fair race: the game waits for aityx's answer.
@@ -171,6 +188,7 @@ class _RaceScreenState extends State<RaceScreen>
     setState(() {
       if (newRiver) _seed = _random.nextInt(1 << 30);
       _race = _newRace();
+      _played = 0;
       _shownFrame = 0;
       _asking = false;
       _quietUntil = 0;
@@ -512,6 +530,11 @@ class _RaceScreenState extends State<RaceScreen>
             options: const {25: '¼×', 50: '½×', 75: '¾×', 100: '1×'},
             onChanged: (v) => setState(() => _speed = v),
           ),
+          if (pace != _speed)
+            Text(
+              'now ${(pace / 100).toString().replaceFirst(RegExp(r'\.0$'), '')}×',
+              style: const TextStyle(color: Aityx.muted),
+            ),
           _Choice<int>(
             label: 'aityx decides every',
             value: _decideEvery,
