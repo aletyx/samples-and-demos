@@ -8,6 +8,7 @@ import 'app_version.dart';
 import 'calls/calls_panel.dart';
 import 'game/race.dart';
 import 'game/race_painter.dart';
+import 'sound/sounds.dart';
 import 'strategy/decide.dart';
 import 'strategy/strategy.dart';
 import 'strategy/strategy_panel.dart';
@@ -73,6 +74,8 @@ class _RaceScreenState extends State<RaceScreen>
   );
   int _decideEvery = 6;
   bool _hold = false;
+  bool _sound = true;
+  final _sounds = Sounds();
   int _finish = 10;
 
   Duration _last = Duration.zero;
@@ -142,6 +145,7 @@ class _RaceScreenState extends State<RaceScreen>
       _due -= 1;
       if (_race.frame % _decideEvery == 0) _ask();
     }
+    _playSounds();
     _repaint.value++;
     if (_race.over) {
       _overAt = DateTime.now();
@@ -150,6 +154,18 @@ class _RaceScreenState extends State<RaceScreen>
       _shownFrame = _race.frame;
       setState(() {});
     }
+  }
+
+  /// Plays what the race sounded since the last frame shown: one beep and
+  /// one explosion at most, however many planes made them.
+  void _playSounds() {
+    final sounds = _race.sounds;
+    if (_sound) {
+      final refuel = sounds.whereType<RefuelSound>().lastOrNull;
+      if (refuel != null) _sounds.refuel(refuel.level);
+      if (sounds.any((s) => s is ExplosionSound)) _sounds.explosion();
+    }
+    sounds.clear();
   }
 
   void _play() {
@@ -494,6 +510,13 @@ class _RaceScreenState extends State<RaceScreen>
               _youFly = on;
               _restart();
             },
+          ),
+          FilterChip(
+            avatar: const Icon(Icons.volume_up, size: 18),
+            label: const Text('Sound'),
+            selected: _sound,
+            tooltip: 'Beep while refueling and boom when a missile hits',
+            onSelected: (on) => setState(() => _sound = on),
           ),
           FilterChip(
             label: const Text('Fair race'),

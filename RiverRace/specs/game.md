@@ -41,7 +41,7 @@ every plane.
 ## The planes
 
 Three planes fly up the same river: **You** (the original's yellow,
-drawn solid), and the two aityx pilots (cyan and magenta, drawn 35%
+drawn solid), and the two aityx pilots (cyan and magenta, drawn 25%
 opaque). **You fly** off leaves the race to the two aityx pilots.
 Planes don't collide with each other.
 
@@ -52,13 +52,17 @@ Planes don't collide with each other.
   original. It passes over land and stops at the first thing or standing
   bridge it hits, scoring for its plane.
 - **Fuel**: a full tank lasts about 24 seconds (0.07 a frame); over a
-  depot it fills at 0.9 a frame, so slowing down over one fills more.
-  Below a quarter the gauge turns red.
+  depot it fills at 0.9 a frame, and the plane drops at once to half its
+  throttle's speed and holds it until past the depot, as in the
+  original, so it fills more (slowing down fills more still); past it,
+  it eases back up. Below a quarter the gauge turns red.
 - **Lost**: crashing into land, a ship, helicopter or jet, or a standing
   bridge, or running out of fuel. The plane explodes; after 50 frames it
-  comes back with a full tank, over the widest water near the bottom of
-  the screen, blinking for 2 seconds during which enemies pass through it.
-- **Lives**: four (one flying, three in reserve), and one more every
+  comes back with a full tank, low on the screen, mid-channel where it
+  can fly straight on for 40 rows without meeting the bank, an island or
+  a standing bridge (over the widest water if there's no such place),
+  blinking for 2 seconds during which enemies pass through it.
+- **Lives**: eight (one flying, seven in reserve), and one more every
   10,000 points. A plane with none left is out of the race.
 - **The screen** follows the plane furthest up, 48 rows above its bottom.
   A plane left behind is pushed along by the bottom edge, 12 rows up.
@@ -84,14 +88,20 @@ score, bridge and losses, and **Race again** starts on a new river.
   another on a new river; not Tab, Esc or a modifier alone, nor a
   shortcut with Cmd, Ctrl or Alt.
 - **Start**/**Pause**, **Restart** (same river), **New river**, **You
-  fly**, **Fair race** (see [Decisions](decisions.md)), **Speed** (¼×, ½×
-  by default, ¾×, 1×), **aityx decides every** (3, 6, 12 or 30 frames)
-  and **Finish at**.
+  fly**, **Sound**, **Fair race** (see [Decisions](decisions.md)),
+  **Speed** (¼×, ½× by default, ¾×, 1×), **aityx decides every** (3, 6,
+  12 or 30 frames) and **Finish at**.
 - The game runs at 60 frames a second of game time, in fixed steps.
 - **Speed** is where a race starts: every 30 seconds of play the game
   speeds up by 10 percent, up to 1× (from ½×, in two and a half
   minutes), and *now 0.6×* beside the choice says how fast it runs. A
   restart, or a new river, starts it again from the choice.
+- **Sound** (on by default), made in the browser, Atari-like: a short
+  square-wave beep every 6 frames while a plane refuels, higher the
+  fuller its tank, and a burst of coarse noise, falling in pitch, when a
+  missile hits a ship, helicopter, jet, depot or bridge. One beep and one
+  explosion at most a frame, whichever planes made them. None outside a
+  browser.
 - Under the river, a gray band, as on the Atari: each plane's name,
   score, fuel gauge and planes left.
 - The **Race log** lists the last 8 events: planes lost and why, bridges
