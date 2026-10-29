@@ -13,8 +13,8 @@ speed with a rising beep (or to shoot, for 80 points), one missile at a
 time that follows the plane, seven planes in reserve and one more every
 10,000 points, and retro sounds made in the browser. Your plane is drawn
 solid, the aityx pilots' mostly see-through (25% opaque), in cyan and
-magenta. The race starts at half speed, speeds up every 30 seconds, and
-ends at bridge 10.
+magenta. The race starts at 1×, half its top speed, speeds up every 30
+seconds, and ends at bridge 10.
 
 Every few frames, one call to aityx decides what both aityx pilots do:
 the app sends what each plane senses (fuel, land ahead, where the open
