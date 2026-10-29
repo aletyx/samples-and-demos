@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 class FakeDatyxApi implements DatyxApi {
   @override
   final CallLog log = CallLog();
-  final List<Greeting> _greetings = [];
   final List<DataSource> _sources = [];
 
   @override
@@ -64,32 +63,13 @@ class FakeDatyxApi implements DatyxApi {
         error: 'Connection refused',
         url: 'http://localhost:9902',
       ),
-      greetings: _greetings.length,
       dataSources: _sources.length,
     );
-  }
-
-  @override
-  Future<String> hello({String? name}) async {
-    final call = log.start('GET', '/api/hello');
-    log.finish(call, status: 200, body: '{}');
-    return 'Hello, ${name == null || name.isEmpty ? 'World' : name}!';
-  }
-
-  @override
-  Future<List<Greeting>> greetings({int limit = 50}) async =>
-      _greetings.reversed.toList();
-
-  @override
-  Future<Greeting> addGreeting(String message) async {
-    final g = Greeting(id: _greetings.length + 1, message: message);
-    _greetings.add(g);
-    return g;
   }
 }
 
 void main() {
-  testWidgets('shows the status and says hello', (tester) async {
+  testWidgets('shows the health, with the version', (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -97,21 +77,21 @@ void main() {
     await tester.pumpWidget(DatyxDashApp(api: api));
     await tester.pumpAndSettle();
 
+    // The data sources come first; the health is a tab away.
+    expect(find.text('None yet. Add a database, an S3 bucket or a folder.'), findsOneWidget);
+    expect(find.text('PostgreSQL 17.0'), findsNothing);
+    await tester.tap(find.byKey(const Key('tab-health')));
+    await tester.pumpAndSettle();
     expect(find.text('datyx 0.1.202601011200'), findsOneWidget);
     expect(find.text('PostgreSQL 17.0'), findsOneWidget);
     expect(find.text('Connection refused'), findsOneWidget);
-    expect(find.text('0 greetings'), findsOneWidget);
     expect(find.text('off: no OIDC_CLIENT_ID on the API'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField).first, 'tests');
-    await tester.tap(find.text('Say hello'));
-    await tester.pumpAndSettle();
-    expect(find.text('Hello, tests!'), findsOneWidget);
-    // The calls panel lists the calls.
-    expect(find.text('/api/hello'), findsOneWidget);
+    expect(find.text('0 data sources'), findsOneWidget);
+    // A test build has no version compiled in.
+    expect(find.text('no version: not built by the scripts'), findsOneWidget);
   });
 
-  testWidgets('adds a greeting', (tester) async {
+  testWidgets('audits every call', (tester) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -119,11 +99,20 @@ void main() {
     await tester.pumpWidget(DatyxDashApp(api: api));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).at(1), 'Hi there');
-    await tester.tap(find.text('Add greeting'));
+    // The tab counts the calls made so far: the sign-in config, the status
+    // and the data sources.
+    expect(find.text('Audit (3)'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('tab-audit')));
     await tester.pumpAndSettle();
-    expect(find.text('Hi there'), findsOneWidget);
-    expect(find.text('1 greetings'), findsOneWidget);
+    expect(find.text('/api/auth/config'), findsOneWidget);
+    expect(find.text('/api/status'), findsOneWidget);
+    expect(find.text('/api/datasources'), findsOneWidget);
+    expect(find.text('3 of the latest 100 kept'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Clear'));
+    await tester.pumpAndSettle();
+    expect(find.text('No calls yet.'), findsOneWidget);
+    expect(find.text('Audit (0)'), findsOneWidget);
   });
 
   testWidgets('adds and removes a data source', (tester) async {
@@ -148,16 +137,25 @@ void main() {
     expect(find.text('exports'), findsOneWidget);
     expect(find.text('/data/exports'), findsOneWidget);
     expect(find.text('by tests@example.com'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('tab-health')));
+    await tester.pumpAndSettle();
     expect(find.text('1 data sources'), findsOneWidget);
-    // The calls panel saw the POST.
+    // The audit saw the POST.
+    await tester.tap(find.byKey(const Key('tab-audit')));
+    await tester.pumpAndSettle();
+    expect(find.text('POST'), findsOneWidget);
     expect(find.text('/api/datasources'), findsWidgets);
 
+    await tester.tap(find.byKey(const Key('tab-sources')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('ds-remove-1')));
     await tester.pumpAndSettle();
     expect(find.text('Remove exports?'), findsOneWidget);
     await tester.tap(find.byKey(const Key('ds-remove-confirm')));
     await tester.pumpAndSettle();
     expect(find.text('/data/exports'), findsNothing);
+    await tester.tap(find.byKey(const Key('tab-health')));
+    await tester.pumpAndSettle();
     expect(find.text('0 data sources'), findsOneWidget);
   });
 }

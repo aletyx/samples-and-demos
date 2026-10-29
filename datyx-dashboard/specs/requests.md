@@ -4,6 +4,22 @@ The history of requests that shaped the datyx dashboard, newest first.
 Its earlier history, as the `datyx-dash` module inside `datyx/`, is in
 [../../datyx/specs/requests.md](../../datyx/specs/requests.md).
 
+## 2026-10-29: navigation tabs; hello and greetings gone
+
+Asked: navigation tabs like the other apps: Data sources first, with the
+same content as before; the health checks in a Health tab, with the
+version; an Audit tab for the API calls. Remove the hello and greetings
+parts, which have proved the path.
+
+Changed: `DashboardScreen` got a `TabBar` under the app bar with Data
+sources, Health and Audit (the Audit label counts the calls); the status
+cards moved to `HealthTab` (`lib/dashboard/health_tab.dart`) with a
+Dashboard card holding the version, which left the app bar, and the
+Records card counting data sources only; the calls panel fills the Audit
+tab and says how many calls it keeps; the Hello and Greetings cards, and
+`hello`, `greetings`, `addGreeting` and `Greeting` in the API client, are
+gone (the API still serves them). The tests follow the tabs.
+
 ## 2026-10-28: data sources, and signing in with Google
 
 Asked: let users add or remove data sources (databases, S3, filesystem,
