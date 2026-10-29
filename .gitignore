@@ -5,8 +5,5 @@ settings.xml
 *.log
 logs/
 
-# The dev container image build context (see image/build-image.sh)
-image/context/
-
-# Local settings (the aityx key): one .env here, linked from each demo.
+# Local settings: never committed.
 .env
