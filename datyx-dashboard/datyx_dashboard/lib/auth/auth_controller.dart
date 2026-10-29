@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../api/datyx_api.dart';
+import '../persist/session_store.dart';
 
 /// Who is signed in, as the identity provider says, and the ID token the
 /// API verifies: an OpenID Connect token, sent as a bearer on every call.
@@ -21,14 +23,27 @@ class SignedInUser {
 /// Google, through its OpenID Connect client id) and holds the ID token the
 /// API wants as a bearer. While the API reports authentication off, nothing
 /// is asked and every call goes out without a token.
+///
+/// The token is kept in the [store] (the browser tab's session storage on
+/// the web) until it expires or the user signs out, so a reload of the page
+/// stays signed in without asking Google again.
 class AuthController extends ChangeNotifier {
-  AuthController({GoogleSignIn? signIn}) : _signIn = signIn ?? GoogleSignIn.instance;
+  AuthController({GoogleSignIn? signIn, SessionStore? store})
+    : _signIn = signIn ?? GoogleSignIn.instance,
+      _store = store ?? SessionStore();
+
+  static const _key = 'idToken';
+
+  /// How long before its expiry a token counts as expired already.
+  static const _margin = Duration(minutes: 1);
 
   final GoogleSignIn _signIn;
+  final SessionStore _store;
   AuthConfig? _config;
   bool _ready = false;
   String? _error;
-  GoogleSignInAccount? _account;
+  String? _idToken;
+  SignedInUser? _user;
   StreamSubscription<GoogleSignInAuthenticationEvent>? _events;
 
   /// The API's answer, once it came.
@@ -39,18 +54,9 @@ class AuthController extends ChangeNotifier {
 
   /// Whether the sign-in client is initialized (the button can render).
   bool get ready => _ready;
-  bool get signedIn => _account != null;
+  bool get signedIn => _idToken != null;
   String? get error => _error;
-
-  SignedInUser? get user {
-    final account = _account;
-    if (account == null) return null;
-    return SignedInUser(
-      name: account.displayName,
-      email: account.email,
-      picture: account.photoUrl,
-    );
-  }
+  SignedInUser? get user => _user;
 
   /// Whether this platform signs in from a button of ours ([signIn]); on the
   /// web the provider renders its own button instead (see GoogleSignInButton).
@@ -62,7 +68,11 @@ class AuthController extends ChangeNotifier {
     _config = config;
     notifyListeners();
     final clientId = config.clientId;
-    if (!config.enabled || clientId == null || clientId.isEmpty) return;
+    if (!config.enabled || clientId == null || clientId.isEmpty) {
+      _forget();
+      return;
+    }
+    final restored = _restore(clientId);
     try {
       await _signIn.initialize(
         clientId: clientId,
@@ -78,7 +88,9 @@ class AuthController extends ChangeNotifier {
       );
       _ready = true;
       notifyListeners();
-      await _signIn.attemptLightweightAuthentication();
+      // A token kept from before the reload signs in already; Google is
+      // asked again only when it expires (see [token]).
+      if (!restored) await _signIn.attemptLightweightAuthentication();
     } catch (e) {
       _error = _describe(e);
       notifyListeners();
@@ -88,9 +100,9 @@ class AuthController extends ChangeNotifier {
   void _onEvent(GoogleSignInAuthenticationEvent event) {
     switch (event) {
       case GoogleSignInAuthenticationEventSignIn():
-        _account = event.user;
+        _take(event.user);
       case GoogleSignInAuthenticationEventSignOut():
-        _account = null;
+        _forget();
     }
     _error = null;
     notifyListeners();
@@ -101,31 +113,118 @@ class AuthController extends ChangeNotifier {
     try {
       await _signIn.authenticate();
     } catch (e) {
-      if (e is GoogleSignInException && e.code == GoogleSignInExceptionCode.canceled) return;
+      if (e is GoogleSignInException &&
+          e.code == GoogleSignInExceptionCode.canceled) {
+        return;
+      }
       _error = _describe(e);
       notifyListeners();
     }
   }
 
-  Future<void> signOut() => _signIn.signOut();
-
-  /// The ID token for the API, or null when nobody is signed in.
-  Future<String?> token() async => _account?.authentication.idToken;
-
-  /// A fresh token after the API refused one (expired): the provider signs
-  /// in again without interaction when it can.
-  Future<String?> refresh() async {
+  Future<void> signOut() async {
+    _forget();
+    notifyListeners();
     try {
-      final account = await _signIn.attemptLightweightAuthentication();
-      if (account != null) _account = account;
+      await _signIn.signOut();
     } catch (_) {
-      // The next call will show the 401 in the panel.
+      // Signed out here whatever Google says.
     }
-    return _account?.authentication.idToken;
   }
 
-  static String _describe(Object e) =>
-      e is GoogleSignInException ? (e.description ?? e.code.name) : e.toString();
+  /// The ID token for the API, or null when nobody is signed in. One that
+  /// expired is renewed first ([refresh]).
+  Future<String?> token() async {
+    final token = _idToken;
+    if (token == null) return null;
+    if (_fresh(token)) return token;
+    return refresh();
+  }
+
+  /// A fresh token after the API refused one, or once it expired: the
+  /// provider signs in again without interaction when it can; when it
+  /// can't, the user is signed out here, and the sign-in button shows.
+  Future<String?> refresh() async {
+    GoogleSignInAccount? account;
+    try {
+      account = await _signIn.attemptLightweightAuthentication();
+    } catch (_) {
+      // As if it gave none.
+    }
+    if (account != null) {
+      _take(account);
+    } else {
+      _forget();
+    }
+    notifyListeners();
+    return _idToken;
+  }
+
+  /// Signed in as [account]: its token is kept for the next reload.
+  void _take(GoogleSignInAccount account) {
+    final token = account.authentication.idToken;
+    if (token == null) return;
+    _idToken = token;
+    _user = SignedInUser(
+      name: account.displayName,
+      email: account.email,
+      picture: account.photoUrl,
+    );
+    _store.write(_key, token);
+  }
+
+  void _forget() {
+    _idToken = null;
+    _user = null;
+    _store.remove(_key);
+  }
+
+  /// Signs in with the token kept from before a reload, when it is still
+  /// fresh and was issued for [clientId]; whether it did.
+  bool _restore(String clientId) {
+    final token = _store.read(_key);
+    final claims = token == null ? null : _claims(token);
+    if (token == null ||
+        claims == null ||
+        claims['aud'] != clientId ||
+        !_fresh(token)) {
+      _forget();
+      return false;
+    }
+    _idToken = token;
+    _user = SignedInUser(
+      name: claims['name'] as String?,
+      email: claims['email'] as String?,
+      picture: claims['picture'] as String?,
+    );
+    notifyListeners();
+    return true;
+  }
+
+  /// Whether [token] is still good for a while. The API checks its
+  /// signature; this only reads when it expires.
+  static bool _fresh(String token) {
+    final exp = (_claims(token)?['exp'] as num?)?.toInt();
+    if (exp == null) return false;
+    final expires = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+    return DateTime.now().add(_margin).isBefore(expires);
+  }
+
+  /// A JWT's payload, unverified, or null when it isn't one.
+  static Map<String, Object?>? _claims(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    try {
+      final json = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      return (jsonDecode(json) as Map).cast<String, Object?>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String _describe(Object e) => e is GoogleSignInException
+      ? (e.description ?? e.code.name)
+      : e.toString();
 
   @override
   void dispose() {

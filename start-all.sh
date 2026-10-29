@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Starts every demo that runs as services: each folder with a devbox.json
 # and a process-compose.yaml (Mortgage Hub, Contact Hub, ..., datyx and
-# the index page in Index/), detached, with `devbox services up -b` (or, in a
+# the two index pages, Index/ for the aityx group and datyx-index/ for
+# the datyx group), detached, with `devbox services up -b` (or, in a
 # codespace, the image's process-compose: see demos-toolchain.sh), then
 # waits until each one's web app and
 # API answer and prints where to open them. A demo whose web port already
@@ -11,8 +12,8 @@
 #
 #   ./start-all.sh              # every demo
 #   ./start-all.sh ContactHub   # only these
-#   ./start-aityx.sh            # the aityx group: the six aityx demos
-#   ./start-datyx.sh            # the datyx group: the API, the dashboard, HealthHub
+#   ./start-aityx.sh            # the aityx group: the six aityx demos and their index
+#   ./start-datyx.sh            # the datyx group: the API, the dashboard, HealthHub and their index
 #   WAIT=0 ./start-all.sh       # start, don't wait
 # The groups come from each folder's group.id.txt (aityx or datyx); the
 # group scripts run this one with DEMOS_GROUP set.
@@ -187,9 +188,13 @@ for demo in "${pending[@]+"${pending[@]}"}"; do
   failed=1
 done
 
-# The index page (Index/), with a card per demo and which ones are up.
-index="$(port Index FLUTTER_WEB_PORT 2>/dev/null)"
-if [[ -n "$index" ]] && answers "http://localhost:$index/"; then
-  echo "🏠 Every demo, on one page: http://localhost:$index/"
-fi
+# Each group's index page, with a card per demo: Index/ for the aityx
+# demos, datyx-index/ for the datyx group; printed when it answers.
+for pair in "Index:The six aityx demos" "datyx-index:The datyx group"; do
+  folder="${pair%%:*}"
+  index="$(port "$folder" FLUTTER_WEB_PORT 2>/dev/null)"
+  if [[ -n "$index" ]] && answers "http://localhost:$index/"; then
+    echo "🏠 ${pair#*:}, on one page: http://localhost:$index/"
+  fi
+done
 exit $failed

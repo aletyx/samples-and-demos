@@ -145,6 +145,9 @@ services:
       OIDC_ISSUER: ${OIDC_ISSUER:-https://accounts.google.com}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
       OIDC_EXTRA_AUDIENCES: ${OIDC_EXTRA_AUDIENCES:-}
+      # Encryption at rest (see .env.example): required, the API refuses to
+      # start without it outside dev mode.
+      DATYX_MASTER_KEY: ${DATYX_MASTER_KEY:-}
     ports:
       # API_PORT is the name .env.example, the demos and the repository's
       # start-all.sh use for this port (Compose can't nest a second default).

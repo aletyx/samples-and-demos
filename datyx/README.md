@@ -92,8 +92,15 @@ OpenAPI, and a REST client for OpenMetadata.
   production leaves it alone.
 - `/api/datasources`: the data sources on record, the first entity:
   databases, S3 buckets and folders with their access details (secrets
-  never answered back), listed, added (`POST`) and removed (`DELETE`).
-  See [specs/data-sources.md](specs/data-sources.md).
+  never answered back), listed, added (`POST`) and removed (`DELETE`),
+  within the caller's profile. See
+  [specs/data-sources.md](specs/data-sources.md).
+- `/api/profile`: the caller's profile, made the first time an identity
+  signs in, which owns their data sources and holds a key of its own:
+  the access details of its sources are encrypted with it at rest, the
+  profile keys with the master key `DATYX_MASTER_KEY` (`openssl rand
+  -base64 32` into `.env`; a development key in dev mode). See
+  [specs/profiles.md](specs/profiles.md).
 - Authentication: OpenID Connect with Google. Set `OIDC_CLIENT_ID` in
   `.env` (the `datyx` OAuth client's id) and the data sources and
   `GET /api/me` want a signed-in user, whose ID token the API verifies

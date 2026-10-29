@@ -3,9 +3,9 @@
 HealthHub is the next demo, and the first with a database: a Flutter app,
 a Dart API and PostgreSQL, laid out like Mortgage Hub, Contact Hub and
 PokerFace so the same scripts, dev containers and launchers run it. For
-now the app says hello: the greeting is a row in PostgreSQL, read through
-the API, shown with the database's version and whether the API, the
-database and the aityx key are in place. What HealthHub does with
+now the app is a map: the index, for someone not signed in, shows where
+they are with a welcome over it, and home, after signing in, is a
+dashboard whose one tile is the same map. What HealthHub does with
 [aityx.ai](https://aityx.ai) comes next.
 
 ## Technology
@@ -55,11 +55,12 @@ the executables ahead of time ([scripts/build.sh](scripts/build.sh)),
 only what changed; `devbox run db` starts only the database.
 
 The ports are 9800 to 9802, so HealthHub runs alongside Mortgage Hub
-(8880), Contact Hub (8890) and PokerFace (8910). The app opens on its one
-screen: **Hello, world**, read from PostgreSQL through the API, with the
-database's version and three chips for the API, the database and the
-aityx key; the refresh button asks again (see
-[Welcome](specs/welcome.md)).
+(8880), Contact Hub (8890) and PokerFace (8910). The app opens on the
+index: a map filling the screen, the browser asking to share your
+location, an orange dot where you are, and **Welcome to HealthHub** with
+the sign-in over it. Signing in leads home, a dashboard with the same
+map as its tile (see [Index](specs/index.md), [Home](specs/home.md) and
+[The map](specs/map.md)). `/api/hello` still answers from PostgreSQL.
 
 Once everything is ready, the `health-check` monitor prints where to open
 the app (in a codespace, its forwarded URL too), waits 5 s
@@ -83,8 +84,8 @@ build); only the API, `devbox run api` (`API_PORT`; it needs the database).
 ### Testing
 
 `dart test` in `healthhub_api/` checks the routes and the web server
-without a database; `flutter test` in `healthhub_app/` the welcome screen
-with a fake API. The database round trip is checked by running the stack:
+without a database; `flutter test` in `healthhub_app/` the index and home
+with a fake API, sign-in and location. The database round trip is checked by running the stack:
 `/api/hello` answers from PostgreSQL and the health monitor's 🐘.
 
 ### Building the binaries
@@ -168,11 +169,11 @@ release web builds from the published image,
 changed since the image was made, and
 [post-create.sh](../.devcontainer/post-create.sh) says whether your key
 arrived. Then, on that and every later start,
-[post-start.sh](../.devcontainer/post-start.sh) starts the index page
-and the datyx group in the background with `./start-all.sh` and makes
+[post-start.sh](../.devcontainer/post-start.sh) starts the datyx index
+page and the datyx group in the background with `./start-all.sh` and makes
 their web ports public, HealthHub's **9800** among them. There is
 nothing to run: once the app is up, open port 9800 from the **Ports**
-panel, or HealthHub's card on the index page (port 8800, which
+panel, or HealthHub's card on the datyx index page (port 9907, which
 Codespaces opens in a browser tab for you). Its bare URL redirects to
 the app at `/app/`. The API (9801) and the database (9802) stay inside
 the codespace.
@@ -226,8 +227,8 @@ plus Docker for the databases.
 HealthHub is part of the datyx group and signs its users in with Google
 through OpenID Connect. Put the `healthhub` OAuth client's id in `.env`
 as `OIDC_CLIENT_ID` (see [.env.example](.env.example)) and the app shows
-Google's sign-in button, the API verifies the ID token on every call, and
-the same token goes on to the datyx API for the **datyx** card, so datyx
-sees the same person (its `OIDC_EXTRA_AUDIENCES` lists this client).
+Google's sign-in button on the index, the API verifies the ID token on
+every call, and the same token goes on to the datyx API when HealthHub
+calls it, so datyx sees the same person (its `OIDC_EXTRA_AUDIENCES` lists this client).
 Without a client id everything is anonymous. See [specs/api.md](specs/api.md)
-and [specs/welcome.md](specs/welcome.md).
+and [specs/index.md](specs/index.md).

@@ -24,6 +24,11 @@ public class CurrentUser {
         return !identity.isAnonymous();
     }
 
+    /** The token's issuer (iss), null while anonymous. */
+    public String issuer() {
+        return authenticated() ? claim("iss") : null;
+    }
+
     public String subject() {
         return authenticated() ? claim("sub") : null;
     }

@@ -72,11 +72,15 @@ through the proxy both answer.
 
 ## The dashboard (datyx_dashboard/)
 
-One screen, three tabs: Data sources, the ones on record with a dialog
-to add one and a button to remove one; Health, status cards (API,
-PostgreSQL, OpenMetadata, sign-in, records) from `/api/status`, refreshed
-every 15 s, and the dashboard's own version; Audit, every call made:
-method, path, status, time, and the request and response bodies. See
+One screen, five tabs: Data sources, the ones on record with a dialog
+to add one and a button to remove one; Catalog, what datyx makes of the
+data in each source (not read yet, so each shows as not catalogued);
+Audit, every call made: method, path, status, time, and the request and
+response bodies; Health, status cards (API, PostgreSQL, OpenMetadata,
+sign-in, records) from `/api/status`, refreshed every 15 s, and the
+dashboard's own version; Profile, the signed-in user's profile and its
+identities. A reload keeps the open tab (in the address, `?tab=`), the
+sign-in and the audit (in the browser tab's session storage). See
 [specs/dashboard.md](specs/dashboard.md).
 
 ## Build

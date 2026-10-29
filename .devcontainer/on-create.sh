@@ -10,7 +10,7 @@
 # that needs them is in post-create.sh.
 #
 # Every demo of the container's group (DEMOS_GROUP; see startup_demos in
-# startup-log.sh) and the index page in Index/ gets `devbox install` in its
+# startup-log.sh), its index page among them, gets `devbox install` in its
 # folder. The Flutter ones lock the same Flutter, so the Nix store is
 # filled once and the later installs are quick.
 #

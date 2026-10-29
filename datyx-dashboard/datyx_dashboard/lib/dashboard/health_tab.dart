@@ -68,21 +68,30 @@ class HealthTab extends StatelessWidget {
                 lines: auth.config == null
                     ? const ['waiting for /api/auth/config']
                     : !auth.enabled
-                        ? const ['off: no OIDC_CLIENT_ID on the API', 'every call is anonymous']
-                        : auth.signedIn
-                            ? [
-                                'OpenID Connect, ${Uri.tryParse(auth.config!.issuer)?.host ?? auth.config!.issuer}',
-                                me == null
-                                    ? 'the API has not confirmed yet'
-                                    : 'the API sees ${me!.email ?? me!.subject}',
-                              ]
-                            : ['on: ${Uri.tryParse(auth.config!.issuer)?.host ?? auth.config!.issuer}', 'nobody signed in'],
+                    ? const [
+                        'off: no OIDC_CLIENT_ID on the API',
+                        'every call is anonymous',
+                      ]
+                    : auth.signedIn
+                    ? [
+                        'OpenID Connect, ${Uri.tryParse(auth.config!.issuer)?.host ?? auth.config!.issuer}',
+                        me == null
+                            ? 'the API has not confirmed yet'
+                            : 'the API sees ${me!.email ?? me!.subject}',
+                        if (me?.profileId != null) 'profile ${me!.profileId}',
+                      ]
+                    : [
+                        'on: ${Uri.tryParse(auth.config!.issuer)?.host ?? auth.config!.issuer}',
+                        'nobody signed in',
+                      ],
               ),
             ),
             StatusCard(
               title: 'Records',
               ok: s != null,
-              lines: s == null ? const ['…'] : ['${s.dataSources} data sources'],
+              lines: s == null
+                  ? const ['…']
+                  : ['${s.dataSources} data sources', '${s.profiles} profiles'],
             ),
             StatusCard(
               title: 'Dashboard',
@@ -103,8 +112,8 @@ class HealthTab extends StatelessWidget {
   static List<String> _dependency(Dependency? d) => d == null
       ? const ['…']
       : d.ok
-          ? [d.version ?? 'ok']
-          : [d.error ?? 'not answering'];
+      ? [d.version ?? 'ok']
+      : [d.error ?? 'not answering'];
 
   static String _uptime(Duration d) {
     if (d.inHours > 0) return '${d.inHours} h ${d.inMinutes % 60} min';

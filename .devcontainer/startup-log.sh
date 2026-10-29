@@ -28,7 +28,8 @@ startup_capture() {
 # startup_demos: the folders the dev container starts, one per line: each
 # with a devbox.json and a process-compose.yaml, in the container's group
 # (DEMOS_GROUP, set by its devcontainer.json: the folders whose
-# group.id.txt names it), and the index page, Index/, which has no group.
+# group.id.txt names it), its index page among them (Index/ for aityx,
+# datyx-index/ for datyx).
 startup_demos() {
   local config dir
   for config in "$startup_root"/*/devbox.json; do

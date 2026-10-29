@@ -6,8 +6,9 @@ sample with its own documentation.
 
 The demos that run as apps come in two groups. Each group opens in a
 GitHub codespace of its own, with its own dev container and image, and
-starts there with the [index page](Index/), which links the group's apps
-(port 8800). Both need your own `AITYX_API_KEY` Codespaces secret (see
+starts there with its index page, which links the group's apps: the
+aityx group's on port 8800 ([Index/](Index/)), the datyx group's on port
+9907 ([datyx-index/](datyx-index/)). Both need your own `AITYX_API_KEY` Codespaces secret (see
 [Launching it](#launching-it)). On a laptop, `./start-aityx.sh` or
 `./start-datyx.sh` starts a group (see [Run all the demos](#run-all-the-demos)).
 
@@ -41,7 +42,8 @@ on a 4-core, 16 GB machine.
 |---|---|
 | [datyx](datyx/) | A data system in the making, API only: REST on Quarkus and GraalVM (Hibernate, Panache, PostgreSQL) and an OpenMetadata server with Elasticsearch; on ports 9900 to 9905, apart from the demos |
 | [datyx-dashboard](datyx-dashboard/) | The views of datyx: a Flutter web app, like the demos' apps, that calls the datyx API and shows what it answers, with every request and response; on port 9906 |
-| [HealthHub](HealthHub/) | The first demo with a database: a Flutter app, a Dart API and PostgreSQL, built like the others; for now a hello world read from the database through the API |
+| [HealthHub](HealthHub/) | The first demo with a database: a Flutter app, a Dart API and PostgreSQL, built like the others; for now a map of where you are, and a dashboard after signing in |
+| [datyx-index](datyx-index/) | One page linking the datyx group: the dashboard, the API, HealthHub and OpenMetadata; on port 9907 |
 
 ## Other samples
 
@@ -58,17 +60,19 @@ from the root of this repository with [Devbox](https://www.jetify.com/devbox):
 
 ```bash
 ./start-all.sh              # every demo, detached; waits until each answers
-./start-aityx.sh            # the aityx group: Mortgage Hub, Contact Hub, PokerFace, RoboRules, Cellfie, RiverRace
-./start-datyx.sh            # the datyx group: the datyx API, its dashboard and HealthHub
+./start-aityx.sh            # the aityx group: Mortgage Hub, Contact Hub, PokerFace, RoboRules, Cellfie, RiverRace, and their index
+./start-datyx.sh            # the datyx group: the datyx API, its dashboard, HealthHub, and their index
 ./start-all.sh ContactHub   # only the ones named
 ./stop-all.sh               # stops them all; ./stop-aityx.sh and ./stop-datyx.sh one group
 ```
 
-The demos run in two groups, each with its own start and stop scripts:
-**aityx**, the six demos whose decisions run on aityx, and **datyx**,
-the datyx API, the datyx dashboard and HealthHub. A folder's group is
-its `group.id.txt`, which the group scripts read; `start-all.sh` and
-`stop-all.sh` take both groups and the index page.
+The demos run in two groups, each with its own start and stop scripts
+and its own index page: **aityx**, the six demos whose decisions run on
+aityx, with their index on port 8800 ([Index/](Index/)), and **datyx**,
+the datyx API, the datyx dashboard and HealthHub, with their index on
+port 9907 ([datyx-index/](datyx-index/)). A folder's group is its
+`group.id.txt`, which the group scripts read; `start-all.sh` and
+`stop-all.sh` take both groups.
 [start-all.sh](start-all.sh) runs `devbox services up -b` in each folder
 and then prints where to open each app once its web app and API answer.
 Each demo serves its app's release build and a compiled API, so a start
@@ -317,9 +321,9 @@ samples. The badge above opens it in a codespace, with the same
 [HealthHub/](HealthHub/) is the next demo, and the first with a
 database: a Flutter app, a Dart API and PostgreSQL 17, laid out like the
 others so the same scripts, dev containers and launchers run it. For
-now the app says hello: the greeting is a row in PostgreSQL, read
-through the API and shown with the database's version and the health
-of each part. The database is a Docker container (the `postgres`
+now the app is a map: the index, for someone not signed in, shows where
+they are with a welcome over it, and home, after signing in, is a
+dashboard whose one tile is the same map. The database is a Docker container (the `postgres`
 service of its [compose.yaml](HealthHub/compose.yaml)), which
 `devbox services up` starts too, so Docker must be running; the dev
 containers add it. From the root of this repository:

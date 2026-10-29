@@ -8,19 +8,25 @@ it.
 ## Product
 
 HealthHub is a demo built like Mortgage Hub, Contact Hub and PokerFace,
-with one more part: a PostgreSQL database. For now it is a hello world
-that proves the whole path: the app asks the API, the API reads the
-greeting from the database, and the app shows it with where it came from
-and the health of each part. What HealthHub does, and what aityx decides
-in it, is still to be specified.
+with one more part: a PostgreSQL database. For now the app is a map: the
+index, for someone not signed in, shows where they are with a welcome
+over it; home, after signing in, is a dashboard whose one tile is the
+same map. What HealthHub does, and what aityx decides in it, is still to
+be specified.
 
 ## Features
 
 **App**
 
-- [Welcome](welcome.md): the one screen, the greeting from the database
-  with the health chips and the version.
+- [Index](index.md): the page for someone not signed in, the map with
+  the welcome over it and the sign-in; and which page the app shows.
+- [Home](home.md): after signing in, the dashboard of tiles, for now the
+  map.
+- [The map](map.md): OpenStreetMap's tiles, darkened, with the user's
+  location highlighted; how the location is asked for.
 - [Theme](theme.md): the aityx dark palette.
+- [App icon](app-icon.md): the heart with the pulse line, the launcher
+  icons and the favicon.
 
 **Backend**
 

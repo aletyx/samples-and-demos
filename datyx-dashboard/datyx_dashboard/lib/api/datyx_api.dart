@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../persist/session_store.dart';
+
 /// The system as the API sees it: `GET /api/status`.
 class SystemStatus {
   const SystemStatus({
@@ -13,6 +15,7 @@ class SystemStatus {
     required this.database,
     required this.openMetadata,
     this.dataSources = 0,
+    this.profiles = 0,
   });
 
   factory SystemStatus.fromJson(Map<String, Object?> json) => SystemStatus(
@@ -23,6 +26,7 @@ class SystemStatus {
     database: Dependency.fromJson(json['database']),
     openMetadata: Dependency.fromJson(json['openmetadata']),
     dataSources: (json['dataSources'] as num?)?.toInt() ?? 0,
+    profiles: (json['profiles'] as num?)?.toInt() ?? 0,
   );
 
   final String name;
@@ -32,6 +36,7 @@ class SystemStatus {
   final Dependency database;
   final Dependency openMetadata;
   final int dataSources;
+  final int profiles;
 }
 
 /// A dependency's part of the status: ok, its version, or the error.
@@ -58,7 +63,11 @@ class Dependency {
 /// has a client id; on, the issuer (Google) and the OpenID Connect client id
 /// the app signs in with.
 class AuthConfig {
-  const AuthConfig({required this.enabled, required this.issuer, this.clientId});
+  const AuthConfig({
+    required this.enabled,
+    required this.issuer,
+    this.clientId,
+  });
 
   factory AuthConfig.fromJson(Map<String, Object?> json) => AuthConfig(
     enabled: json['enabled'] == true,
@@ -71,9 +80,16 @@ class AuthConfig {
   final String? clientId;
 }
 
-/// Who the API says is calling: `GET /api/me`.
+/// Who the API says is calling, and their profile: `GET /api/me`.
 class Me {
-  const Me({required this.authenticated, this.subject, this.email, this.name, this.picture});
+  const Me({
+    required this.authenticated,
+    this.subject,
+    this.email,
+    this.name,
+    this.picture,
+    this.profileId,
+  });
 
   factory Me.fromJson(Map<String, Object?> json) => Me(
     authenticated: json['authenticated'] == true,
@@ -81,6 +97,7 @@ class Me {
     email: json['email'] as String?,
     name: json['name'] as String?,
     picture: json['picture'] as String?,
+    profileId: (json['profileId'] as num?)?.toInt(),
   );
 
   final bool authenticated;
@@ -88,6 +105,77 @@ class Me {
   final String? email;
   final String? name;
   final String? picture;
+  final int? profileId;
+}
+
+/// The caller's profile: `GET /api/profile`. Made by the API on the first
+/// call of an identity; its identities, and how many data sources it owns.
+class Profile {
+  const Profile({
+    required this.id,
+    this.name,
+    this.createdAt,
+    this.dataSources = 0,
+    this.identities = const [],
+  });
+
+  factory Profile.fromJson(Map<String, Object?> json) => Profile(
+    id: (json['id'] as num).toInt(),
+    name: json['name'] as String?,
+    createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
+    dataSources: (json['dataSources'] as num?)?.toInt() ?? 0,
+    identities: [
+      for (final item in json['identities'] as List? ?? const [])
+        ProfileIdentity.fromJson((item as Map).cast<String, Object?>()),
+    ],
+  );
+
+  final int id;
+  final String? name;
+  final DateTime? createdAt;
+  final int dataSources;
+  final List<ProfileIdentity> identities;
+}
+
+/// One sign-in a profile answers to: an issuer's subject, with the claims
+/// the API last saw.
+class ProfileIdentity {
+  const ProfileIdentity({
+    required this.issuer,
+    required this.subject,
+    this.email,
+    this.name,
+    this.picture,
+    this.addedAt,
+    this.lastSeenAt,
+  });
+
+  factory ProfileIdentity.fromJson(Map<String, Object?> json) =>
+      ProfileIdentity(
+        issuer: json['issuer'] as String? ?? '',
+        subject: json['subject'] as String? ?? '',
+        email: json['email'] as String?,
+        name: json['name'] as String?,
+        picture: json['picture'] as String?,
+        addedAt: DateTime.tryParse(json['addedAt'] as String? ?? ''),
+        lastSeenAt: DateTime.tryParse(json['lastSeenAt'] as String? ?? ''),
+      );
+
+  final String issuer;
+  final String subject;
+  final String? email;
+  final String? name;
+  final String? picture;
+  final DateTime? addedAt;
+  final DateTime? lastSeenAt;
+
+  /// The issuer as a host (`accounts.google.com`), or as given (`local`).
+  String get provider => Uri.tryParse(issuer)?.host.isNotEmpty == true
+      ? Uri.parse(issuer).host
+      : issuer;
+
+  /// What to call it: the email, else the name, else the subject.
+  String get label => email ?? name ?? subject;
 }
 
 /// The kinds of data source the API keeps, as its JSON names them.
@@ -179,7 +267,8 @@ class NewDataSource {
   Map<String, Object?> toJson() => {
     'name': name,
     'type': type.json,
-    if (description != null && description!.isNotEmpty) 'description': description,
+    if (description != null && description!.isNotEmpty)
+      'description': description,
     type.json: details,
   };
 }
@@ -202,14 +291,87 @@ class ApiCall {
   String? error;
   Duration? elapsed;
 
-  bool get ok => error == null && status != null && status! >= 200 && status! < 300;
+  bool get ok =>
+      error == null && status != null && status! >= 200 && status! < 300;
   bool get pending => elapsed == null;
+
+  Map<String, Object?> toJson() => {
+    'method': method,
+    'path': path,
+    'startedAt': startedAt.toIso8601String(),
+    'requestBody': requestBody,
+    'status': status,
+    'responseBody': responseBody,
+    'error': error,
+    'elapsedMs': elapsed?.inMilliseconds,
+  };
+
+  /// A call kept from before a reload; one that was still waiting then
+  /// never got its answer.
+  static ApiCall fromJson(Map<String, Object?> json) {
+    final call = ApiCall(
+      method: json['method'] as String? ?? '?',
+      path: json['path'] as String? ?? '?',
+      startedAt:
+          DateTime.tryParse(json['startedAt'] as String? ?? '') ??
+          DateTime.now(),
+      requestBody: json['requestBody'] as String?,
+    );
+    call.status = (json['status'] as num?)?.toInt();
+    call.responseBody = json['responseBody'] as String?;
+    call.error = json['error'] as String?;
+    final ms = (json['elapsedMs'] as num?)?.toInt();
+    if (ms != null) {
+      call.elapsed = Duration(milliseconds: ms);
+    } else {
+      call.error ??= 'the page was reloaded before the answer';
+      call.elapsed = Duration.zero;
+    }
+    return call;
+  }
 }
 
-/// Every call made, newest first; the calls panel listens.
+/// Every call made, newest first; the calls panel listens. Kept in the
+/// [store] as it changes, and read back from it when made, so the audit
+/// outlives a reload of the page.
 class CallLog extends ChangeNotifier {
+  CallLog({this.store}) {
+    try {
+      final kept = store?.read(_key);
+      if (kept != null) {
+        _calls.addAll(
+          [
+            for (final item in jsonDecode(kept) as List)
+              ApiCall.fromJson((item as Map).cast<String, Object?>()),
+          ].take(keep),
+        );
+      }
+    } catch (_) {
+      // Unreadable: start empty.
+    }
+  }
+
   static const int keep = 100;
+  static const _key = 'calls';
+  /// Where the calls are kept across reloads; none in tests.
+  final SessionStore? store;
   final List<ApiCall> _calls = [];
+
+  void _save() {
+    final store = this.store;
+    if (store == null) return;
+    if (_calls.isEmpty) {
+      store.remove(_key);
+    } else {
+      store.write(_key, jsonEncode([for (final call in _calls) call.toJson()]));
+    }
+  }
+
+  @override
+  void notifyListeners() {
+    _save();
+    super.notifyListeners();
+  }
 
   List<ApiCall> get calls => List.unmodifiable(_calls);
 
@@ -255,6 +417,7 @@ abstract class DatyxApi {
   CallLog get log;
   Future<AuthConfig> authConfig();
   Future<Me> me();
+  Future<Profile> profile();
   Future<SystemStatus> status();
   Future<List<DataSource>> dataSources({int limit = 100});
   Future<DataSource> addDataSource(NewDataSource source);
@@ -349,7 +512,10 @@ class HttpDatyxApi implements DatyxApi {
         throw ApiException('$method $path failed: $e');
       }
       log.finish(call, status: response.statusCode, body: response.body);
-      if (response.statusCode == 401 && bearer != null && !retried && refreshToken != null) {
+      if (response.statusCode == 401 &&
+          bearer != null &&
+          !retried &&
+          refreshToken != null) {
         // An expired token: a fresh one, once.
         retried = true;
         final fresh = await refreshToken!.call();
@@ -369,15 +535,25 @@ class HttpDatyxApi implements DatyxApi {
   }
 
   @override
-  Future<AuthConfig> authConfig() async =>
-      AuthConfig.fromJson((await _send('GET', '/api/auth/config') as Map).cast());
+  Future<AuthConfig> authConfig() async => AuthConfig.fromJson(
+    (await _send('GET', '/api/auth/config') as Map).cast(),
+  );
 
   @override
-  Future<Me> me() async => Me.fromJson((await _send('GET', '/api/me') as Map).cast());
+  Future<Me> me() async =>
+      Me.fromJson((await _send('GET', '/api/me') as Map).cast());
+
+  @override
+  Future<Profile> profile() async =>
+      Profile.fromJson((await _send('GET', '/api/profile') as Map).cast());
 
   @override
   Future<List<DataSource>> dataSources({int limit = 100}) async {
-    final json = await _send('GET', '/api/datasources', query: {'limit': '$limit'});
+    final json = await _send(
+      'GET',
+      '/api/datasources',
+      query: {'limit': '$limit'},
+    );
     return [
       for (final item in json as List)
         DataSource.fromJson((item as Map).cast<String, Object?>()),

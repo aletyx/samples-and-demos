@@ -61,10 +61,20 @@ HealthHub 98xx; datyx stays in 99xx.
 Settings come from the environment, else `.env` (`scripts/env.sh`), else
 their defaults, as `.env.example` lists them: the ports, the bind host,
 `DATYX_DB_ADMIN_PASSWORD`, `DATYX_DB_PASSWORD`, `OPENMETADATA_DB_PASSWORD`,
-`API_MODE`, and the authentication settings `OIDC_CLIENT_ID`,
-`OIDC_ISSUER`, `OIDC_EXTRA_AUDIENCES` ([auth.md](auth.md)), which
+`API_MODE`, the authentication settings `OIDC_CLIENT_ID`,
+`OIDC_ISSUER`, `OIDC_EXTRA_AUDIENCES` ([auth.md](auth.md)) and the
+master key `DATYX_MASTER_KEY` ([profiles.md](profiles.md); required by
+the packaged API and Docker, a development key in dev mode), which
 `scripts/api.sh` and the `api` compose service pass to the API. Secrets
 reach processes through their environment only.
+
+## Development data
+
+Dev mode (`API_MODE=dev`, `quarkus:dev`) runs Flyway with a second
+location, `db/devdata`, Java migrations seeding development records:
+HealthHub's database as a data source in every profile
+([api.md](api.md)). The jar, the native executable and Docker run the
+schema migrations only.
 
 ## Version and build
 

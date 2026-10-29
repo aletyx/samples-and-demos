@@ -8,8 +8,8 @@
 #
 #   ./stop-all.sh               # every demo
 #   ./stop-all.sh ContactHub    # only these
-#   ./stop-aityx.sh             # the aityx group: the six aityx demos
-#   ./stop-datyx.sh             # the datyx group: the API, the dashboard, HealthHub
+#   ./stop-aityx.sh             # the aityx group: the six aityx demos and their index
+#   ./stop-datyx.sh             # the datyx group: the API, the dashboard, HealthHub and their index
 # The groups come from each folder's group.id.txt (aityx or datyx); the
 # group scripts run this one with DEMOS_GROUP set.
 set -uo pipefail

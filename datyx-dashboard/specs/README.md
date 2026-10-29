@@ -17,5 +17,7 @@ its own folder, started with the API and HealthHub as the datyx group.
 
 - [The dashboard](dashboard.md): the Flutter app, what it shows and how it
   reaches the API.
+- [App icon](app-icon.md): the database cylinder with its catalog, the
+  web icons and the favicon.
 - [Development environment](dev-environment.md): devbox, process-compose,
   Docker Compose, the ports, the settings, the version and the build.

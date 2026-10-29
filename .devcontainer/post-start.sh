@@ -13,8 +13,8 @@
 # PokerFace (8910), RoboRules (8920), Cellfie (8930) and RiverRace (8940).
 # The datyx group: the datyx API (9900, with PostgreSQL, Elasticsearch
 # and OpenMetadata in containers), the datyx dashboard (9906) and
-# HealthHub (9800, with its PostgreSQL container on 9802). The index is
-# on 8800. Each demo serves its release build and a compiled API,
+# HealthHub (9800, with its PostgreSQL container on 9802). Each group's
+# index: 8800 for aityx (Index/), 9907 for datyx (datyx-index/). Each demo serves its release build and a compiled API,
 # built by update-content.sh when the codespace was created (or in its
 # prebuild), so they are up in seconds; a demo whose build is missing or
 # older than its sources builds first, a minute or two. Watch one with
@@ -51,13 +51,15 @@ if [[ ${#missing[@]} -gt 0 ]]; then
   echo "post-start: demos with: ./start-all.sh"
 else
   # Detached, so it outlives postStartCommand. start-all.sh's output, and
-  # what it says when each demo answers, goes to the log too. The index
-  # first, outside any group: it is up in seconds and shows the others
-  # coming up, with Open only on this group's cards (INDEX_GROUP).
-  setsid nohup bash -c '{ INDEX_GROUP="$DEMOS_GROUP" DEMOS_GROUP= WAIT=120 ./start-all.sh Index; WAIT=900 ./start-all.sh; } 2>&1 |
+  # what it says when each demo answers, goes to the log too. The group's
+  # index first (Index/ for aityx, datyx-index/ for datyx): it is up in
+  # seconds and links the others while they come up.
+  index=Index
+  [[ "${DEMOS_GROUP:-}" == datyx ]] && index=datyx-index
+  setsid nohup bash -c '{ WAIT=120 ./start-all.sh "$1"; WAIT=900 ./start-all.sh; } 2>&1 |
     while IFS= read -r line; do
       printf "%s [start-all] %s\n" "$(date -u "+%Y-%m-%d %H:%M:%S")" "$line"
-    done >>"$0"' "$startup_log" </dev/null >/dev/null 2>&1 &
+    done >>"$0"' "$startup_log" "$index" </dev/null >/dev/null 2>&1 &
   echo "post-start: starting the index and the ${DEMOS_GROUP:-every} demo group in the background (./start-all.sh);"
   echo "post-start: progress in startup.log"
 fi

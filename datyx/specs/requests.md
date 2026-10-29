@@ -2,6 +2,46 @@
 
 The history of requests that shaped datyx, newest first.
 
+## 2026-10-29: Flyway locations by profile, dev data for HealthHub
+
+Asked: Flyway on the datyx API with different folders for the Quarkus
+dev runtime and the regular (prod) runtime, so migrations and data can
+differ between them; in dev, a data source pointing at HealthHub's
+database.
+
+Changed: `quarkus.flyway.locations` is `db/migration` and dev mode adds
+`db/devdata`; `db.devdata.R__HealthHub_data_source`, a repeatable Java
+migration seeding HealthHub's PostgreSQL as the HealthHub data source of
+every profile (the local one made when missing), encrypted through the
+new `AccessCodec`, which the resource uses too; `DevDataTest`; the API,
+data sources, dev-environment specs.
+
+## 2026-10-29: profiles, and encryption at rest
+
+Asked: profiles on the API and the dashboard, as the other apps have:
+when someone signs in with an identity such as an email, create a profile
+for it if there is none, else load it; a profile can have more than one
+identity, so it isn't bound to one email, and may be shared later; for
+now the basic creation, and with each profile an encryption key that
+encrypts the sensitive data, such as data source usernames, passwords
+and locations.
+
+Changed: the `Profile` and `ProfileIdentity` entities, `Profiles`
+resolving the caller's profile by the token's issuer and subject and
+making one on the first call (`ProfileMaker`), `Crypto` (AES-256-GCM: a
+master key from `DATYX_MASTER_KEY` wrapping a key per profile, a
+development key in dev and test modes, required otherwise),
+`GET /api/profile`, `profileId` in `GET /api/me`, `profiles` in the
+status; data sources owned by a profile, listed, read and removed within
+it, their access details one encrypted document (`access`) in place of
+the clear columns, and the name unique per profile
+(`V2__profiles_and_encrypted_access.sql`, which drops the pre-profile
+rows); `DATYX_MASTER_KEY` in `.env.example`, the scripts and
+`compose.yaml`; `ProfileTest`, `CryptoTest`, the auth-off test; the
+`profiles.md` spec, and the data sources, auth, API and dev-environment
+specs. The dashboard gained a Profile tab
+([../../datyx-dashboard/specs/dashboard.md](../../datyx-dashboard/specs/dashboard.md)).
+
 ## 2026-10-29: the API starts without a .env
 
 Asked: spin up a codespace for each demo group. In the datyx one the API

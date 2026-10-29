@@ -19,7 +19,7 @@ load_env() {
 load_env API_PORT DATYX_BIND_HOST DATYX_API_PORT DATYX_DB_PORT DATYX_OPENMETADATA_PORT \
   DATYX_OPENMETADATA_ADMIN_PORT DATYX_SEARCH_PORT DATYX_DEBUG_PORT \
   DATYX_DB_ADMIN_PASSWORD DATYX_DB_PASSWORD OPENMETADATA_DB_PASSWORD API_MODE \
-  OIDC_ISSUER OIDC_CLIENT_ID OIDC_EXTRA_AUDIENCES
+  OIDC_ISSUER OIDC_CLIENT_ID OIDC_EXTRA_AUDIENCES DATYX_MASTER_KEY
 unset _root
 export DATYX_BIND_HOST="${DATYX_BIND_HOST:-127.0.0.1}"
 # API_PORT is the name the repository's start-all.sh and process-compose.yaml
@@ -40,3 +40,5 @@ export API_MODE="${API_MODE:-dev}"
 # not start (a fresh checkout, a codespace, has no .env).
 export OIDC_ISSUER="${OIDC_ISSUER:-https://accounts.google.com}"
 export OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-}" OIDC_EXTRA_AUDIENCES="${OIDC_EXTRA_AUDIENCES:-}"
+# Encryption at rest (see .env.example): empty, the API's development key in dev mode.
+export DATYX_MASTER_KEY="${DATYX_MASTER_KEY:-}"
