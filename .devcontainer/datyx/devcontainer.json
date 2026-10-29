@@ -39,12 +39,13 @@
     "ghcr.io/devcontainers/features/sshd:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
-  // The 8-core, 32 GB Codespaces machine: Elasticsearch and OpenMetadata
-  // take several GB on their own, beside the API's JVM and two
-  // PostgreSQL containers.
+  // The 4-core, 16 GB Codespaces machine, the largest the organization
+  // allows (asking for more leaves no machine to create the codespace
+  // on). Elasticsearch and OpenMetadata take several GB on their own,
+  // beside the API's JVM and two PostgreSQL containers, so it is tight.
   "hostRequirements": {
-    "cpus": 8,
-    "memory": "32gb"
+    "cpus": 4,
+    "memory": "16gb"
   },
   // The web servers must listen on every interface for the forwarded
   // ports to reach them (only the container sees them). One variable per

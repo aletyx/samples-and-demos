@@ -119,7 +119,7 @@ process-compose through Docker Compose comes from.
   [image/Containerfile](../../image/Containerfile) by
   `bash image/build-image.sh datyx`: Flutter 3.47.0, GraalVM,
   process-compose, the datyx API's Maven dependencies and the release web
-  builds of the dashboard and HealthHub) on an 8-core, 32 GB machine,
+  builds of the dashboard and HealthHub) on a 4-core, 16 GB machine (the largest the organization allows),
   plus the `docker-in-docker` feature, since the databases are
   containers. The scripts are the ones in
   [.devcontainer/](../../.devcontainer), which both groups share;

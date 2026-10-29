@@ -142,8 +142,8 @@ reload: rebuild after a change.
 [![Open HealthHub and the other datyx demos in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdatyx%2Fdevcontainer.json&machine=standardLinux32gb)
 
 That link opens this repository's **datyx demos** dev container on an
-8-core machine (32 GB RAM), which is what Elasticsearch, OpenMetadata
-and the Flutter builds want together. It starts HealthHub with the rest
+4-core machine (16 GB RAM), the largest the organization allows; a tight
+fit for Elasticsearch, OpenMetadata and the Flutter builds together. It starts HealthHub with the rest
 of its group, the datyx demos (the datyx API and the datyx dashboard),
 and the index page that links them. To choose for yourself instead, use
 *Code → Codespaces → New with options* and pick **datyx demos** as the
