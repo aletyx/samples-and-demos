@@ -77,3 +77,7 @@ The feature files hold the current specification; see the
    speed a bit slower.** The aityx pilots' planes are drawn at 25% opacity,
    down from 35% (see [Theme](theme.md)). **Speed** gains a ¾× choice,
    which the game starts at, instead of 1× (see [Game](game.md#playing)).
+10. **Start even slower, and speed up a little every 30 seconds.** The
+    game starts at ½×; every 30 seconds of play it speeds up by 10
+    percent, up to 1×, showing how fast it runs beside **Speed**, which
+    is now the starting speed (see [Game](game.md#playing)).

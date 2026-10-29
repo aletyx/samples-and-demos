@@ -84,9 +84,14 @@ score, bridge and losses, and **Race again** starts on a new river.
   another on a new river; not Tab, Esc or a modifier alone, nor a
   shortcut with Cmd, Ctrl or Alt.
 - **Start**/**Pause**, **Restart** (same river), **New river**, **You
-  fly**, **Fair race** (see [Decisions](decisions.md)), **Speed** (¼×, ½×,
-  ¾× by default, 1×), **aityx decides every** (3, 6, 12 or 30 frames) and **Finish at**.
+  fly**, **Fair race** (see [Decisions](decisions.md)), **Speed** (¼×, ½×
+  by default, ¾×, 1×), **aityx decides every** (3, 6, 12 or 30 frames)
+  and **Finish at**.
 - The game runs at 60 frames a second of game time, in fixed steps.
+- **Speed** is where a race starts: every 30 seconds of play the game
+  speeds up by 10 percent, up to 1× (from ½×, in two and a half
+  minutes), and *now 0.6×* beside the choice says how fast it runs. A
+  restart, or a new river, starts it again from the choice.
 - Under the river, a gray band, as on the Atari: each plane's name,
   score, fuel gauge and planes left.
 - The **Race log** lists the last 8 events: planes lost and why, bridges

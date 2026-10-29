@@ -158,14 +158,36 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('starts at half speed and speeds up every 30 seconds', (
+    tester,
+  ) async {
+    await pumpApp(tester, FakeDecider());
+    final screen = tester.state(find.byType(RaceScreen)) as dynamic;
+    expect(screen.pace, 50);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
+    await run(tester, 2);
+    // Each pump is one long frame of play: the game time it makes is
+    // capped, but every second counts towards the speed.
+    await tester.pump(const Duration(seconds: 31));
+    expect(screen.pace, 60);
+    expect(find.text('now 0.6×'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 300));
+    expect(screen.pace, 100);
+    await tester.tap(find.text('Restart'));
+    await tester.pump();
+    expect(screen.pace, 50);
+    await tester.tap(find.text('Pause'));
+    await tester.pump();
+  });
+
   testWidgets('a late answer is dropped for a plane lost since', (
     tester,
   ) async {
     final decider = SlowDecider();
     await pumpApp(tester, decider);
     await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
-    // At ¾× speed, 11 frames reach the first aityx decision.
-    await run(tester, 11);
+    // At ½× speed, 16 frames reach the first aityx decision.
+    await run(tester, 16);
     expect(decider.pending, isNotNull);
     final race =
         (tester.state(find.byType(RaceScreen)) as dynamic).race as Race;
