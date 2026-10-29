@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs after on-create.sh when the container is created, and again whenever
-# Codespaces refreshes a prebuild (updateContentCommand): builds what every
-# demo serves with ./build-all.sh (each demo's scripts/build.sh: the app's
+# Codespaces refreshes a prebuild (updateContentCommand): builds what each
+# demo of the container's group (DEMOS_GROUP) serves with ./build-all.sh (each demo's scripts/build.sh: the app's
 # release web build, and the API and web server compiled to native
 # executables), only what is missing or older than its sources. A prebuild's
 # snapshot keeps the builds, so a codespace created from one starts every
@@ -26,7 +26,7 @@ cd "$startup_root" || { echo "update-content: cannot find $startup_root" >&2; ex
 
 started=$SECONDS
 if ./build-all.sh; then
-  echo "update-content: every demo built in $((SECONDS - started)) s"
+  echo "update-content: the ${DEMOS_GROUP:-every} demo group built in $((SECONDS - started)) s"
 else
   # Not fatal: a demo that failed to build here builds again when it
   # starts, and the others are unaffected.

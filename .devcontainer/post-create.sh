@@ -16,17 +16,17 @@ echo "===== post-create: $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
 cd "$startup_root" || { echo "post-create: cannot find $startup_root" >&2; exit 1; }
 
 # The aityx key and optional endpoint are the user's own Codespaces secrets
-# (see devcontainer.json) or can be set in each demo's .env.
+# (see devcontainer.json) or can be set in the root .env.
 if [[ -n "${AITYX_API_KEY:-}" ]]; then
-  echo "post-create: AITYX_API_KEY is set; every demo can call aityx"
+  echo "post-create: AITYX_API_KEY is set; the demos can call aityx"
 else
   echo "post-create: AITYX_API_KEY is not set. The apps open without it, but"
   echo "post-create: nothing that runs on aityx works. To set it, add a"
   echo "post-create: Codespaces secret at https://github.com/settings/codespaces,"
-  echo "post-create: or copy each demo's .env.example to .env and fill it in."
+  echo "post-create: or copy .env.example to .env at the root and fill it in."
 fi
 if [[ -n "${AITYX_URL:-}" ]]; then
-  echo "post-create: AITYX_URL is set; every demo will use that endpoint"
+  echo "post-create: AITYX_URL is set; the demos will use that endpoint"
 else
   echo "post-create: AITYX_URL is not set; demos use https://api.aityx.ai"
 fi

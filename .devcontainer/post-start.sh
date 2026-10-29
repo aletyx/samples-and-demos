@@ -1,22 +1,26 @@
 #!/usr/bin/env bash
 # Runs each time the container starts (postStartCommand), after
 # on-create.sh, update-content.sh and post-create.sh on the first start:
-# runs ./start-all.sh, which starts every demo and the index page, and, in
-# a codespace, makes their ports public, so each app opens from the Ports
-# panel (or from the index page's browser tab, which Codespaces opens)
-# with nothing to run.
+# starts the index page and the container's group of demos (DEMOS_GROUP,
+# set by its devcontainer.json) with ./start-all.sh and, in a codespace,
+# makes their ports public, so each app opens from the Ports panel (or
+# from the index page's browser tab, which Codespaces opens) with nothing
+# to run.
 #
 # start-all.sh starts each demo's services (`devbox services up -b`, or the
-# image's process-compose: see demos-toolchain.sh): the web
-# app and the API of Mortgage Hub (8880), Contact Hub (8890), HealthHub
-# (9800, with its PostgreSQL container on 9802), PokerFace
-# (8910), RoboRules (8920), Cellfie (8930) and RiverRace (8940), plus the
-# index on 8800. Each demo serves its release build and a compiled API,
+# image's process-compose: see demos-toolchain.sh). The aityx group: the
+# web app and the API of Mortgage Hub (8880), Contact Hub (8890),
+# PokerFace (8910), RoboRules (8920), Cellfie (8930) and RiverRace (8940).
+# The datyx group: the datyx API (9900, with PostgreSQL, Elasticsearch
+# and OpenMetadata in containers), the datyx dashboard (9906) and
+# HealthHub (9800, with its PostgreSQL container on 9802). The index is
+# on 8800. Each demo serves its release build and a compiled API,
 # built by update-content.sh when the codespace was created (or in its
 # prebuild), so they are up in seconds; a demo whose build is missing or
 # older than its sources builds first, a minute or two. Watch one with
 # `process-compose attach -U -u /tmp/aityx-demos-<demo>.sock` (see
-# demos-toolchain.sh); stop them with ./stop-all.sh.
+# demos-toolchain.sh); stop them with ./stop-all.sh, which, like
+# ./start-all.sh, acts on the container's group only.
 #
 # Everything is logged to startup.log at the root (see startup-log.sh),
 # including start-all.sh's own lines saying when each demo answers, or,
@@ -47,12 +51,14 @@ if [[ ${#missing[@]} -gt 0 ]]; then
   echo "post-start: demos with: ./start-all.sh"
 else
   # Detached, so it outlives postStartCommand. start-all.sh's output, and
-  # what it says when each demo answers, goes to the log too.
-  setsid nohup bash -c 'WAIT=900 ./start-all.sh 2>&1 |
+  # what it says when each demo answers, goes to the log too. The index
+  # first, outside any group: it is up in seconds and shows the others
+  # coming up.
+  setsid nohup bash -c '{ DEMOS_GROUP= WAIT=120 ./start-all.sh Index; WAIT=900 ./start-all.sh; } 2>&1 |
     while IFS= read -r line; do
       printf "%s [start-all] %s\n" "$(date -u "+%Y-%m-%d %H:%M:%S")" "$line"
     done >>"$0"' "$startup_log" </dev/null >/dev/null 2>&1 &
-  echo "post-start: starting every demo in the background (./start-all.sh);"
+  echo "post-start: starting the index and the ${DEMOS_GROUP:-every} demo group in the background (./start-all.sh);"
   echo "post-start: progress in startup.log"
 fi
 
