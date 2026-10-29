@@ -71,6 +71,20 @@ system's temp folder; the Makefile delegates to it, and adds `test`
 and `clean`. `group.id.txt` and `artifact.id.txt` hold the coordinates,
 `datyx:datyx-dashboard`.
 
+## Dev container
+
+No dev container of its own: it runs in the datyx group's,
+**datyx demos** (`.devcontainer/datyx/devcontainer.json` at the
+repository root), with the datyx API and HealthHub. Its image,
+`docker.io/aletyxcode/samples-and-demos-datyx` (`bash
+image/build-image.sh datyx`), carries Flutter, GraalVM, the API's Maven
+dependencies and the dashboard's release web build, so the API it needs
+runs there too. `DEMOS_GROUP=datyx` makes the root `start-all.sh`,
+`stop-all.sh` and `build-all.sh` act on the group, and `post-start.sh`
+starts the index page and then the group, the dashboard on 9906
+(`DATYX_BIND_HOST=0.0.0.0`, public in a codespace). The start-up log is
+`startup.log` at the repository root.
+
 ## Agent and editor files
 
 `AGENTS.md` (review before committing, project notes), `CLAUDE.md` (views
@@ -81,9 +95,6 @@ template).
 
 ## Known limitations
 
-- No dev container or codespace of its own: the API it needs runs on
-  GraalVM, which the published dev container image doesn't carry. The
-  repository's index page lists it without a codespace link.
 - The Docker image hasn't been built yet; it is HealthHub's web image
   with the API address as a template variable.
 - No release, deploy or CI workflows.

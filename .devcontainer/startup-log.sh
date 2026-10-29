@@ -25,13 +25,20 @@ startup_capture() {
   done | tee -a "$startup_log") 2>&1
 }
 
-# startup_demos: the folders start-all.sh starts, one per line: each with
-# a devbox.json and a process-compose.yaml (the demos and Index/).
+# startup_demos: the folders the dev container starts, one per line: each
+# with a devbox.json and a process-compose.yaml, in the container's group
+# (DEMOS_GROUP, set by its devcontainer.json: the folders whose
+# group.id.txt names it), and the index page, Index/, which has no group.
 startup_demos() {
   local config dir
   for config in "$startup_root"/*/devbox.json; do
     dir="$(dirname "$config")"
-    [[ -f "$dir/process-compose.yaml" ]] && basename "$dir"
+    [[ -f "$dir/process-compose.yaml" ]] || continue
+    if [[ -n "${DEMOS_GROUP:-}" && -f "$dir/group.id.txt" &&
+      "$(tr -d '[:space:]' <"$dir/group.id.txt")" != "$DEMOS_GROUP" ]]; then
+      continue
+    fi
+    basename "$dir"
   done
 }
 
@@ -51,10 +58,12 @@ startup_facts() {
   fi
   # The toolchain (see demos-toolchain.sh): the image's own tools, or
   # devbox, with each demo's install.
+  echo "group: ${DEMOS_GROUP:-every demo}"
   echo "toolchain: ${DEMOS_TOOLCHAIN:-devbox}"
   if [[ "${DEMOS_TOOLCHAIN:-devbox}" == image ]]; then
     echo "flutter: $(command -v flutter || echo missing)"
     echo "process-compose: $(command -v process-compose || echo missing) $(process-compose version 2>/dev/null | head -1)"
+    echo "java: $(command -v java || echo none)"
     echo "builds in the image: $(ls /opt/demos 2>/dev/null | grep -v manifest | tr '\n' ' ')"
   else
     echo "devbox: $(command -v devbox || echo missing) $(devbox version 2>/dev/null)"

@@ -60,3 +60,16 @@ The feature files hold the current specification; see the
    finding (the Kotlin plugin not applied) didn't reproduce: Flutter's
    template builds, `MainActivity` included, so the Gradle files stay as
    Flutter generates them.
+
+## 2026-10-29
+
+8. **Separate the dev containers, images and Codespaces configurations by
+   demo group.** RiverRace now opens in the aityx group's dev container,
+   **aityx demos** (`.devcontainer/aityx/`), on the group's image
+   `docker.io/aletyxcode/samples-and-demos-aityx` (`bash
+   image/build-image.sh aityx`), which starts it with the other aityx
+   demos and the index page. Its own dev container,
+   `.devcontainer/RiverRace/`, was removed. The start-up log is
+   `startup.log` at the repository root. The README's codespace link
+   points at the group's container. See [Development
+   environment](dev-environment.md).

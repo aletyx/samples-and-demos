@@ -2,6 +2,20 @@
 
 The history of requests that shaped datyx, newest first.
 
+## 2026-10-29: the dev containers by demo group
+
+Asked: separate the dev containers, images and Codespaces configurations
+by demo group.
+
+Changed: nothing in this folder. The API now runs in a codespace, in the
+datyx group's dev container, **datyx demos**
+(`.devcontainer/datyx/devcontainer.json` at the repository root), on the
+group's image `docker.io/aletyxcode/samples-and-demos-datyx` (`bash
+image/build-image.sh datyx`: GraalVM, Flutter and the API's Maven
+dependencies), which starts it with the dashboard, HealthHub and the
+index page. There was no per-demo dev container for it to replace; the
+per-demo ones of the other folders were removed.
+
 ## 2026-10-28: data sources, and OpenID Connect with Google
 
 Asked: the first entity, data sources, which users add and remove:

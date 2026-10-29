@@ -87,19 +87,25 @@ port. The key comes from your environment or `.env`.
 
 ## Run it in a codespace
 
-[![Open RoboRules in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FRoboRules%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open RoboRules and the other aityx demos in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Faityx%2Fdevcontainer.json&machine=standardLinux32gb)
 
+That link opens the **aityx demos** dev container
+([.devcontainer/aityx/](../.devcontainer/aityx)), which starts RoboRules
+with the rest of the aityx group and the index page that links them.
 The codespace uses your `AITYX_API_KEY` Codespaces secret, the same as the
-other samples'. It runs the [published image](../image/), which carries
-the app's release web build, so the codespace is available about three
-minutes after you ask for it and the app answers within a minute after
-that (unless the app changed since the image was made: then it builds
-itself, a minute or two). Once it has started, open port **8920** from
-the **Ports** panel. Watch the services with `process-compose attach -U
--u /tmp/aityx-demos-RoboRules.sock`, stop them with `./stop-all.sh
-RoboRules` from the repository root and start them again with
-`./start-all.sh RoboRules`; there is no devbox in a codespace. If it
-doesn't start, send `RoboRules/startup.log`.
+other samples'. It runs the aityx group's [published image](../image/),
+`docker.io/aletyxcode/samples-and-demos-aityx`, which carries the
+group's release web builds, so the codespace is available about three
+minutes after you ask for it and the apps answer within a minute after
+that (a demo that changed since the image was made builds itself, a
+minute or two). Once it has started, open port **8920** from the
+**Ports** panel, or RoboRules' card on the index page (port 8800).
+Watch the services with `process-compose attach -U -u
+/tmp/aityx-demos-RoboRules.sock`, stop the group with `./stop-all.sh`
+from the repository root and start it again with `./start-all.sh` (in
+the codespace both act on the aityx group only); there is no devbox in
+a codespace. If it doesn't start, send `startup.log` from the root of
+the repository.
 
 ## Playing
 

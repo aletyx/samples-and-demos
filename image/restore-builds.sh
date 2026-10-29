@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Puts the release web builds the dev container image carries (/opt/demos,
-# see Containerfile and build-image.sh) into the workspace, for every demo
+# Puts the release web builds a group's dev container image carries
+# (/opt/demos, see Containerfile and build-image.sh) into the workspace,
+# for every demo
 # whose build key (build-key.sh: the git ids of what the web build is made
 # from) is still the one the build was made with; a demo whose app changed
 # since is left to build itself (its scripts/build.sh, run by
@@ -31,7 +32,7 @@ while read -r demo hash; do
     for w in "${wanted[@]}"; do [[ "$w" == "$demo" ]] && keep=1; done
     [[ $keep -eq 1 ]] || continue
   fi
-  app="$(ls -d "$demo"/*_app 2>/dev/null | head -1)"
+  app="$(app_package "$demo")"
   if [[ -z "$app" || ! -d "$store/$demo/web" ]]; then
     echo "· $demo: no build in the image"
     continue
@@ -55,7 +56,9 @@ while read -r demo hash; do
   # (it compares the build with the sources' times), and the record of the
   # settings it was made with newest of all (see scripts/build.sh).
   find "$app/build/web" -exec touch {} +
-  touch "$app/build/web/.aityx-services"
+  for stamp in "$app/build/web"/.*-services; do
+    [[ -f "$stamp" ]] && touch "$stamp"
+  done
   echo "✅ $demo: build restored from the image (${hash:0:7})"
   restored+=("$demo")
 done <"$manifest"

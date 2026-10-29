@@ -314,3 +314,16 @@ spec.
    tools (`DEMOS_TOOLCHAIN=image`, no devbox): every demo answers less than
    four minutes after the request, down from more than ten. See
    [Development environment](dev-environment.md) and `image/README.md`.
+
+## 2026-10-29
+
+40. **Separate the dev containers, images and Codespaces configurations by
+    demo group.** Mortgage Hub now opens in the aityx group's dev
+    container, **aityx demos** (`.devcontainer/aityx/`), on the group's
+    image `docker.io/aletyxcode/samples-and-demos-aityx` (`bash
+    image/build-image.sh aityx`), which starts it with the other aityx
+    demos and the index page. The repository's default dev container,
+    **All demos**, which it opened in until now, was removed, as were the
+    other per-demo ones; Mortgage Hub's own stays archived. The README's
+    codespace link points at the group's container. See [Development
+    environment](dev-environment.md).

@@ -15,8 +15,13 @@
 ///                       it: {"key": bool, "source": ..., "ok": bool,
 ///                       "detail": ...}; never the key. The page's banner
 ///                       and status light read it
+///   GET /api/group      {"group": ...}: the demo group running beside
+///                       the page (INDEX_GROUP, set in a group's dev
+///                       container), or null when it's every demo; the
+///                       page shows Open only for that group's demos
 ///
-/// Settings: INDEX_PORT (default 8800), INDEX_BIND_HOST (127.0.0.1).
+/// Settings: INDEX_PORT (default 8800), INDEX_BIND_HOST (127.0.0.1),
+/// INDEX_GROUP (none).
 library;
 
 import 'dart:async';
@@ -51,6 +56,9 @@ Future<void> _handle(HttpRequest request) async {
       _json(response, 200, {'demos': await _demos()});
     } else if (path == '/api/aityx') {
       _json(response, 200, await _aityx());
+    } else if (path == '/api/group') {
+      final group = Platform.environment['INDEX_GROUP'] ?? '';
+      _json(response, 200, {'group': group.isEmpty ? null : group});
     } else {
       await _file(response, path);
     }

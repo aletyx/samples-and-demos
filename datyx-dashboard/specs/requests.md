@@ -4,6 +4,22 @@ The history of requests that shaped the datyx dashboard, newest first.
 Its earlier history, as the `datyx-dash` module inside `datyx/`, is in
 [../../datyx/specs/requests.md](../../datyx/specs/requests.md).
 
+## 2026-10-29: the dev containers by demo group
+
+Asked: separate the dev containers, images and Codespaces configurations
+by demo group.
+
+Changed: the dashboard now runs in a codespace, in the datyx group's dev
+container, **datyx demos** (`.devcontainer/datyx/devcontainer.json` at
+the repository root), on the group's image
+`docker.io/aletyxcode/samples-and-demos-datyx` (`bash
+image/build-image.sh datyx`), which carries the API's GraalVM and the
+dashboard's release web build and starts it with the API, HealthHub and
+the index page. There was no per-demo dev container for it to replace;
+the per-demo ones of the other folders were removed. The known
+limitation saying it had no codespace is gone from
+[dev-environment.md](dev-environment.md).
+
 ## 2026-10-28: data sources, and signing in with Google
 
 Asked: let users add or remove data sources (databases, S3, filesystem,

@@ -14,7 +14,8 @@ build/
 
 # --- Logs & OS noise ---
 *.log
-# The codespace's start-up log (see .devcontainer/HealthHub/startup-log.sh)
+# The codespace's start-up log, once kept here; it is at the repository
+# root now (see .devcontainer/startup-log.sh)
 startup.log
 .DS_Store
 Thumbs.db

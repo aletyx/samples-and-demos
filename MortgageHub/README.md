@@ -139,7 +139,7 @@ Set it once, before launching:
 ![The New secret form: name AITYX_API_KEY, the key as the value, and access to aletyx/samples-and-demos](docs/images/codespaces-new-secret.png)
 
 If you skip this, GitHub asks for the key on the codespace creation page,
-because [devcontainer.json](../.devcontainer/devcontainer.json)
+because [devcontainer.json](../.devcontainer/aityx/devcontainer.json)
 lists it as a required secret. Either way GitHub keeps it against your
 account and passes it to the container as an environment variable: it is
 never written to disk there, never committed, and never reaches the Flutter
@@ -153,19 +153,21 @@ in `.env` (see [.env.example](.env.example)). In Codespaces, set
 
 ### 2. Launch it
 
-[![Open every demo in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open Mortgage Hub and the other aityx demos in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Faityx%2Fdevcontainer.json&machine=standardLinux32gb)
 
-That link opens this repository's default dev container, **All demos**,
-on a 4-core machine (16 GB RAM): Mortgage Hub starts with every other
-demo and the index page that links them, from
+That link opens this repository's **aityx demos** dev container on a
+4-core machine (16 GB RAM): Mortgage Hub starts with the rest of its
+group, the aityx demos (Contact Hub, Cellfie, PokerFace, RoboRules and
+RiverRace), and the index page that links them, from
 [start-all.sh](../start-all.sh). To choose for yourself instead, use
-*Code → Codespaces → New with options* and keep **All demos** as the dev
-container configuration; the repository holds several samples, and the
-other configurations start one each. Mortgage Hub's own dev container,
-the one these were copied from, is kept in
+*Code → Codespaces → New with options* and pick **aityx demos** as the
+dev container configuration; the repository holds two groups of demos,
+each with its own, and the other one, **datyx demos**, doesn't include
+Mortgage Hub. Mortgage Hub's own dev container, the one the group's
+were copied from, is kept in
 [.devcontainer/archive/MortgageHub/](../.devcontainer/archive/MortgageHub).
 
-The creation page should look like this, with **All demos** as the dev
+The creation page should look like this, with **aityx demos** as the dev
 container configuration (the screenshot still shows the former
 **Mortgage Hub** one), a 4-core machine, and `AITYX_API_KEY` under
 *Recommended secrets*, ticked as associated with the repository. If it is
@@ -176,27 +178,27 @@ not ticked, the secret does not reach this repository; go back to step 1.
 ### 3. Run the app
 
 When the codespace is created,
-[on-create.sh](../.devcontainer/on-create.sh) copies every demo's
-release web build from the [published image](../image/) into the
+[on-create.sh](../.devcontainer/on-create.sh) copies the group's
+release web builds from the [published image](../image/) into the
 workspace (a demo that changed since the image was made builds itself,
 a minute or two, while the others are already up),
 [update-content.sh](../.devcontainer/update-content.sh) compiles the
 APIs and web servers (a few seconds each) and
 [post-create.sh](../.devcontainer/post-create.sh) says whether your key
 arrived. Then, on that and every later start,
-[post-start.sh](../.devcontainer/post-start.sh) runs `./start-all.sh`
-in the background and makes port **8880** public, with the other demos'
-ports. There is nothing to run: the codespace is available about three
+[post-start.sh](../.devcontainer/post-start.sh) starts the index page
+and the aityx group in the background with `./start-all.sh` and makes
+port **8880** public, with the other demos' ports. There is nothing to run: the codespace is available about three
 minutes after you ask for it and the demos answer within a minute after
 that; open port 8880 from the **Ports** panel, or from the Mortgage Hub
 card on the index page (port 8800, which Codespaces opens in a browser
 tab for you). Its bare URL redirects to the app at `/app/`.
 
-Watch the services with `process-compose attach -U -u
-/tmp/aityx-demos-MortgageHub.sock`, stop them with `./stop-all.sh
-MortgageHub` from the repository root (or `process-compose down -U -u`
-with the same socket), and start them again with `./start-all.sh
-MortgageHub`. There is no devbox in a codespace: the demos run on the
+Watch Mortgage Hub's services with `process-compose attach -U -u
+/tmp/aityx-demos-MortgageHub.sock`. Stop the group with `./stop-all.sh`
+from the repository root and start it again with `./start-all.sh`: in
+the codespace both act on the aityx group only (`DEMOS_GROUP=aityx`).
+There is no devbox in a codespace: the demos run on the
 image's own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
 [demos-toolchain.sh](../demos-toolchain.sh)); `devbox services` is for
 a laptop.
@@ -225,16 +227,19 @@ private in the **Ports** panel if you don't want that.
 ## Run it in a dev container locally
 
 Open the repository root in VS Code and choose **Reopen in Container**,
-then **All demos**. The dev container lives at the root of the
+then **aityx demos**. The dev containers live at the root of the
 repository, in [.devcontainer/](../.devcontainer), because that is where
-GitHub looks for one; it starts every demo, this one among them.
+GitHub looks for them: one per demo group, Mortgage Hub's in
+[.devcontainer/aityx/](../.devcontainer/aityx). It starts the aityx
+group and the index page, this demo among them.
 
-It runs the [published image](../image/) every dev container here uses,
-`docker.io/aletyxcode/samples-and-demos-devcontainer`, built from one
-[Containerfile](../image/Containerfile): Microsoft's `ubuntu-24.04`
+It runs the aityx group's [published image](../image/),
+`docker.io/aletyxcode/samples-and-demos-aityx`, built from the
+[Containerfile](../image/Containerfile) by
+`bash image/build-image.sh aityx`: Microsoft's `ubuntu-24.04`
 devcontainer base image with pinned, checksum-verified releases of
-Flutter, process-compose and the GitHub CLI, and every demo's release
-web build.
+Flutter, process-compose and the GitHub CLI, and the six aityx demos'
+release web builds.
 
 Codespaces secrets are a GitHub feature, so set the key here by copying
 [.env.example](.env.example) to `.env` and filling in `AITYX_API_KEY`. The
