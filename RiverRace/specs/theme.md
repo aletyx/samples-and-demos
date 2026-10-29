@@ -15,4 +15,4 @@ water (`#1C3FAA`), green banks (`#4E8F2A`), gray roads with yellow dashes,
 brown bridges, red and white fuel depots, and a gray HUD band
 (`#8E8E8E`). The player's plane is the original's yellow (`#E8E84A`),
 solid; the aityx pilots' are cyan (`#5FE0F0`) and magenta (`#F070E0`), at
-35% opacity.
+25% opacity.
