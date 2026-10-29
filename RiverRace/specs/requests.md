@@ -96,3 +96,8 @@ The feature files hold the current specification; see the
     frames; it now comes back where it can fly straight on for 40 rows
     (see [Game](game.md#the-planes)). The aityx pilots' planes are 25%
     opaque in the planes section too, as in [Theme](theme.md).
+12. **Save space in the top row, so the game shows better: the title on
+    the left and all the buttons on the right; no Finish at selector,
+    bridge 10 is enough.** The controls moved into the top bar, right of
+    the title and the status; Restart and New river are icons. The race
+    always ends at bridge 10 (see [Game](game.md#playing)).

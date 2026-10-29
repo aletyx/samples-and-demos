@@ -67,8 +67,7 @@ Planes don't collide with each other.
 - **The screen** follows the plane furthest up, 48 rows above its bottom.
   A plane left behind is pushed along by the bottom edge, 12 rows up.
 
-The race ends when a plane passes the **Finish** bridge (5, 10 or 20), or,
-with **Finish at last plane**, when every plane is out. The winner has
+The race ends when a plane passes bridge 10. The winner has
 the most points, then went furthest; a banner says who, with each plane's
 score, bridge and losses, and **Race again** starts on a new river.
 
@@ -87,10 +86,14 @@ score, bridge and losses, and **Race again** starts on a new river.
   over (after a second and a half, so the banner can be read), starts
   another on a new river; not Tab, Esc or a modifier alone, nor a
   shortcut with Cmd, Ctrl or Alt.
-- **Start**/**Pause**, **Restart** (same river), **New river**, **You
-  fly**, **Sound**, **Fair race** (see [Decisions](decisions.md)),
-  **Speed** (¼×, ½× by default, ¾×, 1×), **aityx decides every** (3, 6,
-  12 or 30 frames) and **Finish at**.
+- The controls sit in the top bar, right of the title and of the status
+  (the frame, and how long aityx took to answer), so the game starts
+  right under it: **Start**/**Pause**, **Restart** (same river) and
+  **New river** (icons, named on hover), **You fly**, **Sound**, **Fair
+  race** (see [Decisions](decisions.md)), **Speed** (¼×, ½× by default,
+  ¾×, 1×) and **aityx decides every** (3, 6, 12 or 30 frames). In a
+  window narrower than 1,300 pixels they wrap in a row above the game
+  instead.
 - The game runs at 60 frames a second of game time, in fixed steps.
 - **Speed** is where a race starts: every 30 seconds of play the game
   speeds up by 10 percent, up to 1× (from ½×, in two and a half
