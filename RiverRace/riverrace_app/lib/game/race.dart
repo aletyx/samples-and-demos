@@ -37,10 +37,19 @@ const missileSpeed = 5.0;
 const burn = 0.07;
 const refill = 0.9;
 
-/// Lives at the start (one flying, three in reserve), and an extra one
+/// Over a depot a plane drops at once to this share of its throttle's
+/// speed and holds it, as in the original, and beeps every
+/// [refuelBeepEvery] frames.
+const refuelSlow = 0.5;
+const refuelBeepEvery = 6;
+
+/// Lives at the start (one flying, seven in reserve), and an extra one
 /// every 10,000 points.
-const startLives = 4;
+const startLives = 8;
 const bonusEvery = 10000;
+
+/// How far a plane coming back after a crash can fly straight on.
+const respawnClear = 40.0;
 
 /// The plane's half width and half height.
 const planeHalfWidth = 3.5;
@@ -155,6 +164,21 @@ class Thing {
   bool get solid => exploding == 0 && !gone;
 }
 
+/// A sound the game makes: a plane refueling, its pitch by how full the
+/// tank is (0 to 1), or something a missile hit exploding.
+sealed class RaceSound {
+  const RaceSound();
+}
+
+class RefuelSound extends RaceSound {
+  const RefuelSound(this.level);
+  final double level;
+}
+
+class ExplosionSound extends RaceSound {
+  const ExplosionSound();
+}
+
 /// Something that happened, for the race log.
 class RaceEvent {
   const RaceEvent(this.frame, this.planeId, this.text);
@@ -206,6 +230,9 @@ class Race {
   final broken = <int>{};
   final blasts = <Blast>[];
   final events = <RaceEvent>[];
+
+  /// The sounds made since the screen last played them; it clears them.
+  final sounds = <RaceSound>[];
   final controls = Controls();
 
   /// The river's row at the screen's bottom.
@@ -327,7 +354,11 @@ class Race {
     final (dx, throttle, fire) = p.human ? _player() : _pilot(p);
     p.throttle = throttle;
     final target = speeds[throttle]!;
-    p.speed += (target - p.speed).clamp(-0.08, 0.08);
+    if (p.refueling) {
+      p.speed = target * refuelSlow;
+    } else {
+      p.speed += (target - p.speed).clamp(-0.08, 0.08);
+    }
     p.x = (p.x + dx).clamp(planeHalfWidth, fieldWidth - planeHalfWidth);
     p.y += p.speed;
     if (p.y < camera + bottomMargin) p.y = camera + bottomMargin;
@@ -378,6 +409,7 @@ class Race {
       if (t.kind == ThingKind.fuel) {
         p.fuel = min(100, p.fuel + refill);
         p.refueling = true;
+        if (frame % refuelBeepEvery == 0) sounds.add(RefuelSound(p.fuel / 100));
       } else if (p.shield == 0) {
         t.exploding = 16;
         return _lose(p, 'hit ${_name(t.kind)}');
@@ -402,6 +434,7 @@ class Race {
         t.exploding = 16;
         p.score += thingPoints[t.kind]!;
         p.missile = null;
+        sounds.add(const ExplosionSound());
         if (t.kind == ThingKind.fuel) _log(p, 'shot a fuel depot (+80)');
         return;
       }
@@ -413,6 +446,7 @@ class Race {
         p.score += bridgePoints;
         p.missile = null;
         blasts.add(Blast(axis, River.bridgeY(b), 30));
+        sounds.add(const ExplosionSound());
         _log(p, 'blew up bridge $b (+$bridgePoints)');
         return;
       }
@@ -430,16 +464,42 @@ class Race {
   }
 
   void _respawn(Plane p) {
-    final y = camera + 28;
-    final spans = river.spans(y)..sort((a, b) => b.width.compareTo(a.width));
+    final (x, y) = _respawnAt();
     p
       ..state = PlaneState.flying
-      ..x = spans.first.center
+      ..x = x
       ..y = y
       ..fuel = 100
       ..speed = speeds['normal']!
       ..shield = 120
       ..action = const PilotAction();
+  }
+
+  /// Where a lost plane comes back: low on the screen, mid-channel, where
+  /// it can fly straight on for [respawnClear] rows without hitting the
+  /// bank or a standing bridge; the widest channel if there's no such
+  /// place.
+  (double, double) _respawnAt() {
+    for (var y = camera + 28; y <= camera + 100; y += 4) {
+      final spans = river.spans(y)..sort((a, b) => b.width.compareTo(a.width));
+      for (final s in spans) {
+        if (_clearAhead(s.center, y)) return (s.center, y);
+      }
+    }
+    final y = camera + 28;
+    final spans = river.spans(y)..sort((a, b) => b.width.compareTo(a.width));
+    return (spans.first.center, y);
+  }
+
+  bool _clearAhead(double x, double y) {
+    for (var row = y - planeHalfHeight; row <= y + respawnClear; row += 2) {
+      for (final dx in const [-planeHalfWidth - 2, 0.0, planeHalfWidth + 2]) {
+        if (river.isLand(x + dx, row)) return false;
+      }
+      final b = river.bridgeAt(row);
+      if (b != null && !broken.contains(b)) return false;
+    }
+    return true;
   }
 
   static String _name(ThingKind kind) => switch (kind) {

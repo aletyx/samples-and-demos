@@ -77,3 +77,27 @@ The feature files hold the current specification; see the
    speed a bit slower.** The aityx pilots' planes are drawn at 25% opacity,
    down from 35% (see [Theme](theme.md)). **Speed** gains a ¾× choice,
    which the game starts at, instead of 1× (see [Game](game.md#playing)).
+10. **Start even slower, and speed up a little every 30 seconds.** The
+    game starts at ½×; every 30 seconds of play it speeds up by 10
+    percent, up to 1×, showing how fast it runs beside **Speed**, which
+    is now the starting speed (see [Game](game.md#playing)).
+11. **Slow down a little over the fuel strip, as in River Raid; a retro
+    recharging beep over it and a retro explosion when enemies are hit;
+    double the lives, since a plane sometimes doesn't come back after a
+    crash; then, slow down clearly while over the strip.** A plane over
+    a depot drops at once to half its throttle's speed and holds it (a
+    first try, easing to 70%, was hardly visible). A
+    **Sound** chip (on) plays a square-wave beep while refueling, rising
+    with the tank, and a noise burst when a missile hits something,
+    made with Web Audio (see [Game](game.md#playing)). Planes start with
+    eight lives, up from four. The plane that didn't come back: it did,
+    but now and then (1 respawn in 18) at a spot it couldn't fly out of,
+    an island or the bank just ahead, and was lost again within a few
+    frames; it now comes back where it can fly straight on for 40 rows
+    (see [Game](game.md#the-planes)). The aityx pilots' planes are 25%
+    opaque in the planes section too, as in [Theme](theme.md).
+12. **Save space in the top row, so the game shows better: the title on
+    the left and all the buttons on the right; no Finish at selector,
+    bridge 10 is enough.** The controls moved into the top bar, right of
+    the title and the status; Restart and New river are icons. The race
+    always ends at bridge 10 (see [Game](game.md#playing)).
