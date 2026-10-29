@@ -20,7 +20,7 @@ const planeColors = {
   'p1': Color(0xFF5FE0F0),
   'p2': Color(0xFFF070E0),
 };
-const planeOpacity = {'you': 1.0, 'p1': 0.35, 'p2': 0.35};
+const planeOpacity = {'you': 1.0, 'p1': 0.25, 'p2': 0.25};
 
 /// The calls the panel keeps, newest first.
 const keptCalls = 120;
@@ -56,7 +56,7 @@ class _RaceScreenState extends State<RaceScreen>
   bool _youFly = true;
 
   /// The game's speed, in percent.
-  int _speed = 100;
+  int _speed = 75;
   int _decideEvery = 6;
   bool _hold = false;
   int _finish = 10;
@@ -486,7 +486,7 @@ class _RaceScreenState extends State<RaceScreen>
           _Choice<int>(
             label: 'Speed',
             value: _speed,
-            options: const {25: '¼×', 50: '½×', 100: '1×'},
+            options: const {25: '¼×', 50: '½×', 75: '¾×', 100: '1×'},
             onChanged: (v) => setState(() => _speed = v),
           ),
           _Choice<int>(
