@@ -28,13 +28,16 @@ class CallsPanel extends StatelessWidget {
                 children: [
                   Text('API calls', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(width: 10),
-                  Text(
-                    calls.isEmpty
-                        ? 'the latest ${CallLog.keep} are kept'
-                        : '${calls.length} of the latest ${CallLog.keep} kept',
-                    style: const TextStyle(color: Aityx.muted, fontSize: 12),
+                  // Shrinks first, so the Clear button stays in the panel.
+                  Expanded(
+                    child: Text(
+                      calls.isEmpty
+                          ? 'the latest ${CallLog.keep} are kept'
+                          : '${calls.length} of the latest ${CallLog.keep} kept',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Aityx.muted, fontSize: 12),
+                    ),
                   ),
-                  const Spacer(),
                   IconButton(
                     tooltip: 'Clear',
                     onPressed: calls.isEmpty ? null : log.clear,

@@ -23,7 +23,9 @@ app (summary)  ──POST /api/proposals/check──▶  mortgagehub_api  ──
   the exact body the API sent to aityx (the model and its inputs), so it's
   visible that the verdict and every
   reason come from aityx; the button then reads **Hide aityx request and
-  response**. Without them in the API's answer, there's no button. While
+  response**. Without them in the API's answer, there's no button. A
+  faint rule (the theme's outline variant at 60%) separates the response
+  block from the request block. While
   they're shown, the regulatory check widens from the summary's 640 px to
   1100 px, so the JSON has room; the rest of the summary stays at 640 px.
   Each block

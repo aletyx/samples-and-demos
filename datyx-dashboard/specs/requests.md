@@ -4,6 +4,14 @@ The history of requests that shaped the datyx dashboard, newest first.
 Its earlier history, as the `datyx-dash` module inside `datyx/`, is in
 [../../datyx/specs/requests.md](../../datyx/specs/requests.md).
 
+## 2026-10-29: the audit header fits a narrow window
+
+Asked: fix the review's finding that the Audit tab's count of kept calls
+could push the Clear button out of a narrow panel.
+
+Changed: the count takes the room left in the header row and ends in an
+ellipsis when short of it, so the Clear button always shows.
+
 ## 2026-10-29: tabs reordered, a Catalog tab, kept across a reload
 
 Asked: the tabs in the order Data sources, Catalog, Audit, Health,
