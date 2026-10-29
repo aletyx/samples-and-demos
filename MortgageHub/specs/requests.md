@@ -327,3 +327,12 @@ spec.
     other per-demo ones; Mortgage Hub's own stays archived. The README's
     codespace link points at the group's container. See [Development
     environment](dev-environment.md).
+
+41. **Number the JSON lines, make the labels navigate exactly to their
+    values, widen the view, and add a discreet separator between the
+    response and the request.** The numbered lines, the exact jumps and
+    the 1100 px width were already in the sources (request 37) but the
+    demo on this machine was still serving a Docker image built before
+    them; it now serves the release build of the current sources. New: a
+    faint rule between the response and the request blocks. See
+    [Regulatory check](regulatory-check.md).
