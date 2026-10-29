@@ -28,8 +28,8 @@ issuer is always set.
 
 ## What is secured
 
-`/api/datasources`, `/api/datasources/*` and `/api/me` want a signed-in
-user once authentication is on: a 401 without a valid token (unsigned,
+`/api/datasources`, `/api/datasources/*`, `/api/me`, `/api/profile` and
+`/api/profile/*` want a signed-in user once authentication is on: a 401 without a valid token (unsigned,
 expired, from another issuer, or for a client not in the audiences).
 Everything else stays open: hello, status, greetings, health, OpenAPI.
 
@@ -39,16 +39,21 @@ Everything else stays open: hello, status, greetings, health, OpenAPI.
   `{"enabled":true,"issuer":"https://accounts.google.com","clientId":"..."}`
   (`enabled` false and `clientId` null while authentication is off). The
   apps read this at start, so no client id is built into them.
-- `GET /api/me`: who the token says is calling,
-  `{"authenticated":true,"subject":"...","email":"...","name":"...","picture":"..."}`;
-  `{"authenticated":false}` while authentication is off.
+- `GET /api/me`: who the token says is calling, and their profile,
+  made on this first call ([profiles.md](profiles.md)):
+  `{"authenticated":true,"subject":"...","email":"...","name":"...","picture":"...","profileId":1}`;
+  `{"authenticated":false,"profileId":1}` (the local profile) while
+  authentication is off.
 
 ## Identity in the API
 
-`CurrentUser` (request-scoped): `authenticated()`, `subject()`, `email()`,
-`name()`, `picture()`, and `id()` (the email, else the subject), from the
-`SecurityIdentity`'s JSON Web Token. Records carry it: a data source's
-`createdBy` and `createdByName`.
+`CurrentUser` (request-scoped): `authenticated()`, `issuer()`,
+`subject()`, `email()`, `name()`, `picture()`, and `id()` (the email, else
+the subject), from the `SecurityIdentity`'s JSON Web Token. The issuer
+and subject name the identity, and the identity its profile
+([profiles.md](profiles.md)), which owns what the user adds. Records
+also carry who added them: a data source's `createdBy` and
+`createdByName`.
 
 ## Tests
 

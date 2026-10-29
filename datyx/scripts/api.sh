@@ -17,7 +17,7 @@ source "$root/scripts/version.sh"
 
 # What the API reads (datyx-api/src/main/resources/application.properties).
 export DATYX_API_PORT DATYX_BIND_HOST DATYX_DB_PASSWORD
-export OIDC_ISSUER OIDC_CLIENT_ID OIDC_EXTRA_AUDIENCES
+export OIDC_ISSUER OIDC_CLIENT_ID OIDC_EXTRA_AUDIENCES DATYX_MASTER_KEY
 export DATYX_DB_USER="${DATYX_DB_USER:-datyx}"
 export DATYX_DB_URL="${DATYX_DB_URL:-jdbc:postgresql://localhost:${DATYX_DB_PORT}/datyx}"
 export DATYX_OPENMETADATA_URL="${DATYX_OPENMETADATA_URL:-http://localhost:${DATYX_OPENMETADATA_PORT}}"

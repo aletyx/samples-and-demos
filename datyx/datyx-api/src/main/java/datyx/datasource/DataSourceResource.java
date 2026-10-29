@@ -5,9 +5,16 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import datyx.auth.CurrentUser;
+import datyx.crypto.Crypto;
+import datyx.datasource.DataSource.Access;
 import datyx.datasource.DataSource.Type;
+import datyx.db.UniqueViolation;
+import datyx.profile.Profile;
+import datyx.profile.Profiles;
 import jakarta.inject.Inject;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
@@ -30,24 +37,26 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 /**
- * The data sources on record, the first entity of datyx:
+ * The data sources of the caller's profile (datyx.profile.Profiles):
  * GET /api/datasources?limit=100 lists them, newest first;
  * GET /api/datasources/{id} answers one;
  * POST /api/datasources adds one and answers 201 with it and a Location;
  * DELETE /api/datasources/{id} removes one (204).
+ * Another profile's sources are not there: a 404 by id, absent from the list.
  * A body names the source, its type (database, s3, filesystem) and the
  * access details of that type, under a key of the same name:
  * {"name":"warehouse","type":"database","description":"...",
  *  "database":{"engine":"postgresql","host":"db","port":5432,"database":"dw","username":"u","password":"p"}}
  * {"name":"lake","type":"s3","s3":{"bucket":"b","region":"eu-west-1","endpoint":null,"prefix":"raw/","accessKeyId":"...","secretAccessKey":"..."}}
  * {"name":"exports","type":"filesystem","filesystem":{"path":"/data/exports"}}
- * Missing or mismatched details are a 400, a name already taken (whatever
- * its case: the database's unique index on lower(name) decides, so a race
+ * Missing or mismatched details are a 400, a name the profile already
+ * uses (whatever its case: the database's unique index decides, so a race
  * has one winner) a 409.
- * Answers carry the details without their secrets: passwordSet and
- * secretAccessKeySet say whether one was given. Every call needs a
- * signed-in user once authentication is on; who added a source is kept
- * as createdBy (email) and createdByName.
+ * The details are stored encrypted with the profile's key (Crypto) and
+ * decrypted to answer; answers carry them without their secrets:
+ * passwordSet and secretAccessKeySet say whether one was given. Every
+ * call needs a signed-in user once authentication is on; who added a
+ * source is kept as createdBy (email) and createdByName.
  */
 @Path("/api/datasources")
 @Produces(MediaType.APPLICATION_JSON)
@@ -56,16 +65,28 @@ public class DataSourceResource {
     @Inject
     CurrentUser user;
 
+    @Inject
+    Profiles profiles;
+
+    @Inject
+    Crypto crypto;
+
+    @Inject
+    ObjectMapper json;
+
     @GET
+    @Transactional
     public List<Map<String, Object>> list(@QueryParam("limit") @DefaultValue("100") int limit) {
-        return DataSource.newest(Math.clamp(limit, 1, 1000)).stream().map(DataSourceResource::view).toList();
+        Profile profile = profiles.current();
+        return DataSource.newest(profile, Math.clamp(limit, 1, 1000)).stream().map(this::view).toList();
     }
 
     @GET
     @Path("/{id}")
+    @Transactional
     public Response get(@PathParam("id") long id) {
-        DataSource source = DataSource.findById(id);
-        return source == null ? notFound(id) : Response.ok(view(source)).build();
+        Optional<DataSource> source = DataSource.of(profiles.current(), id);
+        return source.isEmpty() ? notFound(id) : Response.ok(view(source.get())).build();
     }
 
     @POST
@@ -76,26 +97,24 @@ public class DataSourceResource {
         if (problem != null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", problem)).build();
         }
+        Profile profile = profiles.current();
         String name = body.name().strip();
         DataSource source = new DataSource();
+        source.profile = profile;
         source.name = name;
         source.type = body.type();
         source.description = blankToNull(body.description());
         source.createdAt = Instant.now();
         source.createdBy = user.id();
         source.createdByName = user.name();
-        switch (body.type()) {
-            case DATABASE -> source.database = body.database().toEntity();
-            case S3 -> source.s3 = body.s3().toEntity();
-            case FILESYSTEM -> source.filesystem = body.filesystem().toEntity();
-        }
+        source.access = seal(profile, body.access());
         source.persist();
         try {
             // Now, not at commit: a duplicate name is this call's 409, and the
             // transaction is left marked for rollback.
             DataSource.flush();
         } catch (PersistenceException e) {
-            if (isUniqueViolation(e)) {
+            if (UniqueViolation.in(e)) {
                 return Response.status(Response.Status.CONFLICT)
                     .entity(Map.of("error", "a data source named '" + name + "' already exists")).build();
             }
@@ -104,25 +123,15 @@ public class DataSourceResource {
         return Response.created(URI.create("/api/datasources/" + source.id)).entity(view(source)).build();
     }
 
-    /** Whether PostgreSQL refused a row for a unique index (SQLSTATE 23505). */
-    private static boolean isUniqueViolation(Throwable e) {
-        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
-            if (cause instanceof java.sql.SQLException sql && "23505".equals(sql.getSQLState())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @DELETE
     @Path("/{id}")
     @Transactional
     public Response delete(@PathParam("id") long id) {
-        DataSource source = DataSource.findById(id);
-        if (source == null) {
+        Optional<DataSource> source = DataSource.of(profiles.current(), id);
+        if (source.isEmpty()) {
             return notFound(id);
         }
-        source.delete();
+        source.get().delete();
         return Response.noContent().build();
     }
 
@@ -131,8 +140,18 @@ public class DataSourceResource {
             .entity(Map.of("error", "no data source with id " + id)).build();
     }
 
+    /** The access details as the row stores them (AccessCodec): encrypted with the profile's key, bound to the profile. */
+    private byte[] seal(Profile profile, Access access) {
+        return AccessCodec.seal(crypto, json, profile.id, profile.keyWrapped, access);
+    }
+
+    private Access unseal(DataSource source) {
+        return AccessCodec.unseal(crypto, json, source.profile.id, source.profile.keyWrapped, source.access);
+    }
+
     /** The JSON of a source: its fields and the details of its type, secrets replaced by whether they are set. */
-    static Map<String, Object> view(DataSource source) {
+    Map<String, Object> view(DataSource source) {
+        Access access = unseal(source);
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("id", source.id);
         map.put("name", source.name);
@@ -144,25 +163,25 @@ public class DataSourceResource {
         switch (source.type) {
             case DATABASE -> {
                 Map<String, Object> d = new LinkedHashMap<>();
-                d.put("engine", source.database.engine);
-                d.put("host", source.database.host);
-                d.put("port", source.database.port);
-                d.put("database", source.database.database);
-                d.put("username", source.database.username);
-                d.put("passwordSet", source.database.password != null);
+                d.put("engine", access.database().engine());
+                d.put("host", access.database().host());
+                d.put("port", access.database().port());
+                d.put("database", access.database().database());
+                d.put("username", access.database().username());
+                d.put("passwordSet", access.database().password() != null);
                 map.put("database", d);
             }
             case S3 -> {
                 Map<String, Object> d = new LinkedHashMap<>();
-                d.put("bucket", source.s3.bucket);
-                d.put("region", source.s3.region);
-                d.put("endpoint", source.s3.endpoint);
-                d.put("prefix", source.s3.prefix);
-                d.put("accessKeyId", source.s3.accessKeyId);
-                d.put("secretAccessKeySet", source.s3.secretAccessKey != null);
+                d.put("bucket", access.s3().bucket());
+                d.put("region", access.s3().region());
+                d.put("endpoint", access.s3().endpoint());
+                d.put("prefix", access.s3().prefix());
+                d.put("accessKeyId", access.s3().accessKeyId());
+                d.put("secretAccessKeySet", access.s3().secretAccessKey() != null);
                 map.put("s3", d);
             }
-            case FILESYSTEM -> map.put("filesystem", Map.of("path", source.filesystem.path));
+            case FILESYSTEM -> map.put("filesystem", Map.of("path", access.filesystem().path()));
         }
         return map;
     }
@@ -197,6 +216,15 @@ public class DataSourceResource {
             }
             return null;
         }
+
+        /** The details of the type, cleaned, as stored. */
+        Access access() {
+            return switch (type) {
+                case DATABASE -> new Access(database.toAccess(), null, null);
+                case S3 -> new Access(null, s3.toAccess(), null);
+                case FILESYSTEM -> new Access(null, null, filesystem.toAccess());
+            };
+        }
     }
 
     public record DatabaseDetails(
@@ -207,15 +235,9 @@ public class DataSourceResource {
             @Size(max = 200) String username,
             @Size(max = 500) String password) {
 
-        DataSource.DatabaseAccess toEntity() {
-            DataSource.DatabaseAccess access = new DataSource.DatabaseAccess();
-            access.engine = engine.strip().toLowerCase();
-            access.host = host.strip();
-            access.port = port;
-            access.database = database.strip();
-            access.username = blankToNull(username);
-            access.password = password == null || password.isEmpty() ? null : password;
-            return access;
+        DataSource.DatabaseAccess toAccess() {
+            return new DataSource.DatabaseAccess(engine.strip().toLowerCase(), host.strip(), port, database.strip(),
+                blankToNull(username), password == null || password.isEmpty() ? null : password);
         }
     }
 
@@ -227,24 +249,16 @@ public class DataSourceResource {
             @Size(max = 200) String accessKeyId,
             @Size(max = 500) String secretAccessKey) {
 
-        DataSource.S3Access toEntity() {
-            DataSource.S3Access access = new DataSource.S3Access();
-            access.bucket = bucket.strip();
-            access.region = blankToNull(region);
-            access.endpoint = blankToNull(endpoint);
-            access.prefix = blankToNull(prefix);
-            access.accessKeyId = blankToNull(accessKeyId);
-            access.secretAccessKey = secretAccessKey == null || secretAccessKey.isEmpty() ? null : secretAccessKey;
-            return access;
+        DataSource.S3Access toAccess() {
+            return new DataSource.S3Access(bucket.strip(), blankToNull(region), blankToNull(endpoint), blankToNull(prefix),
+                blankToNull(accessKeyId), secretAccessKey == null || secretAccessKey.isEmpty() ? null : secretAccessKey);
         }
     }
 
     public record FilesystemDetails(@NotBlank @Size(max = 1000) String path) {
 
-        DataSource.FilesystemAccess toEntity() {
-            DataSource.FilesystemAccess access = new DataSource.FilesystemAccess();
-            access.path = path.strip();
-            return access;
+        DataSource.FilesystemAccess toAccess() {
+            return new DataSource.FilesystemAccess(path.strip());
         }
     }
 }

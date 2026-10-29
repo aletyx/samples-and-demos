@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 
 import datyx.hello.Greeting;
 import datyx.openmetadata.OpenMetadataClient;
+import datyx.profile.Profile;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -28,7 +29,7 @@ import org.jboss.logging.Logger;
  * {"name":"datyx","version":"0.1.202610281300","startedAt":"...","uptimeSeconds":12,
  *  "database":{"ok":true,"version":"PostgreSQL 17..."},
  *  "openmetadata":{"ok":true,"version":"2.0.7","url":"http://localhost:9902"},
- *  "greetings":3,"dataSources":2}
+ *  "greetings":3,"dataSources":2,"profiles":1}
  * A dependency that fails reports {"ok":false,"error":"..."}, and the
  * counts are null while the database is out.
  */
@@ -69,18 +70,21 @@ public class StatusResource {
         body.put("uptimeSeconds", Duration.between(startedAt, Instant.now()).toSeconds());
         body.put("database", database());
         body.put("openmetadata", openMetadata());
-        // Counted together: both null when the database is out, and the
+        // Counted together: all null when the database is out, and the
         // call still answers (database.ok says why).
         Long greetings = null;
         Long dataSources = null;
+        Long profiles = null;
         try {
             greetings = Greeting.count();
             dataSources = datyx.datasource.DataSource.count();
+            profiles = Profile.count();
         } catch (Exception e) {
             LOG.warnf("counting records failed: %s", e.getMessage());
         }
         body.put("greetings", greetings);
         body.put("dataSources", dataSources);
+        body.put("profiles", profiles);
         return body;
     }
 

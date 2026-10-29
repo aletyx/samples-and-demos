@@ -2,6 +2,7 @@ package datyx;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -28,6 +29,15 @@ class AuthOffTest {
             .when().get("/api/me")
             .then()
             .statusCode(200)
-            .body("authenticated", is(false));
+            .body("authenticated", is(false))
+            .body("profileId", notNullValue());
+        // The local profile, the one every call uses while authentication is off.
+        given()
+            .when().get("/api/profile")
+            .then()
+            .statusCode(200)
+            .body("name", is("Local"))
+            .body("identities[0].issuer", is("local"))
+            .body("identities[0].subject", is("anonymous"));
     }
 }
