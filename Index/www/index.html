@@ -122,14 +122,16 @@
   <footer>
     Every app runs locally on its own port: start them all with <code>./start-all.sh</code> at the
     root of the repository, stop them with <code>./stop-all.sh</code>. Each needs your own aityx key in its
-    <code>.env</code>. Or open one in a GitHub codespace from its card, or
-    <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdevcontainer.json&amp;machine=standardLinux32gb">all of them at once</a>.
+    <code>.env</code>. Or open a group in a GitHub codespace, from a card or here: the
+    <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Faityx%2Fdevcontainer.json&amp;machine=standardLinux32gb">aityx demos</a> or the
+    <a href="https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdatyx%2Fdevcontainer.json&amp;machine=standardLinux32gb">datyx demos</a>.
   </footer>
 
   <script>
     // The demos, in the order shown. "folder" matches the repository's folders;
     // "port" is the web app's, the FLUTTER_WEB_PORT default in its
-    // process-compose.yaml.
+    // process-compose.yaml; "codespace" is the group whose dev container
+    // (.devcontainer/<group>/) opens it, or false.
     const demos = [
       {
         folder: 'MortgageHub', port: 8880, name: 'Mortgage Hub',
@@ -137,63 +139,63 @@
         desc: 'A buyer fills in a proposal request, and a regulatory check says whether a lender can process it under current US rules: Fannie Mae’s eligibility matrix, the 2026 FHFA and FHA limits, FHA, VA and USDA rules and DTI limits, executed as a decision model on aityx.',
         chips: ['aityx decision model'],
         // Its own dev container is archived; the default one starts it with the rest.
-        icon: 'home', codespace: true, devcontainer: '.devcontainer/devcontainer.json',
+        icon: 'home', codespace: 'aityx',
       },
       {
         folder: 'ContactHub', port: 8890, name: 'Contact Hub',
         what: 'Ask anything, and it reaches the right person',
         desc: 'A request, typed or dictated on the device, is classified and checked by aityx and routed by a decision model to the department, the person and the priority; for an order, the store’s policy says what is refunded and by when. The app shows why, and the aityx call itself.',
         chips: ['aityx decision model', 'speech on the device'],
-        icon: 'chat', codespace: true,
+        icon: 'chat', codespace: 'aityx',
       },
       {
         folder: 'Cellfie', port: 8930, name: 'Cellfie',
         what: 'The cells take a picture of themselves, and aityx says who’s in it',
         desc: 'Conway’s Game of Life on an infinite board, with the rules of birth and death (Conway’s, HighLife’s and Life without death, as switches) and a catalogue of its patterns, as an aityx decision model: one aityx call per generation names what lives, what dies and which clusters are blocks, gliders or pulsars, with the request and the response in a side panel.',
         chips: ['aityx decision model'],
-        icon: 'grid', codespace: true,
+        icon: 'grid', codespace: 'aityx',
       },
       {
         folder: 'RoboRules', port: 8920, name: 'RoboRules',
         what: 'Robocode on the web, every turn played by aityx',
         desc: 'Tanks fight until one is left. Every robot’s behavior is an aityx decision model, its rules a table you can edit, and the whole battle (sensors, moves, bullets, hits, damage, scores) is played by aityx; the app only draws it.',
         chips: ['aityx decision model'],
-        icon: 'robot', codespace: true,
+        icon: 'robot', codespace: 'aityx',
       },
       {
         folder: 'PokerFace', port: 8910, name: 'PokerFace',
         what: 'A poker simulator where every player is a set of rules',
         desc: 'No-limit hold’em at a table of up to nine. At each turn the app works out the player’s situation and one aityx call runs their strategy on it: the action, the amount, and the rule that decided it. Five strategies to read, or write your own; every call in a sidebar; the pace in your hands.',
         chips: ['aityx decision model', 'strategies as rules'],
-        icon: 'cards', codespace: true,
+        icon: 'cards', codespace: 'aityx',
       },
       {
         folder: 'RiverRace', port: 8940, name: 'RiverRace',
         what: 'The Atari river raid, three planes at once, two flown by aityx',
         desc: 'The 1982 Atari river shooter, remade: banks and islands, bridges, tankers, helicopters, jets and fuel depots, with three planes up one river at once. Two are flown by aityx, each by its own rules (a decision table you can edit while they fly); the yellow one is yours. Who scores more? Every aityx call, sent and received, in a side panel.',
         chips: ['aityx decision model', 'strategies as rules'],
-        icon: 'plane', codespace: true,
+        icon: 'plane', codespace: 'aityx',
       },
       {
         folder: 'HealthHub', port: 9800, name: 'HealthHub',
         what: 'The first demo with a database',
         desc: 'A Flutter app, a Dart API and PostgreSQL, built like the other demos. For now it says hello: the greeting is a row in PostgreSQL, read through the API and shown with the database’s version and the health of each part. What it does with aityx comes next.',
         chips: ['PostgreSQL'],
-        icon: 'heart', codespace: true,
+        icon: 'heart', codespace: 'datyx',
       },
       {
         folder: 'datyx', port: 9900, path: '/q/swagger-ui', name: 'datyx',
         what: 'A data system in the making: a Quarkus API with PostgreSQL and OpenMetadata',
         desc: 'The datyx API: REST on Quarkus and GraalVM with Hibernate and Panache over PostgreSQL, and an OpenMetadata server with its Elasticsearch index. API only: its views are the datyx dashboard, the next card. Ports 9900 to 9905, apart from the demos; Open shows its Swagger UI.',
         chips: ['Quarkus API', 'PostgreSQL', 'OpenMetadata'],
-        icon: 'data', codespace: false,
+        icon: 'data', codespace: 'datyx',
       },
       {
         folder: 'datyx-dashboard', port: 9906, name: 'datyx dashboard',
         what: 'The views of datyx: a Flutter app that calls the datyx API',
         desc: 'A Flutter web app, like every demo\'s, that invokes the datyx API and shows what it answers, in three tabs: the data sources on record, the health of the API, PostgreSQL and OpenMetadata, and an audit of every request and response. Views only; the data and the logic are the API\'s. Port 9906.',
         chips: ['Flutter dashboard', 'calls the datyx API'],
-        icon: 'data', codespace: false,
+        icon: 'data', codespace: 'datyx',
       },
     ];
     const models = [
@@ -230,7 +232,7 @@
     const github = 'https://github.com/aletyx/samples-and-demos/tree/main/';
     const codespaces = (d) =>
       'https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=' +
-      encodeURIComponent(d.devcontainer || '.devcontainer/' + d.folder + '/devcontainer.json') +
+      encodeURIComponent('.devcontainer/' + d.codespace + '/devcontainer.json') +
       '&machine=standardLinux32gb';
     // A demo's web app from here. A codespace forwards each port on its own
     // host, https://<codespace>-<port>.app.github.dev/, with no :port: this
@@ -250,7 +252,9 @@
       const chips = d.chips.map(c => '<span class="chip' + (c.includes('aityx') ? ' aityx' : '') + '">' + c + '</span>').join('');
       const statusHtml = d.open ? '<div class="status"><span>' + d.open + '</span></div>' : '';
       let openHtml = '';
-      if (!d.open) {
+      // In a group's codespace only that group runs: the other group's
+      // demos get no Open, only their Codespace button.
+      if (!d.open && (!group || d.codespace === group)) {
         const url = appUrl(d.port, d.path);
         openHtml = '<a class="btn primary" href="' + url + '" target="_blank" rel="noopener">Open' + ext + '</a>';
       }
@@ -267,8 +271,18 @@
       return el;
     }
 
-    document.getElementById('apps').replaceChildren(...demos.map(card));
-    document.getElementById('models').replaceChildren(...models.map(card));
+    // The group running beside this page (bin/server.dart's /api/group),
+    // or null for every demo, as on a laptop.
+    let group = null;
+    function render() {
+      document.getElementById('apps').replaceChildren(...demos.map(card));
+      document.getElementById('models').replaceChildren(...models.map(card));
+    }
+    render();
+    fetch('/api/group', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(g => { if (g.group) { group = g.group; render(); } })
+      .catch(() => {});
 
     // The aityx key and whether aityx accepts it (bin/server.dart's
     // /api/aityx): the banner when there's no key, the light top right.

@@ -61,3 +61,16 @@ The feature files hold the current specification; see the
    `.env.example`, `scripts/env.sh`, `scripts/api.sh`,
    `process-compose.yaml` and `compose.yaml`. Tests for the routes and
    the screen.
+
+## 2026-10-29
+
+1. **Separate the dev containers, images and Codespaces configurations by
+   demo group.** HealthHub now opens in the datyx group's dev container,
+   **datyx demos** (`.devcontainer/datyx/`), on the group's image
+   `docker.io/aletyxcode/samples-and-demos-datyx` (`bash
+   image/build-image.sh datyx`), which starts it with the datyx API, the
+   datyx dashboard and the index page. Its own dev container,
+   `.devcontainer/HealthHub/`, was removed. The start-up log is
+   `startup.log` at the repository root. The README's codespace link
+   points at the group's container. See [Development
+   environment](dev-environment.md).

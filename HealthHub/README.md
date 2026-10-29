@@ -139,13 +139,16 @@ reload: rebuild after a change.
 
 ## Run it in a codespace
 
-[![Open HealthHub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FHealthHub%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open HealthHub and the other datyx demos in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Fdatyx%2Fdevcontainer.json&machine=standardLinux32gb)
 
-That link opens this repository's **HealthHub** dev container on a
-4-core machine (16 GB RAM), which is what the Flutter builds want. To
-choose for yourself instead, use *Code → Codespaces → New with options*
-and pick **HealthHub** as the dev container configuration — the
-repository holds several samples, so the configuration matters.
+That link opens this repository's **datyx demos** dev container on an
+4-core machine (16 GB RAM), the largest the organization allows; a tight
+fit for Elasticsearch, OpenMetadata and the Flutter builds together. It starts HealthHub with the rest
+of its group, the datyx demos (the datyx API and the datyx dashboard),
+and the index page that links them. To choose for yourself instead, use
+*Code → Codespaces → New with options* and pick **datyx demos** as the
+dev container configuration — the repository holds two groups of demos,
+each with its own, so the configuration matters.
 
 The codespace uses your [aityx](https://aityx.ai) key, the same
 `AITYX_API_KEY` Codespaces secret as Mortgage Hub's and Contact Hub's.
@@ -158,25 +161,32 @@ Otherwise add it at
 page. Nothing calls aityx yet, so the app works without it.
 
 The dev container adds Docker (the `docker-in-docker` feature) for the
-database. On first start,
-[on-create.sh](../.devcontainer/HealthHub/on-create.sh) restores the
-app's release build from the published image, and
-[post-create.sh](../.devcontainer/HealthHub/post-create.sh) says whether
-your key arrived. Then, on that and every later start,
-[post-start.sh](../.devcontainer/HealthHub/post-start.sh) starts the
-services in the background and makes port **9800** public. There is
+databases. On first start,
+[on-create.sh](../.devcontainer/on-create.sh) restores the group's
+release web builds from the published image,
+[update-content.sh](../.devcontainer/update-content.sh) builds what
+changed since the image was made, and
+[post-create.sh](../.devcontainer/post-create.sh) says whether your key
+arrived. Then, on that and every later start,
+[post-start.sh](../.devcontainer/post-start.sh) starts the index page
+and the datyx group in the background with `./start-all.sh` and makes
+their web ports public, HealthHub's **9800** among them. There is
 nothing to run: once the app is up, open port 9800 from the **Ports**
-panel (Codespaces may open it in a browser tab for you). Its bare URL
-redirects to the app at `/app/`. The API (9801) and the database (9802)
-stay inside the codespace.
+panel, or HealthHub's card on the index page (port 8800, which
+Codespaces opens in a browser tab for you). Its bare URL redirects to
+the app at `/app/`. The API (9801) and the database (9802) stay inside
+the codespace.
 
-Watch the services with `process-compose attach -U -u
+Watch HealthHub's services with `process-compose attach -U -u
 /tmp/aityx-demos-HealthHub.sock` (or `devbox services attach` on a
-laptop), and stop them with `./stop-all.sh HealthHub` from the root.
+laptop). Stop the group with `./stop-all.sh` from the root and start it
+again with `./start-all.sh`: in the codespace both act on the datyx
+group only (`DEMOS_GROUP=datyx`).
 
-**If the app doesn't start, send us `HealthHub/startup.log`.** Every
-step of the codespace's start goes there, timestamped, including a line
-saying when the web app and the API first answered. It holds no secrets.
+**If the app doesn't start, send us `startup.log` from the root of the
+repository.** Every step of the codespace's start goes there,
+timestamped, including a line saying when each demo's web app and API
+first answered. It holds no secrets.
 
 **Check the port's visibility.** In the **Ports** panel, the
 *Visibility* column for 9800 should say **Public**. If it says
@@ -186,10 +196,13 @@ and reload the app.
 ## Run it in a dev container locally
 
 Open the repository root in VS Code and choose **Reopen in Container**,
-then **HealthHub**. The dev container lives at the root of the
-repository, in [.devcontainer/HealthHub/](../.devcontainer/HealthHub),
-because that is where GitHub looks for one. It uses the published image
-every demo shares (see [image/](../image)), plus Docker for the database.
+then **datyx demos**. The dev containers live at the root of the
+repository, in [.devcontainer/](../.devcontainer), because that is where
+GitHub looks for them: one per demo group, HealthHub's in
+[.devcontainer/datyx/](../.devcontainer/datyx). It runs the datyx
+group's published image, `docker.io/aletyxcode/samples-and-demos-datyx`
+(built by `bash image/build-image.sh datyx`, see [image/](../image)),
+plus Docker for the databases.
 
 ## Contributing
 
