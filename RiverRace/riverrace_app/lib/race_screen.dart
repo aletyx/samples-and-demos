@@ -8,6 +8,7 @@ import 'app_version.dart';
 import 'calls/calls_panel.dart';
 import 'game/race.dart';
 import 'game/race_painter.dart';
+import 'sound/sounds.dart';
 import 'strategy/decide.dart';
 import 'strategy/strategy.dart';
 import 'strategy/strategy_panel.dart';
@@ -24,6 +25,27 @@ const planeOpacity = {'you': 1.0, 'p1': 0.25, 'p2': 0.25};
 
 /// The calls the panel keeps, newest first.
 const keptCalls = 120;
+
+/// The race ends when a plane passes this bridge.
+const finishBridge = 10;
+
+/// The window width from which the controls fit in the top bar, beside
+/// the title; below it they wrap above the game.
+const topBarControls = 1300.0;
+
+/// Speeds are in percent of 1×, 30 game frames a second; the top speed,
+/// 2×, runs the game at its full 60.
+const topSpeed = 200;
+
+/// The game speeds up by [rampStep] percent every [rampEvery] seconds of
+/// play, up to [topSpeed].
+const rampEvery = 30;
+const rampStep = 20;
+
+/// aityx is asked every [decideAt1x] frames at 1×, and proportionally more
+/// at a faster speed, so about every 0.2 s of real time, the time it takes
+/// to answer, whatever the speed.
+const decideAt1x = 6;
 
 /// The race screen: the river with the three planes, its controls, the
 /// aityx pilots' strategies, and the calls to aityx in a side panel.
@@ -55,11 +77,22 @@ class _RaceScreenState extends State<RaceScreen>
   bool _playing = false;
   bool _youFly = true;
 
-  /// The game's speed, in percent.
-  int _speed = 75;
-  int _decideEvery = 6;
-  bool _hold = false;
-  int _finish = 10;
+  /// The game's speed at the start of a race, in percent.
+  int _speed = 100;
+
+  /// Seconds played in this race, which speed it up.
+  double _played = 0;
+
+  /// The game's speed now, in percent.
+  int get pace => math.max(
+    _speed,
+    math.min(_speed + rampStep * (_played ~/ rampEvery), topSpeed),
+  );
+
+  /// The frames between two asks to aityx at the speed now.
+  int get _decideEvery => math.max(3, (decideAt1x * pace / 100).round());
+  bool _sound = true;
+  final _sounds = Sounds();
 
   Duration _last = Duration.zero;
 
@@ -70,7 +103,6 @@ class _RaceScreenState extends State<RaceScreen>
   int _shownFrame = 0;
 
   bool _asking = false;
-  int _askedAt = 0;
   int _quietUntil = 0;
   String? _error;
   final _calls = <CallRecord>[];
@@ -82,7 +114,7 @@ class _RaceScreenState extends State<RaceScreen>
   Race _newRace() => Race(
     seed: _seed,
     planeIds: [if (_youFly) 'you', ..._ids],
-    finishBridge: _finish,
+    finishBridge: finishBridge,
   );
 
   @override
@@ -112,19 +144,18 @@ class _RaceScreenState extends State<RaceScreen>
   void _tick(Duration elapsed) {
     final dt = (elapsed - _last).inMicroseconds / 1e6;
     _last = elapsed;
-    _due = math.min(_due + dt * 60 * _speed / 100, 4);
+    final paceBefore = pace;
+    _played += dt;
+    if (pace != paceBefore) setState(() {});
+    _due = math.min(_due + dt * 60 * pace / topSpeed, 4);
     while (_due >= 1) {
       if (_race.over) break;
-      // A fair race: the game waits for aityx's answer.
-      if (_hold && _asking && _race.frame - _askedAt >= _decideEvery) {
-        _due = 0;
-        break;
-      }
       _syncControls();
       _race.step();
       _due -= 1;
       if (_race.frame % _decideEvery == 0) _ask();
     }
+    _playSounds();
     _repaint.value++;
     if (_race.over) {
       _overAt = DateTime.now();
@@ -133,6 +164,18 @@ class _RaceScreenState extends State<RaceScreen>
       _shownFrame = _race.frame;
       setState(() {});
     }
+  }
+
+  /// Plays what the race sounded since the last frame shown: one beep and
+  /// one explosion at most, however many planes made them.
+  void _playSounds() {
+    final sounds = _race.sounds;
+    if (_sound) {
+      final refuel = sounds.whereType<RefuelSound>().lastOrNull;
+      if (refuel != null) _sounds.refuel(refuel.level);
+      if (sounds.any((s) => s is ExplosionSound)) _sounds.explosion();
+    }
+    sounds.clear();
   }
 
   void _play() {
@@ -155,6 +198,7 @@ class _RaceScreenState extends State<RaceScreen>
     setState(() {
       if (newRiver) _seed = _random.nextInt(1 << 30);
       _race = _newRace();
+      _played = 0;
       _shownFrame = 0;
       _asking = false;
       _quietUntil = 0;
@@ -176,7 +220,6 @@ class _RaceScreenState extends State<RaceScreen>
     ];
     if (pilots.isEmpty) return;
     _asking = true;
-    _askedAt = race.frame;
     final frame = race.frame;
     final labels = {
       for (final p in pilots)
@@ -325,7 +368,9 @@ class _RaceScreenState extends State<RaceScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final wide = MediaQuery.sizeOf(context).width >= 1000;
+    final width = MediaQuery.sizeOf(context).width;
+    final wide = width >= 1000;
+    final inBar = width >= topBarControls;
     final panel = CallsPanel(
       calls: _calls,
       total: _callCount,
@@ -337,7 +382,16 @@ class _RaceScreenState extends State<RaceScreen>
     final main = ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        _controls(theme),
+        if (!inBar)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [..._controls(), _status(theme)],
+            ),
+          ),
         if (_error case final error?)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -389,8 +443,22 @@ class _RaceScreenState extends State<RaceScreen>
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppVersion.title),
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            const Flexible(
+              child: Text(AppVersion.title, overflow: TextOverflow.ellipsis),
+            ),
+            if (inBar) ...[
+              const SizedBox(width: 16),
+              Flexible(child: _status(theme)),
+            ],
+          ],
+        ),
         actions: [
+          if (inBar)
+            for (final control in _controls())
+              Padding(padding: const EdgeInsets.only(right: 8), child: control),
           if (!wide)
             Builder(
               builder: (context) => TextButton.icon(
@@ -435,7 +503,8 @@ class _RaceScreenState extends State<RaceScreen>
     );
   }
 
-  Widget _controls(ThemeData theme) {
+  /// The race's frame and aityx's last answer time.
+  Widget _status(ThemeData theme) {
     final status = [
       'Frame ${_race.frame}',
       if (_asking)
@@ -443,87 +512,63 @@ class _RaceScreenState extends State<RaceScreen>
       else if (_lastTookMs case final ms?)
         'aityx answered in $ms ms',
     ];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          FilledButton.icon(
-            onPressed: _playing ? _pause : _play,
-            icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
-            label: Text(
-              _playing ? 'Pause' : (_race.frame == 0 ? 'Start' : 'Play'),
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () => _restart(),
-            icon: const Icon(Icons.replay),
-            label: const Text('Restart'),
-          ),
-          OutlinedButton.icon(
-            onPressed: () => _restart(newRiver: true),
-            icon: const Icon(Icons.water),
-            label: const Text('New river'),
-          ),
-          FilterChip(
-            avatar: Icon(Icons.flight, size: 18, color: planeColors['you']),
-            label: const Text('You fly'),
-            selected: _youFly,
-            tooltip: 'Fly the yellow plane yourself, or let the two aityx pilots race alone',
-            onSelected: (on) {
-              _youFly = on;
-              _restart();
-            },
-          ),
-          FilterChip(
-            label: const Text('Fair race'),
-            selected: _hold,
-            tooltip: 'Hold the game until aityx answers, so the pilots never fly on an old decision',
-            onSelected: (on) => setState(() => _hold = on),
-          ),
-          _Choice<int>(
-            label: 'Speed',
-            value: _speed,
-            options: const {25: '¼×', 50: '½×', 75: '¾×', 100: '1×'},
-            onChanged: (v) => setState(() => _speed = v),
-          ),
-          _Choice<int>(
-            label: 'aityx decides every',
-            value: _decideEvery,
-            options: const {
-              3: '3 frames',
-              6: '6 frames',
-              12: '12 frames',
-              30: '30 frames',
-            },
-            onChanged: (v) => setState(() => _decideEvery = v),
-          ),
-          _Choice<int>(
-            label: 'Finish at',
-            value: _finish,
-            options: const {
-              5: 'bridge 5',
-              10: 'bridge 10',
-              20: 'bridge 20',
-              0: 'last plane',
-            },
-            onChanged: (v) {
-              _finish = v;
-              _restart();
-            },
-          ),
-          Text(
-            status.join(' · '),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+    return Text(
+      status.join(' · '),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
+
+  List<Widget> _controls() => [
+    FilledButton.icon(
+      onPressed: _playing ? _pause : _play,
+      icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
+      label: Text(_playing ? 'Pause' : (_race.frame == 0 ? 'Start' : 'Play')),
+    ),
+    IconButton(
+      onPressed: () => _restart(),
+      icon: const Icon(Icons.replay),
+      tooltip: 'Restart',
+    ),
+    IconButton(
+      onPressed: () => _restart(newRiver: true),
+      icon: const Icon(Icons.water),
+      tooltip: 'New river',
+    ),
+    FilterChip(
+      avatar: Icon(Icons.flight, size: 18, color: planeColors['you']),
+      label: const Text('You fly'),
+      selected: _youFly,
+      visualDensity: VisualDensity.compact,
+      tooltip: 'Fly the yellow plane yourself, or let the two aityx pilots race alone',
+      onSelected: (on) {
+        _youFly = on;
+        _restart();
+      },
+    ),
+    FilterChip(
+      avatar: const Icon(Icons.volume_up, size: 18),
+      label: const Text('Sound'),
+      selected: _sound,
+      visualDensity: VisualDensity.compact,
+      tooltip: 'Beep while refueling and boom when a missile hits',
+      onSelected: (on) => setState(() => _sound = on),
+    ),
+    _Choice<int>(
+      label: 'Speed',
+      value: _speed,
+      options: const {50: '½×', 100: '1×', 150: '1½×', 200: '2×'},
+      onChanged: (v) => setState(() => _speed = v),
+    ),
+    if (pace != _speed)
+      Text(
+        'now ${(pace / 100).toString().replaceFirst(RegExp(r'\.0$'), '')}×',
+        style: const TextStyle(color: Aityx.muted),
+      ),
+  ];
 
   Widget _game(ThemeData theme) {
     return GestureDetector(
