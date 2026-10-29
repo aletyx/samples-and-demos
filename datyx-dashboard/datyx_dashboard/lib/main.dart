@@ -4,6 +4,7 @@ import 'api/datyx_api.dart';
 import 'app_version.dart';
 import 'auth/auth_controller.dart';
 import 'dashboard/dashboard_screen.dart';
+import 'persist/session_store.dart';
 import 'theme.dart';
 
 void main() {
@@ -30,7 +31,13 @@ class DatyxDashApp extends StatefulWidget {
 class _DatyxDashAppState extends State<DatyxDashApp> {
   late final AuthController _auth = widget.auth ?? AuthController();
   late final DatyxApi _api =
-      widget.api ?? HttpDatyxApi(token: _auth.token, refreshToken: _auth.refresh);
+      widget.api ??
+      HttpDatyxApi(
+        token: _auth.token,
+        refreshToken: _auth.refresh,
+        // The audit outlives a reload of the page.
+        log: CallLog(store: SessionStore()),
+      );
 
   @override
   void initState() {

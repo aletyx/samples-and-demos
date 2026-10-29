@@ -4,6 +4,50 @@ The history of requests that shaped the datyx dashboard, newest first.
 Its earlier history, as the `datyx-dash` module inside `datyx/`, is in
 [../../datyx/specs/requests.md](../../datyx/specs/requests.md).
 
+## 2026-10-29: tabs reordered, a Catalog tab, kept across a reload
+
+Asked: the tabs in the order Data sources, Catalog, Audit, Health,
+Profile, with a new Catalog tab right after Data sources showing datyx's
+interpretation of the data in the data sources; and a refresh of the
+page keeps everything: the sign-in, the open tab, the rest.
+
+Changed: `DashboardTab` holds the tabs' order, labels and names, and a
+`TabController` of the screen's own; `CatalogTab` explains that the API
+doesn't read the sources yet and lists each as not catalogued (the
+interpretation itself needs the API first); the open tab is kept in the
+address as `?tab=<name>` (`lib/persist/address.dart`); the ID token and
+the audit are kept in the browser tab's session storage
+(`lib/persist/session_store.dart`, `package:web` now a direct
+dependency): a kept, fresh token for the API's client signs in at once,
+and one refused and not renewed signs out; the tests for each.
+
+## 2026-10-29: the Profile tab
+
+Asked: profiles on the datyx API and the dashboard (see
+[../../datyx/specs/requests.md](../../datyx/specs/requests.md)).
+
+Changed: a Profile tab (`ProfileTab`, key `tab-profile`, second) showing
+`GET /api/profile`: the profile, its data source count, the note on its
+key, and its identities; `Profile` and `ProfileIdentity` in the client,
+`profile()`, the profile id in `Me`, and the profiles count in
+`SystemStatus`, shown on the Health tab's Records and Sign-in cards; the
+profile asked with every refresh when not locked; the tests.
+
+## 2026-10-29: a favicon of its own
+
+Asked: an appropriate favicon for datyx, in the same style and colors as
+the other demos', reflecting what the project is for.
+
+Changed: a database cylinder with its catalog cut into it, the lid and a
+band as curved slots and a lineage branching from one source to two,
+aityx orange on the dark page background: `assets/icon/icon.svg` and
+`icon_foreground.svg`, rendered to PNG, and `flutter_launcher_icons` in
+`pubspec.yaml` generating the web icons from them, which also set the
+manifest's colors to the page's. The tab shows `web/favicon.svg`, the
+cylinder as a flat orange glyph with no background, as aityx.ai's own
+favicon is drawn; `index.html` keeps the PNG tile as the fallback. See
+[App icon](app-icon.md).
+
 ## 2026-10-29: navigation tabs; hello and greetings gone
 
 Asked: navigation tabs like the other apps: Data sources first, with the
