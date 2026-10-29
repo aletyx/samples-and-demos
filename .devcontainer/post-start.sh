@@ -53,8 +53,8 @@ else
   # Detached, so it outlives postStartCommand. start-all.sh's output, and
   # what it says when each demo answers, goes to the log too. The index
   # first, outside any group: it is up in seconds and shows the others
-  # coming up.
-  setsid nohup bash -c '{ DEMOS_GROUP= WAIT=120 ./start-all.sh Index; WAIT=900 ./start-all.sh; } 2>&1 |
+  # coming up, with Open only on this group's cards (INDEX_GROUP).
+  setsid nohup bash -c '{ INDEX_GROUP="$DEMOS_GROUP" DEMOS_GROUP= WAIT=120 ./start-all.sh Index; WAIT=900 ./start-all.sh; } 2>&1 |
     while IFS= read -r line; do
       printf "%s [start-all] %s\n" "$(date -u "+%Y-%m-%d %H:%M:%S")" "$line"
     done >>"$0"' "$startup_log" </dev/null >/dev/null 2>&1 &

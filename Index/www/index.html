@@ -252,7 +252,9 @@
       const chips = d.chips.map(c => '<span class="chip' + (c.includes('aityx') ? ' aityx' : '') + '">' + c + '</span>').join('');
       const statusHtml = d.open ? '<div class="status"><span>' + d.open + '</span></div>' : '';
       let openHtml = '';
-      if (!d.open) {
+      // In a group's codespace only that group runs: the other group's
+      // demos get no Open, only their Codespace button.
+      if (!d.open && (!group || d.codespace === group)) {
         const url = appUrl(d.port, d.path);
         openHtml = '<a class="btn primary" href="' + url + '" target="_blank" rel="noopener">Open' + ext + '</a>';
       }
@@ -269,8 +271,18 @@
       return el;
     }
 
-    document.getElementById('apps').replaceChildren(...demos.map(card));
-    document.getElementById('models').replaceChildren(...models.map(card));
+    // The group running beside this page (bin/server.dart's /api/group),
+    // or null for every demo, as on a laptop.
+    let group = null;
+    function render() {
+      document.getElementById('apps').replaceChildren(...demos.map(card));
+      document.getElementById('models').replaceChildren(...models.map(card));
+    }
+    render();
+    fetch('/api/group', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(g => { if (g.group) { group = g.group; render(); } })
+      .catch(() => {});
 
     // The aityx key and whether aityx accepts it (bin/server.dart's
     // /api/aityx): the banner when there's no key, the light top right.
