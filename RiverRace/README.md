@@ -8,10 +8,13 @@ scores more, the careful pilot or the daredevil, or you?
 Everything of the original is there: a river with banks that widen and
 narrow, islands, a bridge at the end of every section, tankers and
 helicopters that start to patrol as you near them, jets that cross the
-screen, fuel that runs out and depots to fill up over (or to shoot, for
-80 points), one missile at a time that follows the plane, three planes in
-reserve and one more every 10,000 points. Your plane is drawn solid, the
-aityx pilots' mostly see-through (35% opaque), in cyan and magenta.
+screen, fuel that runs out and depots to fill up over, slowing down to half
+speed with a rising beep (or to shoot, for 80 points), one missile at a
+time that follows the plane, seven planes in reserve and one more every
+10,000 points, and retro sounds made in the browser. Your plane is drawn
+solid, the aityx pilots' mostly see-through (25% opaque), in cyan and
+magenta. The race starts at half speed, speeds up every 30 seconds, and
+ends at bridge 10.
 
 Every few frames, one call to aityx decides what both aityx pilots do:
 the app sends what each plane senses (fuel, land ahead, where the open
