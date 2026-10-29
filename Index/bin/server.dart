@@ -1,22 +1,25 @@
-/// The index of the demos: serves www/ (the page) and says which demos
-/// are up. Plain Dart, no packages, so `dart bin/server.dart` runs it.
+/// The index of the aityx demos: serves www/ (the page) and says which
+/// demos are up. Plain Dart, no packages, so `dart bin/server.dart` runs
+/// it. The datyx group has an index of its own (datyx-index/).
 ///
 ///   GET /, /app/        www/index.html (the page; /app/ so start-all.sh
 ///                       checks it like a demo)
 ///   GET /<file>         a file in www/
 ///   GET /api/health     {"ok": true}
 ///   GET /api/demos      every folder beside this one with a
-///                       process-compose.yaml: its web and API ports (the
-///                       defaults in that file) and whether its web app
-///                       and API answer right now, and whether the API has
-///                       its aityx key; the page polls it
+///                       process-compose.yaml in this index's group (its
+///                       group.id.txt says INDEX_GROUP, aityx): its web and
+///                       API ports (the defaults in that file) and whether
+///                       its web app and API answer right now, and whether
+///                       the API has its aityx key; for scripts
 ///   GET /api/aityx      whether an aityx key is set (AITYX_API_KEY here,
 ///                       else in the repo's .env) and whether aityx accepts
 ///                       it: {"key": bool, "source": ..., "ok": bool,
 ///                       "detail": ...}; never the key. The page's banner
 ///                       and status light read it
 ///
-/// Settings: INDEX_PORT (default 8800), INDEX_BIND_HOST (127.0.0.1).
+/// Settings: INDEX_PORT (default 8800), INDEX_BIND_HOST (127.0.0.1),
+/// INDEX_GROUP (aityx).
 library;
 
 import 'dart:async';
@@ -104,13 +107,16 @@ void _json(HttpResponse response, int status, Object body) {
     ..write(jsonEncode(body));
 }
 
-/// Every demo folder, with its ports and whether it answers.
+final _group = Platform.environment['INDEX_GROUP'] ?? 'aityx';
+
+/// Every demo folder of this index's group, with its ports and whether it answers.
 Future<List<Map<String, Object?>>> _demos() async {
   final folders = <Directory>[];
   await for (final entry in _root.list()) {
     if (entry is Directory &&
         _name(entry) != _name(_here) &&
-        await File('${entry.path}/process-compose.yaml').exists()) {
+        await File('${entry.path}/process-compose.yaml').exists() &&
+        await _groupOf(entry) == _group) {
       folders.add(entry);
     }
   }
@@ -120,6 +126,12 @@ Future<List<Map<String, Object?>>> _demos() async {
 
 final _webPort = RegExp(r'\$\{FLUTTER_WEB_PORT:-(\d+)\}');
 final _apiPort = RegExp(r'\$\{API_PORT:-(\d+)\}');
+
+/// The folder's group, from its group.id.txt (empty without one).
+Future<String> _groupOf(Directory dir) async {
+  final file = File('${dir.path}/group.id.txt');
+  return await file.exists() ? (await file.readAsString()).trim() : '';
+}
 
 /// The folder's name.
 String _name(Directory dir) =>
