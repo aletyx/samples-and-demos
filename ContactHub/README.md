@@ -129,13 +129,16 @@ reload: rebuild after a change.
 
 ## Run it in a codespace
 
-[![Open Contact Hub in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2FContactHub%2Fdevcontainer.json&machine=standardLinux32gb)
+[![Open Contact Hub and the other aityx demos in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/aletyx/samples-and-demos?devcontainer_path=.devcontainer%2Faityx%2Fdevcontainer.json&machine=standardLinux32gb)
 
-That link opens this repository's **Contact Hub** dev container on a
-4-core machine (16 GB RAM), which is what the Flutter builds want.
-To choose for yourself instead, use *Code → Codespaces → New with
-options* and pick **Contact Hub** as the dev container configuration —
-the repository holds several samples, so the configuration matters.
+That link opens this repository's **aityx demos** dev container on a
+4-core machine (16 GB RAM), which is what the Flutter builds want. It
+starts Contact Hub with the rest of its group, the aityx demos (Mortgage
+Hub, Cellfie, PokerFace, RoboRules and RiverRace), and the index page
+that links them. To choose for yourself instead, use *Code → Codespaces
+→ New with options* and pick **aityx demos** as the dev container
+configuration — the repository holds two groups of demos, each with its
+own, so the configuration matters.
 
 The codespace uses your [aityx](https://aityx.ai) key, the same
 `AITYX_API_KEY` Codespaces secret as Mortgage Hub's. GitHub keeps
@@ -148,33 +151,36 @@ Otherwise add it at
 page. Without it the app runs, but **Send** can't route.
 
 When the codespace is created,
-[on-create.sh](../.devcontainer/ContactHub/on-create.sh) copies the
-app's release web build from the [published image](../image/) into this
-folder (unless the app changed since the image was made: then it builds
-itself, a minute or two),
-[update-content.sh](../.devcontainer/ContactHub/update-content.sh)
-compiles the API and the web server (a few seconds) and
-[post-create.sh](../.devcontainer/ContactHub/post-create.sh) says
-whether your key arrived. Then, on that and every later start,
-[post-start.sh](../.devcontainer/ContactHub/post-start.sh) starts the
-services in the background and makes port **8890** public. There is
-nothing to run: the codespace is available about three minutes after
-you ask for it and the app answers within a minute after that; open
-port 8890 from the **Ports** panel (Codespaces may open it in a browser
-tab for you). Its bare URL redirects to the app at `/app/`.
+[on-create.sh](../.devcontainer/on-create.sh) copies the group's
+release web builds from the [published image](../image/) into the
+workspace (a demo that changed since the image was made builds itself
+instead, a minute or two),
+[update-content.sh](../.devcontainer/update-content.sh) compiles each
+API and web server (a few seconds each) and
+[post-create.sh](../.devcontainer/post-create.sh) says whether your key
+arrived. Then, on that and every later start,
+[post-start.sh](../.devcontainer/post-start.sh) starts the index page
+and the aityx group in the background with `./start-all.sh` and makes
+their ports public, Contact Hub's **8890** among them. There is nothing to
+run: the codespace is available about three minutes after you ask for
+it and the apps answer within a minute after that; open port 8890
+from the **Ports** panel, or Contact Hub's card on the index page (port
+8800, which Codespaces opens in a browser tab for you). Its bare URL
+redirects to the app at `/app/`.
 
-Watch the services with `process-compose attach -U -u
-/tmp/aityx-demos-ContactHub.sock`, stop them with `./stop-all.sh
-ContactHub` from the repository root (or `process-compose down -U -u`
-with the same socket), and start them again with `./start-all.sh
-ContactHub`. There is no devbox in a codespace: the demos run on the
-image's own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
-[demos-toolchain.sh](../demos-toolchain.sh)); `devbox services` is for
-a laptop.
+Watch Contact Hub's services with `process-compose attach -U -u
+/tmp/aityx-demos-ContactHub.sock`. Stop the group with `./stop-all.sh`
+from the repository root and start it again with `./start-all.sh`: in
+the codespace both act on the aityx group only (`DEMOS_GROUP=aityx`).
+There is no devbox in a codespace: the demos run on the image's own
+Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
+[demos-toolchain.sh](../demos-toolchain.sh)); `devbox services` is for a
+laptop.
 
-**If the app doesn't start, send us `ContactHub/startup.log`.** Every
-step of the codespace's start goes there, timestamped, including a line
-saying when the web app and the API first answered. It holds no secrets.
+**If the app doesn't start, send us `startup.log` from the root of the
+repository.** Every step of the codespace's start goes there,
+timestamped, including a line saying when each demo's web app and API
+first answered. It holds no secrets.
 
 **Check the port's visibility.** In the **Ports** panel, the
 *Visibility* column for 8890 should say **Public**. If it says
@@ -184,14 +190,16 @@ and reload the app.
 ## Run it in a dev container locally
 
 Open the repository root in VS Code and choose **Reopen in Container**,
-then **Contact Hub**. The dev container lives at the root of the
-repository, in [.devcontainer/ContactHub/](../.devcontainer/ContactHub),
-because that is where GitHub looks for one. It runs the same
-[published image](../image/) as every dev container here,
-`docker.io/aletyxcode/samples-and-demos-devcontainer`, built from one
-[Containerfile](../image/Containerfile): Microsoft's `ubuntu-24.04`
-base with pinned, checksum-verified Flutter, process-compose and the
-GitHub CLI, and every demo's release web build.
+then **aityx demos**. The dev containers live at the root of the
+repository, in [.devcontainer/](../.devcontainer), because that is
+where GitHub looks for them: one per demo group, Contact Hub's in
+[.devcontainer/aityx/](../.devcontainer/aityx), with the scripts both
+share beside them. It runs the aityx group's
+[published image](../image/), `docker.io/aletyxcode/samples-and-demos-aityx`,
+built from the [Containerfile](../image/Containerfile) by
+`bash image/build-image.sh aityx`: Microsoft's `ubuntu-24.04` base with
+pinned, checksum-verified Flutter, process-compose and the GitHub CLI,
+and the six aityx demos' release web builds.
 
 ## Contributing
 

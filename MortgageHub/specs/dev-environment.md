@@ -115,27 +115,35 @@
   `/api/health` with busybox `wget`. `web` starts once `api` is healthy,
   and `docker compose up --wait` returns once both are. There is no hot
   reload; both restart `unless-stopped`.
-- **Dev container** ([.devcontainer/](../../.devcontainer)): the
-  samples repository's default one, **All demos**, at the root of the
-  repository, not in this folder, because that is the only place GitHub
-  looks for one. It starts every demo (each folder with a `devbox.json`
-  and a `process-compose.yaml`, this one among them) and the index page
-  with the repository's `start-all.sh`. Mortgage Hub's own dev container,
-  which started only this app and which the other demos' were copied
-  from, is archived in
+- **Dev container** ([.devcontainer/aityx/](../../.devcontainer/aityx)):
+  the aityx group's, **aityx demos**, at the root of the repository, not
+  in this folder, because that is the only place GitHub looks for one.
+  The repository has one dev container per demo group, each with its own
+  image; the datyx group's is in
+  [.devcontainer/datyx/](../../.devcontainer/datyx), and there is no
+  per-demo one and no default one. This one starts the aityx group (the
+  folders whose `group.id.txt` says `aityx`: Mortgage Hub, Contact Hub,
+  Cellfie, RoboRules, RiverRace and PokerFace) and the index page with
+  the repository's `start-all.sh`; its `DEMOS_GROUP=aityx` makes
+  `start-all.sh`, `stop-all.sh` and `build-all.sh` act on that group
+  only. The scripts it runs are in
+  [.devcontainer/](../../.devcontainer), shared by both groups.
+  Mortgage Hub's own dev container, which started only this app and
+  which the per-demo ones were copied from, is archived in
   [.devcontainer/archive/MortgageHub/](../../.devcontainer/archive/MortgageHub)
-  and is no longer offered when creating a codespace (GitHub lists only
-  `.devcontainer/devcontainer.json` and `.devcontainer/<name>/`). The
-  default container opens with a header saying what it starts and
-  linking the repository, aityx.ai, aletyx.com and nu01.com. It uses
-  the published image every dev container here uses,
-  `docker.io/aletyxcode/samples-and-demos-devcontainer`, built from
-  [image/Containerfile](../../image/Containerfile) (see
-  [image/](../../image/)): Microsoft's `ubuntu-24.04` base with Flutter
-  3.47.0, process-compose and the GitHub CLI, pinned and checked against
-  their published SHA-256, and every demo's release web build. The demos
-  run on the image's own Flutter and process-compose
-  (`DEMOS_TOOLCHAIN=image`, see
+  and is not offered when creating a codespace (GitHub lists only a
+  `devcontainer.json` directly in `.devcontainer/` or one folder below
+  it). The
+  container opens with a header saying what it starts and linking the
+  repository, aityx.ai, aletyx.com and nu01.com. It uses the group's
+  published image, `docker.io/aletyxcode/samples-and-demos-aityx`, built
+  from [image/Containerfile](../../image/Containerfile) by
+  `bash image/build-image.sh aityx` (see [image/](../../image/)):
+  Microsoft's `ubuntu-24.04` base with Flutter 3.47.0, process-compose
+  and the GitHub CLI, pinned and checked against their published
+  SHA-256, and the six aityx demos' release web builds. No Docker
+  feature: no aityx demo has a database. The demos run on the image's
+  own Flutter and process-compose (`DEMOS_TOOLCHAIN=image`, see
   [demos-toolchain.sh](../../demos-toolchain.sh)): no devbox or Nix in
   a codespace. `hostRequirements` asks for 4 cores and 16 GB.
   [on-create.sh](../../.devcontainer/on-create.sh) copies the builds
@@ -144,15 +152,16 @@
   whose folder has the git tree hash the image was made from; a demo
   that changed since builds itself, a minute or two on 4 cores.
   [update-content.sh](../../.devcontainer/update-content.sh) runs
-  `./build-all.sh` (each demo's `scripts/build.sh`: the compiled API and
-  web server, a few seconds each).
+  `./build-all.sh` for the group (each demo's `scripts/build.sh`: the
+  compiled API and web server, a few seconds each).
   [post-create.sh](../../.devcontainer/post-create.sh) reports whether
-  `AITYX_API_KEY` arrived, never its value. Measured: the codespace is
-  available about three minutes after the request and the demos answer
-  within a minute after that. The container sets every demo's
-  `*_BIND_HOST` to `0.0.0.0` (`MORTGAGEHUB_BIND_HOST` for this one,
-  `INDEX_BIND_HOST` for the index), forwards 8800 and the five web ports
-  (8880 to 8920), and adds the Dart and Flutter extensions.
+  `AITYX_API_KEY` arrived, never its value. Measured, with the former
+  container that started every demo: the codespace was available about
+  three minutes after the request and the demos answered within a minute
+  after that. The container sets each aityx demo's `*_BIND_HOST` to
+  `0.0.0.0` (`MORTGAGEHUB_BIND_HOST` for this one, `INDEX_BIND_HOST` for
+  the index), forwards 8800 and the six web ports (8880 to 8940), and
+  adds the Dart and Flutter extensions.
 - **The editor's Flutter SDK**: the image carries Flutter 3.47.0, the
   version `devbox.lock` pins, in `/opt/flutter`: on x64 the release
   archive, checked against the SHA-256 in `releases_linux.json`; on arm64,
@@ -167,9 +176,10 @@
 - **Starts by itself**: `postStartCommand` runs
   [post-start.sh](../../.devcontainer/post-start.sh) on every start
   (after `on-create.sh`, `update-content.sh` and `post-create.sh` on the
-  first), which runs `./start-all.sh` detached with `WAIT=900` (each
-  demo's services under the image's process-compose, reached through
-  `/tmp/aityx-demos-<demo>.sock`; `./stop-all.sh` stops them), then
+  first), which starts the index page with `./start-all.sh Index`, then
+  the group with `./start-all.sh` and `WAIT=900`, detached (each demo's
+  services under the image's process-compose, reached through
+  `/tmp/aityx-demos-<demo>.sock`; `./stop-all.sh` stops the group), then
   `public-port.sh`. Every port is
   forwarded as plain HTTP; only the index's 8800 has `onAutoForward:
   openBrowserOnce`, the others are `silent`, since the index is up in
@@ -220,8 +230,9 @@
 - **Launch link**: the [README](../README.md#run-it-in-a-codespace) has an
   **Open in GitHub Codespaces** badge pointing at
   `codespaces.new/aletyx/samples-and-demos` with `devcontainer_path` set
-  to this configuration and `machine=standardLinux32gb`, the 4-core,
-  16 GB machine the Flutter builds want.
+  to `.devcontainer/aityx/devcontainer.json`, the same link as every
+  aityx demo's, and `machine=standardLinux32gb`, the 4-core, 16 GB
+  machine the Flutter builds want.
 - **Setup screenshots**: the README's codespace steps show the
   *New secret* form and the *Create a new codespace* page
   ([docs/images/](../docs/images/)), so a reader can check that the key is
