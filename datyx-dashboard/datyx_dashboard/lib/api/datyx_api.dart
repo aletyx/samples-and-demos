@@ -12,7 +12,6 @@ class SystemStatus {
     required this.uptime,
     required this.database,
     required this.openMetadata,
-    required this.greetings,
     this.dataSources = 0,
   });
 
@@ -23,7 +22,6 @@ class SystemStatus {
     uptime: Duration(seconds: (json['uptimeSeconds'] as num?)?.toInt() ?? 0),
     database: Dependency.fromJson(json['database']),
     openMetadata: Dependency.fromJson(json['openmetadata']),
-    greetings: (json['greetings'] as num?)?.toInt() ?? 0,
     dataSources: (json['dataSources'] as num?)?.toInt() ?? 0,
   );
 
@@ -33,7 +31,6 @@ class SystemStatus {
   final Duration uptime;
   final Dependency database;
   final Dependency openMetadata;
-  final int greetings;
   final int dataSources;
 }
 
@@ -187,21 +184,6 @@ class NewDataSource {
   };
 }
 
-/// A greeting on record: `GET /api/greetings`, `POST /api/greetings`.
-class Greeting {
-  const Greeting({required this.id, required this.message, this.createdAt});
-
-  factory Greeting.fromJson(Map<String, Object?> json) => Greeting(
-    id: (json['id'] as num?)?.toInt() ?? 0,
-    message: json['message'] as String? ?? '',
-    createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
-  );
-
-  final int id;
-  final String message;
-  final DateTime? createdAt;
-}
-
 /// One call to the API, as the calls panel shows it.
 class ApiCall {
   ApiCall({
@@ -274,9 +256,6 @@ abstract class DatyxApi {
   Future<AuthConfig> authConfig();
   Future<Me> me();
   Future<SystemStatus> status();
-  Future<String> hello({String? name});
-  Future<List<Greeting>> greetings({int limit = 50});
-  Future<Greeting> addGreeting(String message);
   Future<List<DataSource>> dataSources({int limit = 100});
   Future<DataSource> addDataSource(NewDataSource source);
   Future<void> removeDataSource(int id);
@@ -419,29 +398,4 @@ class HttpDatyxApi implements DatyxApi {
   @override
   Future<SystemStatus> status() async =>
       SystemStatus.fromJson((await _send('GET', '/api/status') as Map).cast());
-
-  @override
-  Future<String> hello({String? name}) async {
-    final json = await _send(
-      'GET',
-      '/api/hello',
-      query: name == null || name.isEmpty ? null : {'name': name},
-    );
-    return (json as Map)['message'] as String? ?? '';
-  }
-
-  @override
-  Future<List<Greeting>> greetings({int limit = 50}) async {
-    final json = await _send('GET', '/api/greetings', query: {'limit': '$limit'});
-    return [
-      for (final item in json as List)
-        Greeting.fromJson((item as Map).cast<String, Object?>()),
-    ];
-  }
-
-  @override
-  Future<Greeting> addGreeting(String message) async {
-    final json = await _send('POST', '/api/greetings', body: {'message': message});
-    return Greeting.fromJson((json as Map).cast<String, Object?>());
-  }
 }

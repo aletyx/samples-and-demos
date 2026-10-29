@@ -72,10 +72,11 @@ through the proxy both answer.
 
 ## The dashboard (datyx_dashboard/)
 
-One screen: status cards (API, PostgreSQL, OpenMetadata, greetings) from
-`/api/status`, refreshed every 15 s, a hello call, the greetings on record
-with a field to add one, and a side panel with every call made: method,
-path, status, time, and the request and response bodies. See
+One screen, three tabs: Data sources, the ones on record with a dialog
+to add one and a button to remove one; Health, status cards (API,
+PostgreSQL, OpenMetadata, sign-in, records) from `/api/status`, refreshed
+every 15 s, and the dashboard's own version; Audit, every call made:
+method, path, status, time, and the request and response bodies. See
 [specs/dashboard.md](specs/dashboard.md).
 
 ## Build

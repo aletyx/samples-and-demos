@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../api/datyx_api.dart';
 import '../theme.dart';
 
-/// Every call to the API, newest first: method, path, status and time,
-/// and, expanded, the request and the response bodies.
+/// The Audit tab: every call to the API, newest first, with method, path,
+/// status and time, and, expanded, the request and the response bodies.
 class CallsPanel extends StatelessWidget {
   const CallsPanel({super.key, required this.log});
 
@@ -15,41 +15,47 @@ class CallsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     color: Aityx.bg0,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-          child: Row(
-            children: [
-              Text('API calls', style: Theme.of(context).textTheme.titleMedium),
-              const Spacer(),
-              IconButton(
-                tooltip: 'Clear',
-                onPressed: log.clear,
-                icon: const Icon(Icons.delete_outline, size: 18),
+    child: ListenableBuilder(
+      listenable: log,
+      builder: (context, _) {
+        final calls = log.calls;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+              child: Row(
+                children: [
+                  Text('API calls', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(width: 10),
+                  Text(
+                    calls.isEmpty
+                        ? 'the latest ${CallLog.keep} are kept'
+                        : '${calls.length} of the latest ${CallLog.keep} kept',
+                    style: const TextStyle(color: Aityx.muted, fontSize: 12),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Clear',
+                    onPressed: calls.isEmpty ? null : log.clear,
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListenableBuilder(
-            listenable: log,
-            builder: (context, _) {
-              final calls = log.calls;
-              if (calls.isEmpty) {
-                return const Center(
-                  child: Text('No calls yet.', style: TextStyle(color: Aityx.muted)),
-                );
-              }
-              return ListView.builder(
-                itemCount: calls.length,
-                itemBuilder: (context, i) => _CallTile(call: calls[i]),
-              );
-            },
-          ),
-        ),
-      ],
+            ),
+            Expanded(
+              child: calls.isEmpty
+                  ? const Center(
+                      child: Text('No calls yet.', style: TextStyle(color: Aityx.muted)),
+                    )
+                  : ListView.builder(
+                      itemCount: calls.length,
+                      itemBuilder: (context, i) => _CallTile(call: calls[i]),
+                    ),
+            ),
+          ],
+        );
+      },
     ),
   );
 }
