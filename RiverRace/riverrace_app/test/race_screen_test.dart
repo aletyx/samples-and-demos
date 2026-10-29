@@ -164,7 +164,7 @@ void main() {
     final decider = SlowDecider();
     await pumpApp(tester, decider);
     await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
-    // At ¾× speed, 11 frames make 8 game frames.
+    // At ¾× speed, 11 frames reach the first aityx decision.
     await run(tester, 11);
     expect(decider.pending, isNotNull);
     final race =
