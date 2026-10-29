@@ -2,6 +2,18 @@
 
 The history of requests that shaped datyx, newest first.
 
+## 2026-10-29: the API starts without a .env
+
+Asked: spin up a codespace for each demo group. In the datyx one the API
+never answered: "Failed to load config value ... datyx.oidc.issuer".
+
+Changed: scripts/env.sh exported `OIDC_ISSUER` empty when neither the
+environment nor `.env` set it, which overrode the Google default in
+application.properties with nothing. It now defaults to
+`https://accounts.google.com` too, so a fresh checkout (a codespace has
+no `.env`) starts the API, with authentication still off until
+`OIDC_CLIENT_ID` is set.
+
 ## 2026-10-29: the dev containers by demo group
 
 Asked: separate the dev containers, images and Codespaces configurations
