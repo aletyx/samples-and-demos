@@ -101,3 +101,7 @@ The feature files hold the current specification; see the
     bridge 10 is enough.** The controls moved into the top bar, right of
     the title and the status; Restart and New river are icons. The race
     always ends at bridge 10 (see [Game](game.md#playing)).
+13. **Bring the README up to date.** Its game summary says what the last
+    requests changed: the slowdown and beep over depots, seven planes in
+    reserve, the sounds, 25% opacity, the starting speed and the finish
+    at bridge 10.
